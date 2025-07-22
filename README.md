@@ -1,68 +1,38 @@
-# CodeIgniter 4 Application Starter
+# 🛒 Loja Virtual em CodeIgniter 4
 
-## What is CodeIgniter?
+![Status](https://img.shields.io/badge/status-conclu%C3%ADdo-brightgreen)
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+Projeto full-stack de uma loja virtual (e-commerce) completa, desenvolvida como parte de um estudo aprofundado do framework PHP CodeIgniter 4.
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+## ✨ Funcionalidades
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+O projeto é dividido em duas grandes áreas: a vitrine para os clientes e um painel administrativo para o gerenciamento da loja.
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+#### Painel Administrativo
+- [x] **Login Seguro:** Autenticação de administrador.
+- [x] **Gerenciamento de Produtos:** CRUD completo (Criar, Ler, Atualizar, Deletar) de produtos.
+- [x] **Gerenciamento de Categorias:** CRUD completo de categorias para os produtos.
+- [x] **Upload de Imagens:** Funcionalidade de upload para as fotos dos produtos.
+- [x] **Visualização de Pedidos:** Tela para listar todos os pedidos feitos na loja.
 
-## Installation & updates
+#### Vitrine (Frente de Loja)
+- [x] **Catálogo de Produtos:** Exibição dos produtos com paginação.
+- [x] **Página de Detalhes:** Visualização detalhada de cada produto.
+- [x] **Carrinho de Compras:** Adicionar, remover e visualizar itens no carrinho.
+- [x] **Checkout:** Processo de finalização de compra que transforma o carrinho em um pedido no banco de dados.
+- [x] **Busca em Tempo Real:** Campo de busca que filtra os produtos dinamicamente.
+- [x] **Filtro por Categoria:** Navegação para visualizar produtos de uma categoria específica.
+- [x] **Área do Cliente:** Página para o cliente logado visualizar seu histórico de pedidos.
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+## 🛠️ Tecnologias Utilizadas
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+* **Back-end:** PHP 8, CodeIgniter 4
+* **Front-end:** HTML5, CSS3, Bootstrap 5, JavaScript
+* **Banco de Dados:** MySQL
+* **Gerenciador de Dependências:** Composer
 
-## Setup
+---
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+## 📄 Licença
 
-## Important Change with index.php
-
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
-
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
-
-**Please** read the user guide for a better explanation of how CI4 works!
-
-## Repository Management
-
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
-
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
-
-## Server Requirements
-
-PHP version 8.1 or higher is required, with the following extensions installed:
-
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
-
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - If you are still using PHP 7.4 or 8.0, you should upgrade immediately.
-> - The end of life date for PHP 8.1 will be December 31, 2025.
-
-Additionally, make sure that the following extensions are enabled in your PHP:
-
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE.md) para mais detalhes.
