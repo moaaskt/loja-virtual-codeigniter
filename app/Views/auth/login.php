@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="pt-br">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,7 +31,7 @@
       max-width: 420px;
       width: 100%;
       color: white;
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
     }
 
     .form-control,
@@ -79,6 +80,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <div class="login-card">
@@ -92,31 +94,39 @@
     <?php endif; ?>
 
     <?= form_open('auth/attempt-login') ?>
-      <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
-          <input type="email" name="email" id="email" class="form-control" placeholder="seu@email.com" value="<?= old('email') ?? 'admin@teste.com' ?>" required>
-        </div>
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+        <input type="email" name="email" id="email" class="form-control" placeholder="seu@email.com"
+          value="<?= old('email') ?? 'admin@teste.com' ?>" required>
       </div>
+    </div>
 
-      <div class="mb-4">
-        <label for="senha" class="form-label">Senha</label>
-        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-          <input type="password" name="senha" id="senha" class="form-control" placeholder="••••••••" required>
-        </div>
+    <div class="mb-4">
+      <label for="senha" class="form-label">Senha</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+        <input type="password" name="senha" id="senha" class="form-control" placeholder="••••••••" required>
       </div>
+    </div>
 
-      <div class="d-grid mb-3">
-        <button type="submit" class="btn btn-neon btn-lg">Entrar</button>
-      </div>
+    <div class="d-grid mb-3">
+      <button type="submit" class="btn btn-neon btn-lg">Entrar</button>
+    </div>
 
-      <div class="text-center">
-        <a href="#">Esqueceu sua senha?</a>
-      </div>
+    
+    <div class="text-center mt-3">
+      <p>Não tem uma conta? <a href="<?= site_url('registrar') ?>">Crie uma agora</a></p>
+    </div>
+
+
+    <div class="text-center">
+      <a href="#">Esqueceu sua senha?</a>
+    </div>
     <?= form_close() ?>
   </div>
 
 </body>
+
 </html>

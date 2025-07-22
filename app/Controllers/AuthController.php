@@ -11,6 +11,48 @@ class AuthController extends BaseController
         helper(['form', 'url']);
     }
 
+
+
+    // Mostra o formulário de registro
+public function registrar()
+{
+    helper('form');
+    return view('auth/registrar', ['title' => 'Crie sua Conta']);
+}
+
+// Salva o novo usuário
+public function attemptRegister()
+{
+    helper('form');
+    $model = new UsuarioModel();
+
+    $data = [
+        'nome'       => $this->request->getPost('nome'),
+        'email'      => $this->request->getPost('email'),
+        'senha_hash' => $this->request->getPost('senha_hash'),
+        'password_confirm' => $this->request->getPost('password_confirm'),
+    ];
+
+    if ($model->save($data)) {
+        // Loga o usuário automaticamente após o registro
+        $usuario = $model->find($model->getInsertID());
+        $session = session();
+        $sessionData = [
+            'usuario_id' => $usuario['id'],
+            'nome'       => $usuario['nome'],
+            'isLoggedIn' => TRUE
+        ];
+        $session->set($sessionData);
+
+        return redirect()->to(site_url('/'))->with('success', 'Conta criada com sucesso!');
+    } else {
+        return redirect()->back()->withInput()->with('errors', $model->errors());
+    }
+}
+
+
+
+
     // Mostra o formulário de login
     public function login()
     {

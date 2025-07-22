@@ -49,6 +49,10 @@ $routes->post('categorias/(:num)', 'CategoriasController::update/$1');
 $routes->post('categorias/delete/(:num)', 'CategoriasController::delete/$1');
 
 
+// --- rotas para registro de usuários ---
+$routes->get('registrar', 'AuthController::registrar'); // Mostra o formulário
+$routes->post('registrar/salvar', 'AuthController::attemptRegister'); // Processa o formulário
+
 
 
 // --- Rotas Manuais para o CRUD de Produtos ---
