@@ -14,7 +14,7 @@
     </div>
 <?php endif; ?>
 
-<?= form_open_multipart('produtos/create') ?>
+<?= form_open_multipart('admin/produtos/create') ?>
 
 <div class="mb-3">
     <label for="categoria_id" class="form-label">Categoria</label>
@@ -54,7 +54,7 @@
     <input class="form-control" type="file" id="imagem" name="imagem">
 </div>
 <button type="submit" class="btn btn-success">Salvar Produto</button>
-<a href="<?= site_url('produtos') ?>" class="btn btn-secondary">Cancelar</a>
+<a href="<?= site_url('admin/produtos') ?>" class="btn btn-secondary">Cancelar</a>
 
 <?= form_close() ?>
 

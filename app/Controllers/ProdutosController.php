@@ -12,9 +12,9 @@ class ProdutosController extends BaseController
         $model = new ProdutoModel();
 
         if ($model->delete($id)) {
-            return redirect()->to(site_url('produtos'))->with('success', 'Produto excluído com sucesso!');
+            return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto excluído com sucesso!');
         } else {
-            return redirect()->to(site_url('produtos'))->with('error', 'Erro ao excluir o produto.');
+            return redirect()->to(site_url('admin/produtos'))->with('error', 'Erro ao excluir o produto.');
         }
     }
 
@@ -47,7 +47,7 @@ class ProdutosController extends BaseController
         }
 
         if ($produtoModel->update($id, $data)) {
-            return redirect()->to(site_url('produtos'))->with('success', 'Produto atualizado com sucesso!');
+            return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto atualizado com sucesso!');
         } else {
             // Se a validação falhar, precisamos reenviar a lista de categorias
             $categoriaModel = new \App\Models\CategoriaModel();
@@ -102,7 +102,7 @@ class ProdutosController extends BaseController
         }
 
         if ($produtoModel->insert($data)) {
-            return redirect()->to(site_url('produtos'))->with('success', 'Produto criado com sucesso!');
+            return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto criado com sucesso!');
         } else {
             // Se a validação falhar, precisamos reenviar a lista de categorias
             $categoriaModel = new \App\Models\CategoriaModel();

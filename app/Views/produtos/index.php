@@ -15,7 +15,7 @@
     <?php endif; ?>
 
     <p>
-        <a href="<?= site_url('produtos/new') ?>" class="btn btn-success mb-3">Adicionar Novo Produto</a>
+        <a href="<?= site_url('admin/produtos/new') ?>" class="btn btn-success mb-3">Adicionar Novo Produto</a>
     </p>
 
     <table class="table table-striped table-bordered">
@@ -36,17 +36,17 @@
                         <td><?= esc($produto['id']) ?></td>
                          <td>
                 <?php if (!empty($produto['imagem'])): ?>
-                    <img src="<?= base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" alt="<?= esc($produto['nome']) ?>" width="80">
+                    <img src="<?= base_url('admin/uploads/produtos/' . esc($produto['imagem'])) ?>" alt="<?= esc($produto['nome']) ?>" width="80">
                 <?php else: ?>
-                    <img src="<?= base_url('uploads/produtos/sem_imagem.png') ?>" alt="Sem Imagem" width="80"> <?php endif; ?>
+                    <img src="<?= base_url('admin/uploads/produtos/sem_imagem.png') ?>" alt="Sem Imagem" width="80"> <?php endif; ?>
             </td>
                         <td><?= esc($produto['nome']) ?></td>
                         <td><?= esc($produto['categoria_nome']) ?></td>
                         <td>R$ <?= esc(number_format($produto['preco'], 2, ',', '.')) ?></td>
                         <td><?= esc($produto['estoque']) ?></td>
                         <td class="d-flex" style="gap: 5px;">
-                            <a href="<?= site_url('produtos/edit/' . $produto['id']) ?>" class="btn btn-primary btn-sm">Editar</a>
-                            <form action="<?= site_url('produtos/delete/' . $produto['id']) ?>" method="post" class="d-inline">
+                            <a href="<?= site_url('admin/produtos/edit/' . $produto['id']) ?>" class="btn btn-primary btn-sm">Editar</a>
+                            <form action="<?= site_url('admin/produtos/delete/' . $produto['id']) ?>" method="post" class="d-inline">
                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza?');">Excluir</button>
                             </form>
                         </td>

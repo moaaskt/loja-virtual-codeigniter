@@ -17,7 +17,7 @@
         </div>
     <?php endif; ?>
 
-    <?= form_open('categorias') ?>
+   <?= form_open('admin/categorias') ?>
 
         <label for="nome">Nome da Categoria</label>
         <input type="text" name="nome" id="nome" value="<?= old('nome') ?>">
@@ -30,7 +30,7 @@
         <br><br>
 
         <button type="submit">Salvar</button>
-        <a href="<?= site_url('categorias') ?>">Cancelar</a>
+        <a href="<?= site_url('admin/categorias') ?>">Cancelar</a>
 
     <?= form_close() ?>
 

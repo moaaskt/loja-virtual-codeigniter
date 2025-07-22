@@ -17,7 +17,7 @@
         </div>
     <?php endif; ?>
 
-    <form action="<?= site_url('categorias/' . $categoria['id']) ?>" method="post">
+    <form action="<?= site_url('admin/categorias' . $categoria['id']) ?>" method="post">
     <?= csrf_field() ?> 
 
         <label for="nome">Nome da Categoria</label>
@@ -31,7 +31,7 @@
         <br><br>
 
         <button type="submit">Atualizar</button>
-        <a href="<?= site_url('categorias') ?>">Cancelar</a>
+        <a href="<?= site_url('admin/categorias') ?>">Cancelar</a>
 
     </form>
 
