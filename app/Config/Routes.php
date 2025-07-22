@@ -40,32 +40,38 @@ $routes->post('carrinho/remover/(:num)', 'CarrinhoController::remover/$1');
 $routes->post('carrinho/atualizar', 'CarrinhoController::atualizar');
 
 
-// --- // --- Rotas Manuais para o CRUD de Categorias ---
-$routes->get('categorias', 'CategoriasController::index');
-$routes->get('categorias/new', 'CategoriasController::new');
-$routes->post('categorias', 'CategoriasController::create');
-$routes->get('categorias/edit/(:num)', 'CategoriasController::edit/$1');
-$routes->post('categorias/(:num)', 'CategoriasController::update/$1');
-$routes->post('categorias/delete/(:num)', 'CategoriasController::delete/$1');
 
 
 // --- rotas para registro de usuários ---
 $routes->get('registrar', 'AuthController::registrar'); // Mostra o formulário
 $routes->post('registrar/salvar', 'AuthController::attemptRegister'); // Processa o formulário
 
-
-
-// --- Rotas Manuais para o CRUD de Produtos ---
-$routes->get('produtos', 'ProdutosController::index');
-$routes->get('produtos/new', 'ProdutosController::new');      // Rota para mostrar o formulário
-$routes->post('produtos/create', 'ProdutosController::create');  // Rota para salvar o novo produto
-$routes->get('produtos/edit/(:num)', 'ProdutosController::edit/$1');
-$routes->post('produtos/update/(:num)', 'ProdutosController::update/$1');
-$routes->post('produtos/delete/(:num)', 'ProdutosController::delete/$1');
-
-
 // --- Rota para buscar produtos via API ---
  $routes->get('api/produtos/busca', 'HomeController::buscaApi');     
 
 // --- Rota para buscar produtos por categoria ---
  $routes->get('categoria/(:num)', 'HomeController::produtosPorCategoria/$1');
+
+
+ 
+ // --- ROTAS DO PAINEL ADMINISTRATIVO ---
+$routes->group('admin', ['filter' => ['auth', 'admin']], static function ($routes) {
+   // Dashboard
+   $routes->get('dashboard', 'AdminController::index');
+
+   // Rotas para Categorias
+   $routes->get('categorias', 'CategoriasController::index');
+   $routes->get('categorias/new', 'CategoriasController::new');
+   $routes->post('categorias', 'CategoriasController::create');
+   $routes->get('categorias/edit/(:num)', 'CategoriasController::edit/$1');
+   $routes->post('categorias/(:num)', 'CategoriasController::update/$1');
+   $routes->post('categorias/delete/(:num)', 'CategoriasController::delete/$1');
+
+   // Rotas para Produtos
+   $routes->get('produtos', 'ProdutosController::index');
+   $routes->get('produtos/new', 'ProdutosController::new');
+   $routes->post('produtos/create', 'ProdutosController::create');
+   $routes->get('produtos/edit/(:num)', 'ProdutosController::edit/$1');
+   $routes->post('produtos/update/(:num)', 'ProdutosController::update/$1');
+   $routes->post('produtos/delete/(:num)', 'ProdutosController::delete/$1');
+});
