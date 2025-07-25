@@ -36,9 +36,9 @@
                         <td><?= esc($produto['id']) ?></td>
                          <td>
                 <?php if (!empty($produto['imagem'])): ?>
-                    <img src="<?= base_url('admin/uploads/produtos/' . esc($produto['imagem'])) ?>" alt="<?= esc($produto['nome']) ?>" width="80">
+                    <img src="<?= base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" alt="<?= esc($produto['nome']) ?>" width="80">
                 <?php else: ?>
-                    <img src="<?= base_url('admin/uploads/produtos/sem_imagem.png') ?>" alt="Sem Imagem" width="80"> <?php endif; ?>
+                    <img src="<?= base_url('uploads/produtos/sem_imagem.png') ?>" alt="Sem Imagem" width="80"> <?php endif; ?>
             </td>
                         <td><?= esc($produto['nome']) ?></td>
                         <td><?= esc($produto['categoria_nome']) ?></td>
