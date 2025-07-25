@@ -58,6 +58,9 @@ $routes->post('registrar/salvar', 'AuthController::attemptRegister'); // Process
 $routes->group('admin', ['filter' => ['auth', 'admin']], static function ($routes) {
    // Dashboard
    $routes->get('dashboard', 'AdminController::index');
+    $routes->get('pedidos', 'Admin\PedidoController::index');
+
+
 
    // Rotas para Categorias
    $routes->get('categorias', 'CategoriasController::index');

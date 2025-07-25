@@ -8,7 +8,20 @@
     <p>Bem-vindo ao painel de controle da loja.</p>
 
     <div class="row mt-4">
-        <div class="col-md-6">
+
+    <div class="col-md-3">
+    <div class="card">
+        <div class="card-body text-center">
+            <h5 class="card-title">Gerenciar Pedidos</h5>
+            <p class="card-text">Visualize e atualize o status dos pedidos dos clientes.</p>
+            <a href="<?= site_url('admin/pedidos') ?>" class="btn btn-primary">Ir para Pedidos</a>
+        </div>
+    </div>
+</div>
+
+
+
+        <div class="col-md-3">
             <div class="card">
                 <div class="card-body text-center">
                     <h5 class="card-title">Gerenciar Produtos</h5>
@@ -17,7 +30,11 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+
+
+
+
+        <div class="col-md-3">
             <div class="card">
                 <div class="card-body text-center">
                     <h5 class="card-title">Gerenciar Categorias</h5>

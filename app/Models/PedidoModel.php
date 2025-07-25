@@ -15,7 +15,14 @@ class PedidoModel extends Model
             ->findAll();
     }
 
+    public function getAllPedidosComCliente($perPage = 10)
+    {
+        $this->select('pedidos.*, usuarios.nome as cliente_nome');
+        $this->join('usuarios', 'usuarios.id = pedidos.usuario_id');
+        $this->orderBy('pedidos.criado_em', 'DESC');
 
+        return $this->paginate($perPage);
+    }
 
     protected $table = 'pedidos';
     protected $primaryKey = 'id';
