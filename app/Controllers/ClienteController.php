@@ -16,37 +16,37 @@ class ClienteController extends BaseController
      */
 
 
-    
-public function index()
-{
-    $pedidoModel = new PedidoModel();
-    $pedidoProdutoModel = new \App\Models\PedidoProdutoModel();
-    $usuarioId = session()->get('usuario_id');
 
-    $pedidos = $pedidoModel->getPedidosPorUsuario($usuarioId);
-    $itens_dos_pedidos = [];
+    public function index()
+    {
+        $pedidoModel = new PedidoModel();
+        $pedidoProdutoModel = new \App\Models\PedidoProdutoModel();
+        $usuarioId = session()->get('usuario_id');
 
-    if (!empty($pedidos)) {
-        // Pega apenas os IDs de todos os pedidos
-        $pedidoIds = array_column($pedidos, 'id');
+        $pedidos = $pedidoModel->getPedidosPorUsuario($usuarioId);
+        $itens_dos_pedidos = [];
 
-        // Busca todos os produtos de todos os pedidos de uma só vez
-       $produtos = $pedidoProdutoModel->getProdutosDePedido($pedidoIds);
+        if (!empty($pedidos)) {
+            // Pega apenas os IDs de todos os pedidos
+            $pedidoIds = array_column($pedidos, 'id');
 
-        // Organiza os produtos por pedido_id para facilitar o uso na view
-        foreach ($produtos as $produto) {
-            $itens_dos_pedidos[$produto['pedido_id']][] = $produto;
+            // Garanta que esta linha chame o método no PLURAL: getProdutosDePedidos
+            $produtos = $pedidoProdutoModel->getProdutosDePedidos($pedidoIds);
+
+            // Organiza os produtos por pedido_id para facilitar o uso na view
+            foreach ($produtos as $produto) {
+                $itens_dos_pedidos[$produto['pedido_id']][] = $produto;
+            }
         }
+
+        $data = [
+            'title' => 'Meus Pedidos',
+            'pedidos' => $pedidos,
+            'itens_dos_pedidos' => $itens_dos_pedidos
+        ];
+
+        return view('cliente/meus_pedidos', $data);
     }
-
-    $data = [
-        'title'             => 'Meus Pedidos',
-        'pedidos'           => $pedidos,
-        'itens_dos_pedidos' => $itens_dos_pedidos
-    ];
-
-    return view('cliente/meus_pedidos', $data);
-}
 
 
 
