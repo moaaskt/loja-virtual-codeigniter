@@ -31,7 +31,7 @@ public function index()
         $pedidoIds = array_column($pedidos, 'id');
 
         // Busca todos os produtos de todos os pedidos de uma só vez
-        $produtos = $pedidoProdutoModel->getProdutosDePedidos($pedidoIds);
+       $produtos = $pedidoProdutoModel->getProdutosDePedido($pedidoIds);
 
         // Organiza os produtos por pedido_id para facilitar o uso na view
         foreach ($produtos as $produto) {

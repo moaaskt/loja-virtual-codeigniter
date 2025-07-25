@@ -1,48 +1,42 @@
-<?= $this->extend('layouts/main') ?>
-
+<?= $this->extend('layouts/admin') ?>
 <?= $this->section('title') ?><?= esc($title) ?><?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="container">
-    <h1><?= esc($title) ?></h1>
-    <p>Bem-vindo ao painel de controle da loja.</p>
-
-    <div class="row mt-4">
-
-    <div class="col-md-3">
-    <div class="card">
-        <div class="card-body text-center">
-            <h5 class="card-title">Gerenciar Pedidos</h5>
-            <p class="card-text">Visualize e atualize o status dos pedidos dos clientes.</p>
-            <a href="<?= site_url('admin/pedidos') ?>" class="btn btn-primary">Ir para Pedidos</a>
-        </div>
-    </div>
-</div>
-
-
-
+    <h1 class="mb-4">Dashboard</h1>
+    <div class="row">
         <div class="col-md-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Gerenciar Produtos</h5>
-                    <p class="card-text">Adicione, edite e remova produtos da sua loja.</p>
-                    <a href="<?= site_url('admin/produtos') ?>" class="btn btn-primary">Ir para Produtos</a>
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total de Produtos</h5>
+                    <p class="card-text fs-4"><?= $total_produtos ?></p>
                 </div>
             </div>
         </div>
-
-
-
-
         <div class="col-md-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Gerenciar Categorias</h5>
-                    <p class="card-text">Organize seus produtos em categorias.</p>
-                    <a href="<?= site_url('admin/categorias') ?>" class="btn btn-primary">Ir para Categorias</a>
+            <div class="card text-white bg-info mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total de Pedidos</h5>
+                    <p class="card-text fs-4"><?= $total_pedidos ?></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Baixo Estoque (<=5)</h5>
+                    <p class="card-text fs-4"><?= $baixo_estoque ?></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Sem Estoque</h5>
+                    <p class="card-text fs-4"><?= $sem_estoque ?></p>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    <hr>
+    <p>Seja bem-vindo ao painel de controle da sua loja. Utilize o menu à esquerda para navegar.</p>
 <?= $this->endSection() ?>

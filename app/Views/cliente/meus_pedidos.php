@@ -21,7 +21,7 @@
                                 <span><strong>Pedido #<?= esc($pedido['id']) ?></strong></span>
                                 <span>Data: <?= esc(date('d/m/Y H:i', strtotime($pedido['criado_em']))) ?></span>
                                 <span>Total: R$ <?= esc(number_format($pedido['valor_total'], 2, ',', '.')) ?></span>
-                                <span>Status: <span class="badge bg-info"><?= esc($pedido['status']) ?></span></span>
+                                <span>Status: <span class="badge <?= getStatusColorClass($pedido['status']) ?>"><?= esc(ucfirst($pedido['status'])) ?></span></span>
                             </div>
                         </button>
                     </h2>

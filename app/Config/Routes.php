@@ -60,6 +60,7 @@ $routes->group('admin', ['filter' => ['auth', 'admin']], static function ($route
     $routes->get('dashboard', 'AdminController::index');
     $routes->get('pedidos', 'Admin\PedidoController::index');
     $routes->post('pedidos/atualizar-status/(:num)', 'Admin\PedidoController::atualizarStatus/$1');
+    $routes->get('pedidos/detalhe/(:num)', 'Admin\PedidoController::detalhe/$1');
 
 
 

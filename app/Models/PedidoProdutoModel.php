@@ -7,15 +7,14 @@ use CodeIgniter\Model;
 class PedidoProdutoModel extends Model
 {
 
-    public function getProdutosDePedidos(array $pedidoIds)
+    public function getProdutosDePedido($pedidoId)
     {
-        if (empty($pedidoIds)) {
+        if (empty($pedidoId)) {
             return [];
         }
-
         $this->select('pedido_produtos.*, produtos.nome, produtos.imagem');
         $this->join('produtos', 'produtos.id = pedido_produtos.produto_id');
-        $this->whereIn('pedido_produtos.pedido_id', $pedidoIds);
+        $this->where('pedido_produtos.pedido_id', $pedidoId);
 
         return $this->findAll();
     }

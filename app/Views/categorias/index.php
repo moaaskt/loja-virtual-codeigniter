@@ -1,4 +1,4 @@
-<?= $this->extend('layouts/main') ?>
+<?= $this->extend('layouts/admin') ?>
 <?= $this->section('title') ?>Lista de Categorias<?= $this->endSection() ?>
 <?= $this->section('content') ?>
 <div class="container">

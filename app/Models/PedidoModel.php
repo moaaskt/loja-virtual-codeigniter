@@ -15,6 +15,15 @@ class PedidoModel extends Model
             ->findAll();
     }
 
+    public function getPedidoComCliente($id)
+{
+    $this->select('pedidos.*, usuarios.nome as cliente_nome, usuarios.email as cliente_email');
+    $this->join('usuarios', 'usuarios.id = pedidos.usuario_id');
+    return $this->find($id);
+}
+
+
+
     public function getAllPedidosComCliente($perPage = 10)
     {
         $this->select('pedidos.*, usuarios.nome as cliente_nome');
