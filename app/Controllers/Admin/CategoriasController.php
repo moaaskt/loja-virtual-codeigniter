@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Controllers;
-
+namespace App\Controllers\Admin;
+use App\Controllers\BaseController;
 use App\Models\CategoriaModel;
-
+use App\Models\ProdutoModel;
 class CategoriasController extends BaseController
 {
 
@@ -17,7 +17,7 @@ class CategoriasController extends BaseController
     public function new()
     {
         helper('form');
-        return view('categorias/new', ['title' => 'Nova Categoria']);
+        return view('admin/categorias/new', ['title' => 'Nova Categoria']);
     }
 
     /**
@@ -54,7 +54,7 @@ class CategoriasController extends BaseController
         throw new \CodeIgniter\Exceptions\PageNotFoundException('Categoria não encontrada.');
     }
 
-    return view('categorias/edit', $data);
+    return view('admin/categorias/edit', $data);
 }
 
 public function update($id = null)
@@ -85,7 +85,7 @@ public function update($id = null)
         ];
 
         // Por enquanto não temos um layout, então vamos chamar a view diretamente
-        return view('categorias/index', $data);
+        return view('admin/categorias/index', $data);
     }
 
 public function delete($id = null)

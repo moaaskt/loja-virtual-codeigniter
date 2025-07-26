@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Controllers;
-
+namespace App\Controllers\Admin;
+use App\Controllers\BaseController;
 use App\Models\ProdutoModel;
+use App\Models\CategoriaModel;
+use App\Models\PedidoProdutoModel; 
 
 class ProdutosController extends BaseController
 {
@@ -90,7 +92,7 @@ class ProdutosController extends BaseController
             'categorias' => $categoriaModel->findAll() // Busca todas as categorias para o <select>
         ];
 
-        return view('produtos/edit', $data);
+        return view('admin/produtos/edit', $data);
     }
 
     public function create()
@@ -138,7 +140,7 @@ class ProdutosController extends BaseController
             'categorias' => $categoriaModel->findAll() // Busca todas as categorias
         ];
 
-        return view('produtos/new', $data);
+        return view('admin/produtos/new', $data);
     }
 
     public function index()
@@ -152,6 +154,6 @@ class ProdutosController extends BaseController
             'title' => 'Lista de Produtos'
         ];
 
-        return view('produtos/index', $data);
+        return view('admin/produtos/index', $data);
     }
 }

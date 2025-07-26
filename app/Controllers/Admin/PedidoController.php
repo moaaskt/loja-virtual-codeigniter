@@ -1,10 +1,9 @@
 <?php
 
 namespace App\Controllers\Admin;
-
 use App\Controllers\BaseController;
 use App\Models\PedidoModel;
-use App\Models\PedidoProdutoModel; // <-- Adicionamos esta linha
+use App\Models\PedidoProdutoModel;
 
 class PedidoController extends BaseController
 {
@@ -40,7 +39,7 @@ class PedidoController extends BaseController
         $data = [
             'title'          => 'Detalhes do Pedido #' . $pedido['id'],
             'pedido'         => $pedido,
-            'produtos'       => $pedidoProdutoModel->getProdutosDePedido($id),
+            'produtos' => $pedidoProdutoModel->getProdutosDePedido($id),
             'status_options' => ['processando', 'enviado', 'concluido', 'cancelado']
         ];
 

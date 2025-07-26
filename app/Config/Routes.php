@@ -5,78 +5,58 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
+
+// --------------------------------------------------------------------
+// ROTAS PÚBLICAS (CLIENTE)
+// --------------------------------------------------------------------
 $routes->get('/', 'HomeController::index');
-
-
-// --- Rota para buscar produtos ---
+$routes->get('produto/(:num)', 'HomeController::produto/$1');
+$routes->get('categoria/(:num)', 'HomeController::produtosPorCategoria/$1');
 $routes->get('busca', 'HomeController::busca');
+$routes->get('api/produtos/busca', 'HomeController::buscaApi');
 
-//-Rotas de login e autenticação
-$routes->get('/', 'HomeController::index'); // Vitrine
-$routes->get('login', 'AuthController::login'); // Página de login
-$routes->post('auth/attempt-login', 'AuthController::attemptLogin'); // Processa o login
-$routes->get('logout', 'AuthController::logout'); // Faz logout
+// Carrinho
+$routes->get('carrinho', 'CarrinhoController::index');
+$routes->post('carrinho/adicionar', 'CarrinhoController::adicionar');
+$routes->post('carrinho/atualizar', 'CarrinhoController::atualizar');
+$routes->post('carrinho/remover/(:num)', 'CarrinhoController::remover/$1');
 
+// Autenticação
+$routes->get('login', 'AuthController::login', ['filter' => 'guest']);
+$routes->post('auth/attempt-login', 'AuthController::attemptLogin', ['filter' => 'guest']);
+$routes->get('registrar', 'AuthController::registrar', ['filter' => 'guest']);
+$routes->post('registrar/salvar', 'AuthController::attemptRegister');
+$routes->get('logout', 'AuthController::logout');
 
-// --- Grupo de rotas para a conta do cliente ---
-// Apenas usuários autenticados podem acessar essas rotas
+// Área do Cliente Logado
 $routes->group('minha-conta', ['filter' => 'auth'], static function ($routes) {
     $routes->get('pedidos', 'ClienteController::index');
 });
+$routes->post('checkout/finalizar', 'PedidoController::finalizar', ['filter' => 'auth']);
+$routes->get('pedido/sucesso', 'PedidoController::sucesso', ['filter' => 'auth']);
 
-
-// --- Rota para a página inicial da loja ---
-$routes->get('produto/(:num)', 'HomeController::produto/$1');
-
-
-// --- Rota para finalizar o pedido ---
-$routes->post('checkout/finalizar', 'PedidoController::finalizar');
-$routes->get('pedido/sucesso', 'PedidoController::sucesso');
-
-// --- Rota para adicionar um produto ao carrinho ---
-$routes->post('carrinho/adicionar', 'CarrinhoController::adicionar');
-$routes->get('carrinho', 'CarrinhoController::index');
-$routes->post('carrinho/remover/(:num)', 'CarrinhoController::remover/$1');
-$routes->post('carrinho/atualizar', 'CarrinhoController::atualizar');
-
-
-
-
-// --- rotas para registro de usuários ---
-$routes->get('registrar', 'AuthController::registrar'); // Mostra o formulário
-$routes->post('registrar/salvar', 'AuthController::attemptRegister'); // Processa o formulário
-
-// --- Rota para buscar produtos via API ---
-$routes->get('api/produtos/busca', 'HomeController::buscaApi');
-
-// --- Rota para buscar produtos por categoria ---
-$routes->get('categoria/(:num)', 'HomeController::produtosPorCategoria/$1');
-
-
-
-// --- ROTAS DO PAINEL ADMINISTRATIVO ---
+// --------------------------------------------------------------------
+// ROTAS DO PAINEL ADMINISTRATIVO
+// --------------------------------------------------------------------
 $routes->group('admin', ['filter' => ['auth', 'admin']], static function ($routes) {
-    // Dashboard
-    $routes->get('dashboard', 'AdminController::index');
+    
+    $routes->get('dashboard', 'Admin\AdminController::index');
+
     $routes->get('pedidos', 'Admin\PedidoController::index');
-    $routes->post('pedidos/atualizar-status/(:num)', 'Admin\PedidoController::atualizarStatus/$1');
     $routes->get('pedidos/detalhe/(:num)', 'Admin\PedidoController::detalhe/$1');
+    $routes->post('pedidos/atualizar-status/(:num)', 'Admin\PedidoController::atualizarStatus/$1');
 
+    $routes->get('categorias', 'Admin\CategoriasController::index');
+    $routes->get('categorias/new', 'Admin\CategoriasController::new');
+    $routes->post('categorias/create', 'Admin\CategoriasController::create'); // Rota de criação
+    $routes->get('categorias/edit/(:num)', 'Admin\CategoriasController::edit/$1');
+    $routes->post('categorias/update/(:num)', 'Admin\CategoriasController::update/$1'); // Rota de atualização
+    $routes->post('categorias/delete/(:num)', 'Admin\CategoriasController::delete/$1');
 
-
-    // Rotas para Categorias
-    $routes->get('categorias', 'CategoriasController::index');
-    $routes->get('categorias/new', 'CategoriasController::new');
-    $routes->post('categorias', 'CategoriasController::create');
-    $routes->get('categorias/edit/(:num)', 'CategoriasController::edit/$1');
-    $routes->post('categorias/(:num)', 'CategoriasController::update/$1');
-    $routes->post('categorias/delete/(:num)', 'CategoriasController::delete/$1');
-
-    // Rotas para Produtos
-    $routes->get('produtos', 'ProdutosController::index');
-    $routes->get('produtos/new', 'ProdutosController::new');
-    $routes->post('produtos/create', 'ProdutosController::create');
-    $routes->get('produtos/edit/(:num)', 'ProdutosController::edit/$1');
-    $routes->post('produtos/update/(:num)', 'ProdutosController::update/$1');
-    $routes->post('produtos/delete/(:num)', 'ProdutosController::delete/$1');
+    $routes->get('produtos', 'Admin\ProdutosController::index');
+    $routes->get('produtos/new', 'Admin\ProdutosController::new');
+    $routes->post('produtos/create', 'Admin\ProdutosController::create'); // Rota de criação
+    $routes->get('produtos/edit/(:num)', 'Admin\ProdutosController::edit/$1');
+    $routes->post('produtos/update/(:num)', 'Admin\ProdutosController::update/$1'); // Rota de atualização
+    $routes->post('produtos/delete/(:num)', 'Admin\ProdutosController::delete/$1');
 });
