@@ -21,9 +21,10 @@ class CategoriaModel extends Model
     protected $updatedField  = 'atualizado_em';
 
     // Validation
-    protected $validationRules      = [
-        'nome' => 'required|min_length[3]|max_length[100]|is_unique[categorias.nome,id,{id}]'
-    ];
+    protected $validationRules = [
+    'id'   => 'permit_empty|is_natural_no_zero', // <-- LINHA ADICIONADA
+    'nome' => 'required|min_length[3]|max_length[100]|is_unique[categorias.nome,id,{id}]'
+];
     protected $validationMessages   = [
         'nome' => [
             'required' => 'O campo Nome da Categoria é obrigatório.',

@@ -35,28 +35,31 @@ $routes->group('minha-conta', ['filter' => 'auth'], static function ($routes) {
 $routes->post('checkout/finalizar', 'PedidoController::finalizar', ['filter' => 'auth']);
 $routes->get('pedido/sucesso', 'PedidoController::sucesso', ['filter' => 'auth']);
 
-// --------------------------------------------------------------------
-// ROTAS DO PAINEL ADMINISTRATIVO
-// --------------------------------------------------------------------
+// --- ROTAS DO PAINEL ADMINISTRATIVO ---
 $routes->group('admin', ['filter' => ['auth', 'admin']], static function ($routes) {
-    
+
+    // Dashboard
     $routes->get('dashboard', 'Admin\AdminController::index');
 
+    // Pedidos
     $routes->get('pedidos', 'Admin\PedidoController::index');
     $routes->get('pedidos/detalhe/(:num)', 'Admin\PedidoController::detalhe/$1');
     $routes->post('pedidos/atualizar-status/(:num)', 'Admin\PedidoController::atualizarStatus/$1');
 
+    // Categorias
     $routes->get('categorias', 'Admin\CategoriasController::index');
     $routes->get('categorias/new', 'Admin\CategoriasController::new');
-    $routes->post('categorias/create', 'Admin\CategoriasController::create'); // Rota de criação
+    $routes->post('categorias/create', 'Admin\CategoriasController::create');
     $routes->get('categorias/edit/(:num)', 'Admin\CategoriasController::edit/$1');
-    $routes->post('categorias/update/(:num)', 'Admin\CategoriasController::update/$1'); // Rota de atualização
+    // A linha abaixo foi a principal corrigida:
+    $routes->post('categorias/update/(:num)', 'Admin\CategoriasController::update/$1'); 
     $routes->post('categorias/delete/(:num)', 'Admin\CategoriasController::delete/$1');
 
+    // Produtos
     $routes->get('produtos', 'Admin\ProdutosController::index');
     $routes->get('produtos/new', 'Admin\ProdutosController::new');
-    $routes->post('produtos/create', 'Admin\ProdutosController::create'); // Rota de criação
+    $routes->post('produtos/create', 'Admin\ProdutosController::create');
     $routes->get('produtos/edit/(:num)', 'Admin\ProdutosController::edit/$1');
-    $routes->post('produtos/update/(:num)', 'Admin\ProdutosController::update/$1'); // Rota de atualização
+    $routes->post('produtos/update/(:num)', 'Admin\ProdutosController::update/$1');
     $routes->post('produtos/delete/(:num)', 'Admin\ProdutosController::delete/$1');
 });

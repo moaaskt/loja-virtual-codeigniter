@@ -59,13 +59,17 @@ class CategoriasController extends BaseController
 
 public function update($id = null)
 {
-    $model = new CategoriaModel();
+    $model = new \App\Models\CategoriaModel();
     $data = $this->request->getPost();
 
-    // O método update() também aciona a validação
-    if ($model->update($id, $data)) {
+    // Para que o save() saiba que é uma atualização, nós adicionamos o ID aos dados.
+    $data['id'] = $id;
+
+    // O método save() lida com a validação e a atualização de forma mais inteligente.
+    if ($model->save($data)) {
         return redirect()->to(site_url('admin/categorias'))->with('success', 'Categoria atualizada com sucesso!');
     } else {
+        // Se falhar a validação, voltamos ao formulário com os erros.
         return redirect()->back()->withInput()->with('errors', $model->errors());
     }
 }
