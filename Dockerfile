@@ -27,3 +27,10 @@ WORKDIR /var/www/html
 
 # Ajustar permissões iniciais
 RUN chown -R www-data:www-data /var/www/html
+
+# Garantir que o diretório writable (sessões, cache, logs) seja gravável pelo Apache
+RUN mkdir -p /var/www/html/writable/session \
+    /var/www/html/writable/cache \
+    /var/www/html/writable/logs \
+    && chown -R www-data:www-data /var/www/html/writable \
+    && chmod -R 775 /var/www/html/writable

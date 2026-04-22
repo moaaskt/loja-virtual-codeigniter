@@ -23,8 +23,6 @@ class CarrinhoController extends BaseController
         return view('shop/carrinho', $data);
     }
 
-
-
     
 
 // --- Função para atualizar a quantidade de um produto no carrinho ---
@@ -78,41 +76,57 @@ public function atualizar()
 
 
     // --- Rota para adicionar um produto ao carrinho ---
-// Esta função recebe os dados do produto e a quantidade, e adiciona ao carrinho na sessão
+    // Valida estoque antes de inserir ou incrementar o item na sessão.
     public function adicionar()
     {
         $produtoModel = new ProdutoModel();
 
-        // Pega os dados enviados pelo formulário
         $produto_id = $this->request->getPost('produto_id');
-        $quantidade = (int) $this->request->getPost('quantidade'); // Garante que é um inteiro
+        $quantidade = (int) $this->request->getPost('quantidade');
 
-        // Busca o produto no banco para ter certeza de que ele existe
         $produto = $produtoModel->find($produto_id);
 
         if ($produto === null) {
             return redirect()->back()->with('error', 'Produto não encontrado!');
         }
 
-        // Pega o carrinho da sessão ou cria um array vazio se não existir
-        $carrinho = session()->get('carrinho') ?? [];
+        $estoqueDisponivel = (int) $produto['estoque'];
 
-        // Verifica se o produto já está no carrinho
+        if ($estoqueDisponivel <= 0) {
+            return redirect()->back()->with('error', 'Produto fora de estoque.');
+        }
+
+        if ($quantidade < 1) {
+            return redirect()->back()->with('error', 'A quantidade mínima é 1.');
+        }
+
+        $carrinho         = session()->get('carrinho') ?? [];
+        $quantidadeNoCarrinho = isset($carrinho[$produto_id])
+            ? (int) $carrinho[$produto_id]['quantidade']
+            : 0;
+
+        $quantidadeTotal  = $quantidadeNoCarrinho + $quantidade;
+
+        if ($quantidadeTotal > $estoqueDisponivel) {
+            $disponivelParaAdicionar = $estoqueDisponivel - $quantidadeNoCarrinho;
+            return redirect()->back()->with(
+                'error',
+                "Estoque insuficiente. Você pode adicionar no máximo {$disponivelParaAdicionar} unidade(s) deste produto."
+            );
+        }
+
         if (isset($carrinho[$produto_id])) {
-            // Se sim, apenas incrementa a quantidade
-            $carrinho[$produto_id]['quantidade'] += $quantidade;
+            $carrinho[$produto_id]['quantidade'] = $quantidadeTotal;
         } else {
-            // Se não, adiciona o produto ao carrinho
             $carrinho[$produto_id] = [
-                'id' => $produto['id'],
-                'nome' => $produto['nome'],
-                'preco' => $produto['preco'],
-                'imagem' => $produto['imagem'],
+                'id'         => $produto['id'],
+                'nome'       => $produto['nome'],
+                'preco'      => $produto['preco'],
+                'imagem'     => $produto['imagem'],
                 'quantidade' => $quantidade,
             ];
         }
 
-        // Salva o carrinho atualizado de volta na sessão
         session()->set('carrinho', $carrinho);
 
         return redirect()->back()->with('success', 'Produto adicionado ao carrinho!');

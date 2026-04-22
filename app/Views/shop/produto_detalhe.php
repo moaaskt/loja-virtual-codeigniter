@@ -10,7 +10,7 @@
     <div class="row mt-5">
         <div class="col-md-6">
             <?php if (!empty($produto['imagem'])): ?>
-                <img src="<?= base_url('uploads/produtos/' . esc($produto['imagem'])) ?>"
+                <img src="<?= strpos($produto['imagem'], 'http') === 0 ? esc($produto['imagem']) : base_url('uploads/produtos/' . esc($produto['imagem'])) ?>"
                     class="img-fluid rounded shadow-sm" alt="<?= esc($produto['nome']) ?>">
             <?php else: ?>
                 <img src="<?= base_url('uploads/produtos/sem_imagem.png') ?>" class="img-fluid rounded shadow-sm"

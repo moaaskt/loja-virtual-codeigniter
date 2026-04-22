@@ -35,7 +35,7 @@
                     ?>
                     <tr>
                         <td>
-                            <img src="<?= base_url('uploads/produtos/' . esc($item['imagem'])) ?>"
+                            <img src="<?= strpos($item['imagem'], 'http') === 0 ? esc($item['imagem']) : base_url('uploads/produtos/' . esc($item['imagem'])) ?>"
                                 alt="<?= esc($item['nome']) ?>" width="80">
                         </td>
                         <td><?= esc($item['nome']) ?></td>

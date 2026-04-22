@@ -17,7 +17,7 @@
                         <?php foreach($produtos as $produto): ?>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center">
-                                    <img src="<?= base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" alt="<?= esc($produto['nome']) ?>" style="width: 50px; height: 50px; object-fit: cover;" class="me-3">
+                                    <img src="<?= strpos($produto['imagem'], 'http') === 0 ? esc($produto['imagem']) : base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" alt="<?= esc($produto['nome']) ?>" style="width: 50px; height: 50px; object-fit: cover;" class="me-3">
                                     <div>
                                         <?= esc($produto['nome']) ?><br>
                                         <small class="text-muted">Qtd: <?= esc($produto['quantidade']) ?> | Preço Unit.: R$ <?= esc(number_format($produto['preco_unitario'], 2, ',', '.')) ?></small>

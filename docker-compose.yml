@@ -10,6 +10,8 @@ services:
       - .:/var/www/html
     depends_on:
       - db
+    command: >
+      bash -c "chmod -R 777 /var/www/html/writable && apache2-foreground"
 
   db:
     image: mysql:8.0

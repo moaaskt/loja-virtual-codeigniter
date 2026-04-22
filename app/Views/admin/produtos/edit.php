@@ -50,13 +50,19 @@
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label for="imagem" class="form-label">Substituir Imagem</label>
-                        <input class="form-control" type="file" id="imagem" name="imagem">
+                        <div class="mb-3">
+                            <label for="imagem" class="form-label">Substituir Imagem (Upload Local)</label>
+                            <input class="form-control" type="file" id="imagem" name="imagem">
+                        </div>
+                        <div class="mb-3">
+                            <label for="url_imagem" class="form-label">OU Atualizar por Link (URL)</label>
+                            <input type="url" name="url_imagem" id="url_imagem" class="form-control" value="<?= old('url_imagem', strpos($produto['imagem'] ?? '', 'http') === 0 ? $produto['imagem'] : '') ?>" placeholder="https://exemplo.com/imagem.jpg">
+                        </div>
                     </div>
                     <div class="col-md-6 text-center">
                         <label class="form-label">Imagem Atual</label><br>
                         <?php if (!empty($produto['imagem'])): ?>
-                            <img src="<?= base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" alt="<?= esc($produto['nome']) ?>" height="100" class="img-thumbnail">
+                            <img src="<?= strpos($produto['imagem'], 'http') === 0 ? esc($produto['imagem']) : base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" alt="<?= esc($produto['nome']) ?>" height="100" class="img-thumbnail">
                         <?php else: ?>
                             <p class="text-muted">Nenhuma imagem cadastrada.</p>
                         <?php endif; ?>

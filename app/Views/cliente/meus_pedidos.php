@@ -33,7 +33,7 @@
                                     <?php foreach ($itens_dos_pedidos[$pedido['id']] as $item): ?>
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <div class="d-flex align-items-center">
-                                                <img src="<?= base_url('uploads/produtos/' . esc($item['imagem'])) ?>"
+                                                <img src="<?= strpos($item['imagem'], 'http') === 0 ? esc($item['imagem']) : base_url('uploads/produtos/' . esc($item['imagem'])) ?>"
                                                     alt="<?= esc($item['nome']) ?>"
                                                     style="width: 50px; height: 50px; object-fit: cover;" class="me-3">
                                                 <div>

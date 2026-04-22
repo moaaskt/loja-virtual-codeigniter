@@ -38,17 +38,18 @@ class ProdutosController extends BaseController
         $produtoModel = new ProdutoModel();
         $data = $this->request->getPost();
 
-        // Pega o arquivo de imagem enviado
+        // Pega o arquivo de imagem enviado e a URL enviada
         $img = $this->request->getFile('imagem');
+        $urlImg = $this->request->getPost('url_imagem');
 
-        // Verifica se uma nova imagem foi enviada e se é válida
+        // Verifica se uma nova imagem foi enviada via upload de arquivo
         if ($img && $img->isValid() && !$img->hasMoved()) {
-            // Busca os dados antigos do produto, incluindo o nome da imagem antiga
+            // Busca os dados antigos do produto
             $produtoAntigo = $produtoModel->find($id);
             $imagemAntiga = $produtoAntigo['imagem'];
 
-            // Se uma imagem antiga existir, apaga o arquivo do servidor
-            if ($imagemAntiga && file_exists(FCPATH . 'uploads/produtos/' . $imagemAntiga)) {
+            // Se uma imagem antiga existir e for um arquivo local, apaga-o
+            if ($imagemAntiga && strpos($imagemAntiga, 'http') !== 0 && file_exists(FCPATH . 'uploads/produtos/' . $imagemAntiga)) {
                 unlink(FCPATH . 'uploads/produtos/' . $imagemAntiga);
             }
 
@@ -56,8 +57,11 @@ class ProdutosController extends BaseController
             $novoNome = $img->getRandomName();
             $img->move(FCPATH . 'uploads/produtos', $novoNome);
 
-            // Adiciona o novo nome da imagem aos dados que serão atualizados
+            // Adiciona o novo nome da imagem aos dados
             $data['imagem'] = $novoNome;
+        } elseif (!empty($urlImg)) {
+            // Se não subiu arquivo mas informou URL
+            $data['imagem'] = $urlImg;
         }
 
         if ($produtoModel->update($id, $data)) {
@@ -100,19 +104,18 @@ class ProdutosController extends BaseController
         $produtoModel = new ProdutoModel();
         $data = $this->request->getPost();
 
-        // Pega o arquivo de imagem enviado
+        // Pega o arquivo de imagem enviado e a URL
         $img = $this->request->getFile('imagem');
+        $urlImg = $this->request->getPost('url_imagem');
 
-        // Verifica se um arquivo foi enviado e se é válido
+        // Verifica se um arquivo foi enviado via upload
         if ($img && $img->isValid() && !$img->hasMoved()) {
-            // Gera um nome aleatório para o arquivo para evitar conflitos
             $novoNome = $img->getRandomName();
-
-            // Move o arquivo para a pasta de uploads
             $img->move(FCPATH . 'uploads/produtos', $novoNome);
-
-            // Salva o novo nome do arquivo no array de dados que vai para o banco
             $data['imagem'] = $novoNome;
+        } elseif (!empty($urlImg)) {
+            // Caso contrário, se informou a URL da imagem
+            $data['imagem'] = $urlImg;
         }
 
         if ($produtoModel->insert($data)) {

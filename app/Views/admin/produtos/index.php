@@ -32,7 +32,7 @@
                                 <td><?= esc($produto['id']) ?></td>
                                 <td>
                                     <?php if (!empty($produto['imagem'])): ?>
-                                        <img src="<?= base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" alt="<?= esc($produto['nome']) ?>" width="80">
+                                        <img src="<?= strpos($produto['imagem'], 'http') === 0 ? esc($produto['imagem']) : base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" alt="<?= esc($produto['nome']) ?>" width="80">
                                     <?php else: ?>
                                         <span class="text-muted">Sem Imagem</span>
                                     <?php endif; ?>

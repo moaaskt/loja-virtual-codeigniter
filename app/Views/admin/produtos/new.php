@@ -48,9 +48,15 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="imagem" class="form-label">Imagem do Produto</label>
-                    <input class="form-control" type="file" id="imagem" name="imagem">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="imagem" class="form-label">Imagem do Produto (Upload)</label>
+                        <input class="form-control" type="file" id="imagem" name="imagem">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="url_imagem" class="form-label">OU Link (URL) da Imagem</label>
+                        <input type="url" name="url_imagem" id="url_imagem" class="form-control" value="<?= old('url_imagem') ?>" placeholder="https://exemplo.com/imagem.jpg">
+                    </div>
                 </div>
 
                 <button type="submit" class="btn btn-success">Salvar Produto</button>
