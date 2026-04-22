@@ -16,7 +16,7 @@ class PedidoController extends BaseController
             'title'          => 'Gerenciamento de Pedidos',
             'pedidos'        => $model->getAllPedidosComCliente(15),
             'pager'          => $model->pager,
-            'status_options' => ['processando', 'enviado', 'concluido', 'cancelado']
+            'status_options' => ['pendente', 'processando', 'enviado', 'entregue', 'cancelado']
         ];
 
         return view('admin/pedidos/index', $data);
@@ -40,7 +40,7 @@ class PedidoController extends BaseController
             'title'          => 'Detalhes do Pedido #' . $pedido['id'],
             'pedido'         => $pedido,
             'produtos' => $pedidoProdutoModel->getProdutosDePedido($id),
-            'status_options' => ['processando', 'enviado', 'concluido', 'cancelado']
+            'status_options' => ['pendente', 'processando', 'enviado', 'entregue', 'cancelado']
         ];
 
         return view('admin/pedidos/detalhe', $data);
@@ -51,7 +51,7 @@ class PedidoController extends BaseController
     {
         $model = new PedidoModel();
         $novoStatus = $this->request->getPost('status');
-        $statusPermitidos = ['processando', 'enviado', 'concluido', 'cancelado'];
+        $statusPermitidos = ['pendente', 'processando', 'enviado', 'entregue', 'cancelado'];
 
         if (empty($novoStatus) || !in_array($novoStatus, $statusPermitidos)) {
             return redirect()->to(site_url('admin/pedidos'))->with('error', 'Status inválido.');

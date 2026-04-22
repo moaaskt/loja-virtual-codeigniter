@@ -35,7 +35,8 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'auth'     => \App\Filters\Auth::class,
-        'admin' => \App\Filters\Admin::class, 
+        'admin'    => \App\Filters\Admin::class,
+        'guest'    => \App\Filters\Guest::class,
     ];
 
     /**
@@ -53,7 +54,7 @@ class Filters extends BaseFilters
      */
     public array $required = [
         'before' => [
-            'forcehttps', // Force Global Secure Requests
+            // 'forcehttps', // Force Global Secure Requests (disabled: app runs on HTTP in Docker)
             'pagecache',  // Web Page Caching
         ],
         'after' => [
@@ -72,7 +73,7 @@ class Filters extends BaseFilters
     public array $globals = [
         'before' => [
             // 'honeypot',
-            // 'csrf',
+            'csrf',
             // 'invalidchars',
         ],
         'after' => [

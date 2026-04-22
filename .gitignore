@@ -124,3 +124,12 @@ _modules/*
 
 /results/
 /phpunit*.xml
+
+
+# imagens produtos
+/public/uploads/produtos/*
+
+/public/uploads/*
+
+# claude skills
+.claude

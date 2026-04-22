@@ -32,7 +32,7 @@
                            <div class="col">
                                <div class="card h-100 shadow-sm">
                                    <?php if (!empty($produto['imagem'])): ?>
-                                       <img src="<?= base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" class="card-img-top" alt="<?= esc($produto['nome']) ?>" style="height: 200px; object-fit: cover;">
+                                       <img src="<?= strpos($produto['imagem'] ?? '', 'http') === 0 ? esc($produto['imagem']) : base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" class="card-img-top" alt="<?= esc($produto['nome']) ?>" style="height: 200px; object-fit: cover;">
                                    <?php else: ?>
                                        <img src="<?= base_url('uploads/produtos/sem_imagem.png') ?>" class="card-img-top" alt="Sem Imagem" style="height: 200px; object-fit: cover;">
                                    <?php endif; ?>
@@ -128,7 +128,8 @@
 
             produtos.forEach(produto => {
                 const precoFormatado = parseFloat(produto.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                const imagemUrl = `<?= base_url('uploads/produtos/') ?>${produto.imagem || 'sem_imagem.png'}`;
+                const isHttp = produto.imagem && produto.imagem.startsWith('http');
+                const imagemUrl = isHttp ? produto.imagem : `<?= base_url('uploads/produtos/') ?>${produto.imagem || 'sem_imagem.png'}`;
                 const produtoUrl = `<?= site_url('produto/') ?>${produto.id}`;
 
                 const cardHtml = `

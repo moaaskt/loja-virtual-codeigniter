@@ -12,16 +12,18 @@ if (!function_exists('getStatusColorClass')) {
     function getStatusColorClass(string $status): string
     {
         switch (strtolower($status)) {
+            case 'pendente':
+                return 'bg-warning';
             case 'processando':
-                return 'bg-primary'; // Azul
+                return 'bg-primary';
             case 'enviado':
-                return 'bg-info';    // Azul claro
-            case 'concluido':
-                return 'bg-success'; // Verde
+                return 'bg-info';
+            case 'entregue':
+                return 'bg-success';
             case 'cancelado':
-                return 'bg-danger';  // Vermelho
+                return 'bg-danger';
             default:
-                return 'bg-secondary'; // Cinza para qualquer outro status
+                return 'bg-secondary';
         }
     }
 }

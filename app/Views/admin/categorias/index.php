@@ -33,6 +33,7 @@
                                 <td>
                                     <a href="<?= site_url('admin/categorias/edit/' . $categoria['id']) ?>" class="btn btn-warning btn-sm">Editar</a>
                                     <form action="<?= site_url('admin/categorias/delete/' . $categoria['id']) ?>" method="post" class="d-inline">
+                                        <?= csrf_field() ?>
                                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza?');">Excluir</button>
                                     </form>
                                 </td>

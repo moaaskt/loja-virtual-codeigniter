@@ -13,7 +13,7 @@ class UsuarioModel extends Model
     protected $protectFields    = true;
 
     // Esta linha resolve o Erro #2
-    protected $allowedFields    = ['nome', 'email', 'senha_hash'];
+    protected $allowedFields    = ['nome', 'email', 'senha_hash', 'role'];
 
     // Dates
     protected $useTimestamps    = true;

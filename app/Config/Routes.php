@@ -25,7 +25,7 @@ $routes->post('carrinho/remover/(:num)', 'CarrinhoController::remover/$1');
 $routes->get('login', 'AuthController::login', ['filter' => 'guest']);
 $routes->post('auth/attempt-login', 'AuthController::attemptLogin', ['filter' => 'guest']);
 $routes->get('registrar', 'AuthController::registrar', ['filter' => 'guest']);
-$routes->post('registrar/salvar', 'AuthController::attemptRegister');
+$routes->post('registrar/salvar', 'AuthController::attemptRegister', ['filter' => 'guest']);
 $routes->get('logout', 'AuthController::logout');
 
 // Área do Cliente Logado

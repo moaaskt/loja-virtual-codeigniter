@@ -1,159 +1,165 @@
 <?php
 
 namespace App\Controllers\Admin;
+
 use App\Controllers\BaseController;
-use App\Models\ProdutoModel;
 use App\Models\CategoriaModel;
-use App\Models\PedidoProdutoModel; 
+use App\Models\PedidoProdutoModel;
+use App\Models\ProdutoModel;
 
 class ProdutosController extends BaseController
 {
+    protected ProdutoModel $produtoModel;
+    protected CategoriaModel $categoriaModel;
+    protected PedidoProdutoModel $pedidoProdutoModel;
 
-    public function delete($id = null)
-{
-    // Precisamos do model de itens de pedido para fazer a verificação
-    $pedidoProdutoModel = new \App\Models\PedidoProdutoModel();
-
-    // Verifica se este produto_id existe em algum registro na tabela pedido_produtos
-    $produtoEmPedido = $pedidoProdutoModel->where('produto_id', $id)->first();
-
-    // Se o produto foi encontrado em um pedido, impede a exclusão
-    if ($produtoEmPedido) {
-        return redirect()->to(site_url('admin/produtos'))
-                         ->with('error', 'Este produto não pode ser excluído, pois já faz parte de um ou mais pedidos.');
-    }
-
-    // Se o produto não estiver em nenhum pedido, a exclusão pode prosseguir
-    $produtoModel = new \App\Models\ProdutoModel();
-    if ($produtoModel->delete($id)) {
-        return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto excluído com sucesso!');
-    } else {
-        return redirect()->to(site_url('admin/produtos'))->with('error', 'Erro ao excluir o produto.');
-    }
-}
-
-    
-    public function update($id = null)
+    public function __construct()
     {
-        $produtoModel = new ProdutoModel();
+        $this->produtoModel       = new ProdutoModel();
+        $this->categoriaModel     = new CategoriaModel();
+        $this->pedidoProdutoModel = new PedidoProdutoModel();
+    }
+
+    public function index()
+    {
+        return view('admin/produtos/index', [
+            'produtos' => $this->produtoModel->getProdutosComCategoria(10),
+            'pager'    => $this->produtoModel->pager,
+            'title'    => 'Lista de Produtos',
+        ]);
+    }
+
+    public function new()
+    {
+        helper('form');
+        return view('admin/produtos/new', [
+            'title'      => 'Adicionar Novo Produto',
+            'categorias' => $this->categoriaModel->findAll(),
+        ]);
+    }
+
+    public function create()
+    {
         $data = $this->request->getPost();
+        $img  = $this->request->getFile('imagem');
 
-        // Pega o arquivo de imagem enviado
-        $img = $this->request->getFile('imagem');
-
-        // Verifica se uma nova imagem foi enviada e se é válida
-        if ($img && $img->isValid() && !$img->hasMoved()) {
-            // Busca os dados antigos do produto, incluindo o nome da imagem antiga
-            $produtoAntigo = $produtoModel->find($id);
-            $imagemAntiga = $produtoAntigo['imagem'];
-
-            // Se uma imagem antiga existir, apaga o arquivo do servidor
-            if ($imagemAntiga && file_exists(FCPATH . 'uploads/produtos/' . $imagemAntiga)) {
-                unlink(FCPATH . 'uploads/produtos/' . $imagemAntiga);
-            }
-
-            // Gera um novo nome e move a nova imagem
-            $novoNome = $img->getRandomName();
-            $img->move(FCPATH . 'uploads/produtos', $novoNome);
-
-            // Adiciona o novo nome da imagem aos dados que serão atualizados
-            $data['imagem'] = $novoNome;
-        }
-
-        if ($produtoModel->update($id, $data)) {
-            return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto atualizado com sucesso!');
-        } else {
-            // Se a validação falhar, precisamos reenviar a lista de categorias
-            $categoriaModel = new \App\Models\CategoriaModel();
+        if (!$this->validateUpload($img)) {
             return redirect()->back()
                 ->withInput()
-                ->with('errors', $produtoModel->errors())
-                ->with('categorias', $categoriaModel->findAll());
+                ->with('errors', ['imagem' => 'A imagem deve ser JPEG, PNG ou WebP e ter no máximo 2 MB.'])
+                ->with('categorias', $this->categoriaModel->findAll());
         }
-    }
 
+        if ($img && $img->isValid() && !$img->hasMoved()) {
+            $novoNome = $img->getRandomName();
+            $img->move(FCPATH . 'uploads/produtos', $novoNome);
+            $data['imagem'] = $novoNome;
+        } elseif (!empty($this->request->getPost('url_imagem'))) {
+            $data['imagem'] = $this->request->getPost('url_imagem');
+        }
+
+        if ($this->produtoModel->insert($data)) {
+            return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto criado com sucesso!');
+        }
+
+        return redirect()->back()
+            ->withInput()
+            ->with('errors', $this->produtoModel->errors())
+            ->with('categorias', $this->categoriaModel->findAll());
+    }
 
     public function edit($id = null)
     {
         helper('form');
-        $produtoModel = new ProdutoModel();
-        $categoriaModel = new \App\Models\CategoriaModel();
-
-        // Busca o produto pelo ID
-        $produto = $produtoModel->find($id);
+        $produto = $this->produtoModel->find($id);
 
         if (empty($produto)) {
             throw new \CodeIgniter\Exceptions\PageNotFoundException('Produto não encontrado.');
         }
 
-        $data = [
-            'title' => 'Editar Produto: ' . esc($produto['nome']),
-            'produto' => $produto,
-            'categorias' => $categoriaModel->findAll() // Busca todas as categorias para o <select>
-        ];
-
-        return view('admin/produtos/edit', $data);
+        return view('admin/produtos/edit', [
+            'title'      => 'Editar Produto: ' . esc($produto['nome']),
+            'produto'    => $produto,
+            'categorias' => $this->categoriaModel->findAll(),
+        ]);
     }
 
-    public function create()
+    public function update($id = null)
     {
-        $produtoModel = new ProdutoModel();
-        $data = $this->request->getPost();
+        $data   = $this->request->getPost();
+        $img    = $this->request->getFile('imagem');
+        $urlImg = $this->request->getPost('url_imagem');
 
-        // Pega o arquivo de imagem enviado
-        $img = $this->request->getFile('imagem');
-
-        // Verifica se um arquivo foi enviado e se é válido
         if ($img && $img->isValid() && !$img->hasMoved()) {
-            // Gera um nome aleatório para o arquivo para evitar conflitos
+            if (!$this->validateUpload($img)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('errors', ['imagem' => 'A imagem deve ser JPEG, PNG ou WebP e ter no máximo 2 MB.'])
+                    ->with('categorias', $this->categoriaModel->findAll());
+            }
+
+            $produtoAntigo = $this->produtoModel->find($id);
+            $imagemAntiga  = $produtoAntigo['imagem'] ?? null;
+
+            if ($imagemAntiga && strpos($imagemAntiga, 'http') !== 0) {
+                $caminhoAntigo = FCPATH . 'uploads/produtos/' . $imagemAntiga;
+                if (file_exists($caminhoAntigo)) {
+                    unlink($caminhoAntigo);
+                }
+            }
+
             $novoNome = $img->getRandomName();
-
-            // Move o arquivo para a pasta de uploads
             $img->move(FCPATH . 'uploads/produtos', $novoNome);
-
-            // Salva o novo nome do arquivo no array de dados que vai para o banco
             $data['imagem'] = $novoNome;
+        } elseif (!empty($urlImg)) {
+            $data['imagem'] = $urlImg;
         }
 
-        if ($produtoModel->insert($data)) {
-            return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto criado com sucesso!');
-        } else {
-            // Se a validação falhar, precisamos reenviar a lista de categorias
-            $categoriaModel = new \App\Models\CategoriaModel();
-            return redirect()->back()
-                ->withInput()
-                ->with('errors', $produtoModel->errors())
-                ->with('categorias', $categoriaModel->findAll());
+        if ($this->produtoModel->update($id, $data)) {
+            return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto atualizado com sucesso!');
+        }
+
+        return redirect()->back()
+            ->withInput()
+            ->with('errors', $this->produtoModel->errors())
+            ->with('categorias', $this->categoriaModel->findAll());
+    }
+
+    public function delete($id = null)
+    {
+        if ($this->pedidoProdutoModel->where('produto_id', $id)->first()) {
+            return redirect()->to(site_url('admin/produtos'))
+                ->with('error', 'Este produto não pode ser excluído pois já faz parte de um ou mais pedidos.');
+        }
+
+        try {
+            $this->produtoModel->delete($id);
+            return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto excluído com sucesso!');
+        } catch (\Exception $e) {
+            return redirect()->to(site_url('admin/produtos'))->with('error', 'Erro ao excluir o produto: ' . $e->getMessage());
         }
     }
 
-
-    public function new()
+    /**
+     * Valida MIME type e tamanho do arquivo de imagem.
+     */
+    protected function validateUpload(?\CodeIgniter\HTTP\Files\UploadedFile $img): bool
     {
-        helper('form');
+        if (!$img || !$img->isValid() || $img->hasMoved()) {
+            return true; // sem arquivo não é erro de upload
+        }
 
-        // Precisamos buscar as categorias para popular o <select> no formulário
-        $categoriaModel = new \App\Models\CategoriaModel();
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+        $maxSizeBytes = 2 * 1024 * 1024; // 2 MB
 
-        $data = [
-            'title' => 'Adicionar Novo Produto',
-            'categorias' => $categoriaModel->findAll() // Busca todas as categorias
-        ];
+        if (!in_array($img->getMimeType(), $allowedMimes, true)) {
+            return false;
+        }
 
-        return view('admin/produtos/new', $data);
-    }
+        if ($img->getSizeByUnit('b') > $maxSizeBytes) {
+            return false;
+        }
 
-    public function index()
-    {
-        $model = new ProdutoModel();
-
-        $data = [
-            // Usando nosso novo método para buscar produtos com o nome da categoria!
-            'produtos' => $model->getProdutosComCategoria(10),
-            'pager' => $model->pager,
-            'title' => 'Lista de Produtos'
-        ];
-
-        return view('admin/produtos/index', $data);
+        return true;
     }
 }

@@ -10,6 +10,9 @@
     <?php if (session()->getFlashdata('success')): ?>
         <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
     <?php endif; ?>
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+    <?php endif; ?>
 
     <div class="card">
         <div class="card-body">
@@ -32,7 +35,7 @@
                                 <td><?= esc($produto['id']) ?></td>
                                 <td>
                                     <?php if (!empty($produto['imagem'])): ?>
-                                        <img src="<?= base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" alt="<?= esc($produto['nome']) ?>" width="80">
+                                        <img src="<?= strpos($produto['imagem'], 'http') === 0 ? esc($produto['imagem']) : base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" alt="<?= esc($produto['nome']) ?>" width="80">
                                     <?php else: ?>
                                         <span class="text-muted">Sem Imagem</span>
                                     <?php endif; ?>
@@ -44,6 +47,7 @@
                                 <td>
                                     <a href="<?= site_url('admin/produtos/edit/' . $produto['id']) ?>" class="btn btn-warning btn-sm">Editar</a>
                                     <form action="<?= site_url('admin/produtos/delete/' . $produto['id']) ?>" method="post" class="d-inline">
+                                        <?= csrf_field() ?>
                                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza?');">Excluir</button>
                                     </form>
                                 </td>
