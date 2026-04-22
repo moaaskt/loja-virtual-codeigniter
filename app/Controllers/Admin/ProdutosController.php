@@ -10,27 +10,22 @@ class ProdutosController extends BaseController
 {
 
     public function delete($id = null)
-{
-    // Precisamos do model de itens de pedido para fazer a verificação
-    $pedidoProdutoModel = new \App\Models\PedidoProdutoModel();
+    {
+        $pedidoProdutoModel = new \App\Models\PedidoProdutoModel();
 
-    // Verifica se este produto_id existe em algum registro na tabela pedido_produtos
-    $produtoEmPedido = $pedidoProdutoModel->where('produto_id', $id)->first();
+        if ($pedidoProdutoModel->where('produto_id', $id)->first()) {
+            return redirect()->to(site_url('admin/produtos'))
+                             ->with('error', 'Este produto não pode ser excluído pois já faz parte de um ou mais pedidos.');
+        }
 
-    // Se o produto foi encontrado em um pedido, impede a exclusão
-    if ($produtoEmPedido) {
-        return redirect()->to(site_url('admin/produtos'))
-                         ->with('error', 'Este produto não pode ser excluído, pois já faz parte de um ou mais pedidos.');
+        try {
+            $produtoModel = new \App\Models\ProdutoModel();
+            $produtoModel->delete($id);
+            return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto excluído com sucesso!');
+        } catch (\Exception $e) {
+            return redirect()->to(site_url('admin/produtos'))->with('error', 'Erro ao excluir o produto: ' . $e->getMessage());
+        }
     }
-
-    // Se o produto não estiver em nenhum pedido, a exclusão pode prosseguir
-    $produtoModel = new \App\Models\ProdutoModel();
-    if ($produtoModel->delete($id)) {
-        return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto excluído com sucesso!');
-    } else {
-        return redirect()->to(site_url('admin/produtos'))->with('error', 'Erro ao excluir o produto.');
-    }
-}
 
     
     public function update($id = null)
