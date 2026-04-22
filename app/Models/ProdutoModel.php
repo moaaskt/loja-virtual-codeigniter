@@ -98,6 +98,26 @@ public function findProdutoComCategoria($id)
 
 
 
+// Decrementa estoque dentro de uma transação aberta pelo chamador (usa FOR UPDATE para evitar race condition)
+public function decrementarEstoque(int $produtoId, int $quantidade, \CodeIgniter\Database\BaseConnection $db): bool
+{
+    $row = $db->query(
+        'SELECT estoque FROM produtos WHERE id = ? FOR UPDATE',
+        [$produtoId]
+    )->getRowArray();
+
+    if ($row === null || $row['estoque'] < $quantidade) {
+        return false;
+    }
+
+    $db->query(
+        'UPDATE produtos SET estoque = estoque - ? WHERE id = ?',
+        [$quantidade, $produtoId]
+    );
+
+    return true;
+}
+
 // Método para obter todos os produtos com suas respectivas categorias
 public function getProdutosComCategoria($perPage = 10)
 {

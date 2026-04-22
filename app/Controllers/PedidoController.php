@@ -5,6 +5,7 @@ namespace App\Controllers;
 // Importaremos os models necessários aqui
 use App\Models\PedidoModel;
 use App\Models\PedidoProdutoModel;
+use App\Models\ProdutoModel;
 
 class PedidoController extends BaseController
 {
@@ -38,59 +39,48 @@ class PedidoController extends BaseController
             return redirect()->to(site_url('carrinho'))->with('error', 'Seu carrinho está vazio.');
         }
 
-        // Instancia os models
-        $pedidoModel = new PedidoModel();
+        $pedidoModel      = new PedidoModel();
         $pedidoProdutoModel = new PedidoProdutoModel();
+        $produtoModel     = new ProdutoModel();
 
-        // Conexão com o banco para usar a transação
         $db = \Config\Database::connect();
-
-        // 2. Inicia a transação
         $db->transStart();
 
-        // 3. Calcula o valor total e prepara os dados dos produtos
         $valorTotal = 0;
-        $produtosDoPedido = [];
-        foreach ($carrinho as $id => $item) {
+        foreach ($carrinho as $item) {
             $valorTotal += $item['preco'] * $item['quantidade'];
-            $produtosDoPedido[] = [
-                // 'pedido_id' será adicionado depois que o pedido for criado
-                'produto_id' => $id,
-                'quantidade' => $item['quantidade'],
-                'preco_unitario' => $item['preco'],
-            ];
         }
 
-        // 4. Insere o pedido na tabela `pedidos`
-        $dadosPedido = [
-            'usuario_id' => session()->get('usuario_id'),
+        $pedidoModel->insert([
+            'usuario_id'  => session()->get('usuario_id'),
             'valor_total' => $valorTotal,
-            'status' => 'Processando' // Um status inicial
-        ];
-        $pedidoModel->insert($dadosPedido);
-
-        // 5. Pega o ID do pedido que acabamos de criar
+            'status'      => 'pendente',
+        ]);
         $pedidoId = $pedidoModel->getInsertID();
 
-        // 6. Insere cada produto na tabela `pedido_produtos`
-        foreach ($produtosDoPedido as $produto) {
-            $produto['pedido_id'] = $pedidoId; // Adiciona o ID do pedido a cada item
-            $pedidoProdutoModel->insert($produto);
+        foreach ($carrinho as $produtoId => $item) {
+            // Decrementa estoque com SELECT FOR UPDATE para evitar race condition
+            $ok = $produtoModel->decrementarEstoque((int) $produtoId, (int) $item['quantidade'], $db);
+            if (!$ok) {
+                $db->transRollback();
+                return redirect()->to(site_url('carrinho'))->with('error', 'Estoque insuficiente para "' . esc($item['nome']) . '". Verifique seu carrinho.');
+            }
+
+            $pedidoProdutoModel->insert([
+                'pedido_id'      => $pedidoId,
+                'produto_id'     => $produtoId,
+                'quantidade'     => $item['quantidade'],
+                'preco_unitario' => $item['preco'],
+            ]);
         }
 
-        // 7. Finaliza a transação
         $db->transComplete();
 
-        // 8. Verifica se a transação foi bem-sucedida
         if ($db->transStatus() === false) {
-            // Se falhou, redireciona de volta com erro (nada foi salvo no banco)
             return redirect()->to(site_url('carrinho'))->with('error', 'Houve um erro ao processar seu pedido. Tente novamente.');
-        } else {
-            // Se deu certo, limpa o carrinho da sessão
-            session()->remove('carrinho');
-
-            // Redireciona para uma página de sucesso
-            return redirect()->to(site_url('pedido/sucesso'))->with('success', 'Seu pedido foi realizado com sucesso!');
         }
+
+        session()->remove('carrinho');
+        return redirect()->to(site_url('pedido/sucesso'))->with('success', 'Seu pedido foi realizado com sucesso!');
     }
 }
