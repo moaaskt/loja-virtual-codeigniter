@@ -3,71 +3,135 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= esc($title ?? 'Painel Admin') ?> | Minha Loja</title>
+    <title><?= esc($title ?? 'Painel Admin') ?> | G'Store Admin</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
     <link rel="stylesheet" href="<?= base_url('assets/css/admin.css') ?>">
-     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin.css') ?>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-<div class="d-flex">
-    <div class="sidebar bg-dark text-white p-3">
-        <a href="<?= site_url('admin/dashboard') ?>" class="d-flex align-items-center mb-3 text-white text-decoration-none">
-            <i class="bi bi-box-seam-fill me-2 fs-4"></i>
-            <span class="fs-4">LojaAdmin</span>
-        </a>
-        <hr>
-        <ul class="nav nav-pills flex-column mb-auto">
-            <li class="nav-item">
-                <a href="<?= site_url('admin/dashboard') ?>" class="nav-link text-white">
-                    <i class="bi bi-grid-fill me-2"></i> Dashboard
-                </a>
-            </li>
+<!-- Overlay for mobile sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+
+    <a href="<?= site_url('admin/dashboard') ?>" class="sidebar-brand">
+        <span class="brand-icon"><i class="bi bi-bag-heart-fill"></i></span>
+        G'Store
+    </a>
+
+    <span class="sidebar-section-label">Principal</span>
+    <nav>
+        <ul class="nav flex-column">
             <li>
-                <a href="<?= site_url('admin/pedidos') ?>" class="nav-link text-white">
-                    <i class="bi bi-receipt-cutoff me-2"></i> Pedidos
-                </a>
-            </li>
-            <li>
-                <a href="<?= site_url('admin/produtos') ?>" class="nav-link text-white">
-                    <i class="bi bi-box-fill me-2"></i> Produtos
-                </a>
-            </li>
-            <li>
-                <a href="<?= site_url('admin/categorias') ?>" class="nav-link text-white">
-                    <i class="bi bi-tags-fill me-2"></i> Categorias
-                </a>
-            </li>
-             <li>
-                <a href="<?= site_url('admin/clientes') ?>" class="nav-link text-white">
-                    <i class="bi bi-person-fill me-2"></i> Clientes
+                <a href="<?= site_url('admin/dashboard') ?>"
+                    class="nav-link <?= (uri_string() === 'admin/dashboard') ? 'active' : '' ?>">
+                    <i class="bi bi-speedometer2"></i>
+                    Dashboard
                 </a>
             </li>
         </ul>
-        <hr>
+    </nav>
+
+    <span class="sidebar-section-label">Gestão</span>
+    <nav>
+        <ul class="nav flex-column">
+            <li>
+                <a href="<?= site_url('admin/pedidos') ?>"
+                    class="nav-link <?= str_starts_with(uri_string(), 'admin/pedidos') ? 'active' : '' ?>">
+                    <i class="bi bi-receipt-cutoff"></i>
+                    Pedidos
+                </a>
+            </li>
+            <li>
+                <a href="<?= site_url('admin/produtos') ?>"
+                    class="nav-link <?= str_starts_with(uri_string(), 'admin/produtos') ? 'active' : '' ?>">
+                    <i class="bi bi-box-seam-fill"></i>
+                    Produtos
+                </a>
+            </li>
+            <li>
+                <a href="<?= site_url('admin/categorias') ?>"
+                    class="nav-link <?= str_starts_with(uri_string(), 'admin/categorias') ? 'active' : '' ?>">
+                    <i class="bi bi-tags-fill"></i>
+                    Categorias
+                </a>
+            </li>
+            <li>
+                <a href="<?= site_url('admin/clientes') ?>"
+                    class="nav-link <?= str_starts_with(uri_string(), 'admin/clientes') ? 'active' : '' ?>">
+                    <i class="bi bi-people-fill"></i>
+                    Clientes
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="sidebar-footer">
         <div class="dropdown">
-            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="bi bi-person-circle fs-4 me-2"></i>
-                <strong><?= esc(session()->get('nome')) ?></strong>
+            <a class="sidebar-user dropdown-toggle" href="#" data-bs-toggle="dropdown"
+                aria-expanded="false" id="sidebar-user-menu">
+                <span class="sidebar-avatar">
+                    <?= mb_strtoupper(mb_substr(session()->get('nome') ?? 'A', 0, 1)) ?>
+                </span>
+                <div class="lh-1">
+                    <div class="text-white fw-semibold" style="font-size:.8125rem;">
+                        <?= esc(session()->get('nome')) ?>
+                    </div>
+                    <small style="font-size:.6875rem; color:rgba(255,255,255,.4);">Administrador</small>
+                </div>
             </a>
-            <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-                <li><a class="dropdown-item" target="_blank" href="<?= site_url('/') ?>">Ver Loja</a></li>
+            <ul class="dropdown-menu dropdown-menu-dark border-0 shadow mb-2" style="min-width:190px;">
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2"
+                        href="<?= site_url('/') ?>" target="_blank">
+                        <i class="bi bi-shop"></i> Ver Loja
+                    </a>
+                </li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="<?= site_url('logout') ?>">Sair</a></li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-danger"
+                        href="<?= site_url('logout') ?>">
+                        <i class="bi bi-box-arrow-right"></i> Sair
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
+</aside>
 
-    <div class="main-content flex-grow-1 p-4">
-        <?= $this->renderSection('content') ?>
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main-content">
+
+    <!-- Mobile topbar -->
+    <div class="d-lg-none d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <button class="btn btn-sm btn-outline-secondary" id="sidebarToggle" aria-label="Abrir menu">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+        <span class="fw-bold">G'Store Admin</span>
+        <span class="sidebar-avatar" style="width:32px;height:32px;font-size:.75rem;">
+            <?= mb_strtoupper(mb_substr(session()->get('nome') ?? 'A', 0, 1)) ?>
+        </span>
     </div>
+
+    <?= $this->renderSection('content') ?>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Mobile sidebar toggle
+    const sidebar        = document.getElementById('sidebar');
+    const overlay        = document.getElementById('sidebarOverlay');
+    const toggleBtn      = document.getElementById('sidebarToggle');
+
+    function openSidebar()  { sidebar.classList.add('sidebar-open');  overlay.classList.add('active'); }
+    function closeSidebar() { sidebar.classList.remove('sidebar-open'); overlay.classList.remove('active'); }
+
+    toggleBtn?.addEventListener('click', openSidebar);
+    overlay.addEventListener('click', closeSidebar);
+</script>
 </body>
 </html>

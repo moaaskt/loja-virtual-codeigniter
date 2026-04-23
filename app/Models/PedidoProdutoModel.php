@@ -10,7 +10,7 @@ class PedidoProdutoModel extends Model
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
-    protected $allowedFields    = ['pedido_id', 'produto_id', 'quantidade', 'preco_unitario'];
+    protected $allowedFields    = ['pedido_id', 'produto_id', 'variacao_id', 'tamanho', 'cor', 'quantidade', 'preco_unitario'];
 
     protected $useTimestamps = false; 
 

@@ -26,7 +26,7 @@ class CarrinhoService
     /**
      * Adiciona produto ao carrinho. Retorna ['ok' => bool, 'erro' => string].
      */
-    public function adicionar(int $produtoId, int $quantidade): array
+    public function adicionar(int $produtoId, int $quantidade, int $variacaoId = 0): array
     {
         $produto = $this->produtoModel->find($produtoId);
 
@@ -34,7 +34,21 @@ class CarrinhoService
             return ['ok' => false, 'erro' => 'Produto não encontrado!'];
         }
 
-        $estoqueDisponivel = (int) $produto['estoque'];
+        $db = \Config\Database::connect();
+        $variacao = null;
+        if ($variacaoId > 0) {
+            $variacao = $db->table('produto_variacoes')->where('id', $variacaoId)->where('produto_id', $produtoId)->get()->getRowArray();
+            if (!$variacao) {
+                return ['ok' => false, 'erro' => 'Variação inválida.'];
+            }
+            $estoqueDisponivel = (int) $variacao['estoque'];
+        } else {
+            $temVariacoes = $db->table('produto_variacoes')->where('produto_id', $produtoId)->countAllResults() > 0;
+            if ($temVariacoes) {
+                return ['ok' => false, 'erro' => 'Por favor, selecione um tamanho e/ou cor.'];
+            }
+            $estoqueDisponivel = (int) $produto['estoque'];
+        }
 
         if ($estoqueDisponivel <= 0) {
             return ['ok' => false, 'erro' => 'Produto fora de estoque.'];
@@ -45,23 +59,27 @@ class CarrinhoService
         }
 
         $carrinho             = $this->getCarrinho();
-        $quantidadeNoCarrinho = isset($carrinho[$produtoId]) ? (int) $carrinho[$produtoId]['quantidade'] : 0;
+        $cartKey              = $produtoId . '_' . $variacaoId;
+        $quantidadeNoCarrinho = isset($carrinho[$cartKey]) ? (int) $carrinho[$cartKey]['quantidade'] : 0;
         $quantidadeTotal      = $quantidadeNoCarrinho + $quantidade;
 
         if ($quantidadeTotal > $estoqueDisponivel) {
             $disponivelParaAdicionar = $estoqueDisponivel - $quantidadeNoCarrinho;
-            return ['ok' => false, 'erro' => "Estoque insuficiente. Você pode adicionar no máximo {$disponivelParaAdicionar} unidade(s) deste produto."];
+            return ['ok' => false, 'erro' => "Estoque insuficiente. Você pode adicionar no máximo {$disponivelParaAdicionar} unidade(s) deste item."];
         }
 
-        if (isset($carrinho[$produtoId])) {
-            $carrinho[$produtoId]['quantidade'] = $quantidadeTotal;
+        if (isset($carrinho[$cartKey])) {
+            $carrinho[$cartKey]['quantidade'] = $quantidadeTotal;
         } else {
-            $carrinho[$produtoId] = [
-                'id'         => $produto['id'],
-                'nome'       => $produto['nome'],
-                'preco'      => $produto['preco'],
-                'imagem'     => $produto['imagem'],
-                'quantidade' => $quantidade,
+            $carrinho[$cartKey] = [
+                'id'          => $produto['id'],
+                'variacao_id' => $variacaoId,
+                'nome'        => $produto['nome'],
+                'preco'       => $produto['preco'],
+                'imagem'      => $produto['imagem'],
+                'quantidade'  => $quantidade,
+                'tamanho'     => $variacao ? $variacao['tamanho'] : '',
+                'cor'         => $variacao ? $variacao['cor'] : '',
             ];
         }
 
@@ -70,44 +88,52 @@ class CarrinhoService
     }
 
     /**
-     * Atualiza quantidade de um produto no carrinho.
+     * Atualiza quantidade de um item no carrinho.
      */
-    public function atualizar(int $produtoId, int $quantidade): array
+    public function atualizar(string $cartKey, int $quantidade): array
     {
         if ($quantidade < 1) {
             return ['ok' => false, 'erro' => 'Quantidade inválida.'];
         }
 
-        $produto = $this->produtoModel->find($produtoId);
-
-        if (!$produto) {
-            return ['ok' => false, 'erro' => 'Produto não encontrado.'];
+        $carrinho = $this->getCarrinho();
+        if (!isset($carrinho[$cartKey])) {
+            return ['ok' => false, 'erro' => 'Item não encontrado no carrinho.'];
         }
 
-        $estoqueDisponivel = (int) $produto['estoque'];
+        $item = $carrinho[$cartKey];
+        $produtoId = $item['id'];
+        $variacaoId = $item['variacao_id'] ?? 0;
+
+        $db = \Config\Database::connect();
+        if ($variacaoId > 0) {
+            $variacao = $db->table('produto_variacoes')->where('id', $variacaoId)->where('produto_id', $produtoId)->get()->getRowArray();
+            $estoqueDisponivel = $variacao ? (int) $variacao['estoque'] : 0;
+        } else {
+            $produto = $this->produtoModel->find($produtoId);
+            $estoqueDisponivel = $produto ? (int) $produto['estoque'] : 0;
+        }
 
         if ($quantidade > $estoqueDisponivel) {
             return ['ok' => false, 'erro' => "Estoque insuficiente. Máximo disponível: {$estoqueDisponivel} unidade(s)."];
         }
 
-        $carrinho = $this->getCarrinho();
-
-        if (isset($carrinho[$produtoId])) {
-            $carrinho[$produtoId]['quantidade'] = $quantidade;
-            session()->set('carrinho', $carrinho);
-        }
+        $carrinho[$cartKey]['quantidade'] = $quantidade;
+        session()->set('carrinho', $carrinho);
 
         return ['ok' => true];
     }
 
     /**
-     * Remove produto do carrinho.
+     * Remove item do carrinho.
      */
-    public function remover(int $produtoId): void
+    public function remover(string $cartKey): void
     {
         $carrinho = $this->getCarrinho();
-        unset($carrinho[$produtoId]);
-        session()->set('carrinho', $carrinho);
+        if (isset($carrinho[$cartKey])) {
+            unset($carrinho[$cartKey]);
+            session()->set('carrinho', $carrinho);
+        }
     }
 
     public function calcularTotal(): float

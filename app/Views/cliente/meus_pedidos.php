@@ -37,8 +37,15 @@
                                                     alt="<?= esc($item['nome']) ?>"
                                                     style="width: 50px; height: 50px; object-fit: cover;" class="me-3">
                                                 <div>
-                                                    <?= esc($item['nome']) ?><br>
-                                                    <small class="text-muted">Quantidade: <?= esc($item['quantidade']) ?></small>
+                                                    <span class="d-block fw-semibold"><?= esc($item['nome']) ?></span>
+                                                    <?php if (!empty($item['tamanho']) || !empty($item['cor'])): ?>
+                                                        <small class="text-muted d-block mt-1">
+                                                            <?= !empty($item['tamanho']) ? 'Tamanho: ' . esc($item['tamanho']) : '' ?>
+                                                            <?= !empty($item['tamanho']) && !empty($item['cor']) ? ' | ' : '' ?>
+                                                            <?= !empty($item['cor']) ? 'Cor: ' . esc($item['cor']) : '' ?>
+                                                        </small>
+                                                    <?php endif; ?>
+                                                    <small class="text-muted d-block">Quantidade: <?= esc($item['quantidade']) ?></small>
                                                 </div>
                                             </div>
                                             <span class="badge bg-secondary rounded-pill">
