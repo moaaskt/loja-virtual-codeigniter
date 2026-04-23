@@ -33,7 +33,16 @@
                                     class="img-thumb-table">
                                 <div>
                                     <p class="fw-semibold mb-0"><?= esc($produto['nome']) ?></p>
-                                    <small class="text-muted">
+                                    <?php if (!empty($produto['tamanho']) || !empty($produto['cor'])): ?>
+                                        <small class="text-muted d-block mt-1">
+                                            <span class="badge bg-light text-dark border">
+                                                <?= !empty($produto['tamanho']) ? 'Tam: ' . esc($produto['tamanho']) : '' ?>
+                                                <?= !empty($produto['tamanho']) && !empty($produto['cor']) ? ' | ' : '' ?>
+                                                <?= !empty($produto['cor']) ? 'Cor: ' . esc($produto['cor']) : '' ?>
+                                            </span>
+                                        </small>
+                                    <?php endif; ?>
+                                    <small class="text-muted d-block mt-1">
                                         <?= esc($produto['quantidade']) ?> × R$ <?= esc(number_format($produto['preco_unitario'], 2, ',', '.')) ?>
                                     </small>
                                 </div>

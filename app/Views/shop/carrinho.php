@@ -63,14 +63,21 @@
                                             class="img-thumb-table" style="width:52px;height:52px;">
                                     </td>
                                     <td>
-                                        <span class="fw-semibold"><?= esc($item['nome']) ?></span>
+                                        <span class="fw-semibold d-block"><?= esc($item['nome']) ?></span>
+                                        <?php if (!empty($item['tamanho']) || !empty($item['cor'])): ?>
+                                            <small class="text-muted d-block mt-1">
+                                                <?= !empty($item['tamanho']) ? 'Tamanho: ' . esc($item['tamanho']) : '' ?>
+                                                <?= !empty($item['tamanho']) && !empty($item['cor']) ? ' | ' : '' ?>
+                                                <?= !empty($item['cor']) ? 'Cor: ' . esc($item['cor']) : '' ?>
+                                            </small>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="text-muted">
                                         R$ <?= esc(number_format($item['preco'], 2, ',', '.')) ?>
                                     </td>
                                     <td>
                                         <?= form_open('carrinho/atualizar', ['class' => 'd-flex align-items-center gap-2']) ?>
-                                            <input type="hidden" name="produto_id" value="<?= $id ?>">
+                                            <input type="hidden" name="cart_key" value="<?= $id ?>">
                                             <input type="number" name="quantidade"
                                                 class="form-control form-control-sm text-center"
                                                 value="<?= esc($item['quantidade']) ?>"

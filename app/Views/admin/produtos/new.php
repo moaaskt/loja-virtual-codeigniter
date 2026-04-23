@@ -22,7 +22,8 @@
 
 <div class="card">
     <div class="card-body">
-        <?= form_open_multipart('admin/produtos/create') ?>
+        <form action="<?= site_url('admin/produtos/create') ?>" method="post" enctype="multipart/form-data">
+            <?= csrf_field() ?>
 
         <div class="row g-4">
 
@@ -112,9 +113,11 @@
                         <input type="url" name="url_imagem" class="form-control mt-2" placeholder="Ou cole a URL aqui..." value="<?= old('url_imagem') ?>">
                     </div>
                     <div class="col-md-6">
-                        <label for="imagens_galeria" class="form-label">Galeria de Imagens (Opcional)</label>
-                        <input class="form-control" type="file" id="imagens_galeria" name="imagens_galeria[]" accept="image/*" multiple>
+                        <label for="imagens" class="form-label">Galeria de Imagens (Opcional)</label>
+                        <input class="form-control" type="file" id="imagens" name="imagens[]" accept="image/*" multiple>
                         <small class="text-muted">Selecione várias fotos para a galeria</small>
+                        <div id="gallery-preview" class="row g-2 mt-2"></div>
+                        <textarea name="imagens_url" class="form-control mt-2" rows="3" placeholder="Ou cole as URLs das imagens aqui (uma por linha)"></textarea>
                     </div>
                 </div>
             </div>
@@ -129,7 +132,7 @@
             </a>
         </div>
 
-        <?= form_close() ?>
+        </form>
     </div>
 </div>
 
@@ -189,6 +192,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Iniciar estado vazio
     checkEmptyState();
+
+    // ---- LÓGICA DE PREVIEW DE IMAGENS (GALERIA) ----
+    const inputGaleria = document.getElementById('imagens');
+    const galleryPreview = document.getElementById('gallery-preview');
+
+    if (inputGaleria && galleryPreview) {
+        inputGaleria.addEventListener('change', function() {
+            galleryPreview.innerHTML = ''; // Limpa a galeria atual
+            
+            const files = Array.from(this.files);
+            
+            files.forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const col = document.createElement('div');
+                    col.className = 'col-3 col-md-2 position-relative';
+                    
+                    col.innerHTML = `
+                        <img src="${e.target.result}" class="img-thumbnail w-100" style="object-fit: cover; aspect-ratio: 1/1;" alt="Preview">
+                    `;
+                    
+                    galleryPreview.appendChild(col);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    }
 });
 </script>
 

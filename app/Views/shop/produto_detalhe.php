@@ -15,7 +15,8 @@
     $galeria = [$imagemPrincipal];
     if (!empty($imagens) && is_array($imagens)) {
         foreach ($imagens as $img) {
-            $galeria[] = base_url('uploads/produtos/' . esc($img['caminho_imagem']));
+            $isUrl = (strpos($img['caminho_imagem'], 'http://') === 0 || strpos($img['caminho_imagem'], 'https://') === 0);
+            $galeria[] = $isUrl ? esc($img['caminho_imagem']) : base_url('uploads/produtos/' . esc($img['caminho_imagem']));
         }
     }
 
@@ -157,7 +158,7 @@
             <!-- Add to Cart -->
             <div class="pdp-cart-actions">
                 <?php if (!$esgotado): ?>
-                    <?= form_open('carrinho/adicionar') ?>
+                    <?= form_open('carrinho/adicionar', ['id' => 'form-add-cart']) ?>
                         <input type="hidden" name="produto_id" value="<?= esc($produto['id']) ?>">
                         <input type="hidden" name="variacao_id" id="variacao_id" value="">
                         <div class="d-flex align-items-center gap-3 flex-wrap">
@@ -303,6 +304,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const variacoes = <?= json_encode($variacoesData ?? []) ?>;
     const btnAddCart = document.getElementById('btn-add-cart');
     const inputVariacaoId = document.getElementById('variacao_id');
+    
+    const formAddCart = document.getElementById('form-add-cart');
+    if (formAddCart) {
+        formAddCart.addEventListener('submit', function(e) {
+            if (variacoes.length > 0 && !inputVariacaoId.value) {
+                e.preventDefault();
+                alert('Por favor, selecione um tamanho e/ou cor disponíveis antes de adicionar ao carrinho.');
+            }
+        });
+    }
     const sizeRadios = document.querySelectorAll('.variant-size-selector');
     const colorRadios = document.querySelectorAll('.variant-color-selector');
     const hasSizes = sizeRadios.length > 0;

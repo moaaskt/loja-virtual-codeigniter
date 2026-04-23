@@ -19,7 +19,7 @@ $routes->get('api/produtos/busca', 'HomeController::buscaApi');
 $routes->get('carrinho', 'CarrinhoController::index');
 $routes->post('carrinho/adicionar', 'CarrinhoController::adicionar');
 $routes->post('carrinho/atualizar', 'CarrinhoController::atualizar');
-$routes->post('carrinho/remover/(:num)', 'CarrinhoController::remover/$1');
+$routes->post('carrinho/remover/(:any)', 'CarrinhoController::remover/$1');
 
 // Autenticação
 $routes->get('login', 'AuthController::login', ['filter' => 'guest']);

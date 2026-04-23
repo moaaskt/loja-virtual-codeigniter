@@ -52,6 +52,11 @@ class ProdutosController extends BaseController
         $data['cores'] = ''; // Limpando campos descontinuados
         $data['tamanhos'] = '';
 
+        // Garantia de Diretório
+        if (!is_dir(FCPATH . 'uploads/produtos/')) {
+            mkdir(FCPATH . 'uploads/produtos/', 0777, true);
+        }
+
         // --- Imagem Principal ---
         $img = $this->request->getFile('imagem');
         if ($img && $img->isValid() && !$img->hasMoved()) {
@@ -91,7 +96,8 @@ class ProdutosController extends BaseController
         }
 
         // --- Galeria de Imagens ---
-        $galeriaFiles = $this->request->getFileMultiple('imagens_galeria');
+        $galeriaFiles = $this->request->getFileMultiple('imagens');
+        log_message('debug', 'Arquivos recebidos: ' . print_r($_FILES, true));
         if ($galeriaFiles) {
             foreach ($galeriaFiles as $gFile) {
                 if ($gFile->isValid() && !$gFile->hasMoved()) {
@@ -103,6 +109,24 @@ class ProdutosController extends BaseController
                             'caminho_imagem' => $gNome
                         ]);
                     }
+                } elseif ($gFile->getError() !== UPLOAD_ERR_NO_FILE) {
+                    log_message('error', 'Erro no arquivo: ' . $gFile->getErrorString());
+                    var_dump($gFile->getErrorString()); die();
+                }
+            }
+        }
+
+        // --- Galeria de Imagens (URLs) ---
+        $urlsInput = $this->request->getPost('imagens_url');
+        if (!empty($urlsInput)) {
+            $urls = explode("\n", $urlsInput);
+            foreach ($urls as $url) {
+                $url = trim($url);
+                if (filter_var($url, FILTER_VALIDATE_URL)) {
+                    $db->table('produto_imagens')->insert([
+                        'produto_id' => $produtoId,
+                        'caminho_imagem' => $url
+                    ]);
                 }
             }
         }
@@ -147,6 +171,11 @@ class ProdutosController extends BaseController
         $data['cores'] = '';
         $data['tamanhos'] = '';
         
+        // Garantia de Diretório
+        if (!is_dir(FCPATH . 'uploads/produtos/')) {
+            mkdir(FCPATH . 'uploads/produtos/', 0777, true);
+        }
+
         // --- Imagem Principal ---
         $img    = $this->request->getFile('imagem');
         $urlImg = $this->request->getPost('url_imagem');
@@ -195,7 +224,8 @@ class ProdutosController extends BaseController
         }
 
         // --- Galeria de Imagens (Upload) ---
-        $galeriaFiles = $this->request->getFileMultiple('imagens_galeria');
+        $galeriaFiles = $this->request->getFileMultiple('imagens');
+        log_message('debug', 'Arquivos recebidos: ' . print_r($_FILES, true));
         if ($galeriaFiles) {
             foreach ($galeriaFiles as $gFile) {
                 if ($gFile->isValid() && !$gFile->hasMoved()) {
@@ -207,6 +237,24 @@ class ProdutosController extends BaseController
                             'caminho_imagem' => $gNome
                         ]);
                     }
+                } elseif ($gFile->getError() !== UPLOAD_ERR_NO_FILE) {
+                    log_message('error', 'Erro no arquivo: ' . $gFile->getErrorString());
+                    var_dump($gFile->getErrorString()); die();
+                }
+            }
+        }
+
+        // --- Galeria de Imagens (URLs) ---
+        $urlsInput = $this->request->getPost('imagens_url');
+        if (!empty($urlsInput)) {
+            $urls = explode("\n", $urlsInput);
+            foreach ($urls as $url) {
+                $url = trim($url);
+                if (filter_var($url, FILTER_VALIDATE_URL)) {
+                    $db->table('produto_imagens')->insert([
+                        'produto_id' => $id,
+                        'caminho_imagem' => $url
+                    ]);
                 }
             }
         }

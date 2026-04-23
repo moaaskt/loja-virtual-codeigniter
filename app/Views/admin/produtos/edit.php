@@ -22,7 +22,8 @@
 
 <div class="card">
     <div class="card-body">
-        <?= form_open_multipart('admin/produtos/update/' . $produto['id']) ?>
+        <form action="<?= site_url('admin/produtos/update/' . $produto['id']) ?>" method="post" enctype="multipart/form-data">
+            <?= csrf_field() ?>
 
         <div class="row g-4">
 
@@ -141,8 +142,10 @@
                         <input class="form-control" type="file" id="imagem" name="imagem" accept="image/*">
                         <input type="url" name="url_imagem" class="form-control mt-2" placeholder="Ou cole a URL aqui..." value="<?= old('url_imagem', strpos($produto['imagem'] ?? '', 'http') === 0 ? $produto['imagem'] : '') ?>">
                         
-                        <label for="imagens_galeria" class="form-label mt-3">Adicionar à Galeria</label>
-                        <input class="form-control" type="file" id="imagens_galeria" name="imagens_galeria[]" accept="image/*" multiple>
+                        <label for="imagens" class="form-label mt-3">Adicionar à Galeria</label>
+                        <input class="form-control" type="file" id="imagens" name="imagens[]" accept="image/*" multiple>
+                        <div id="gallery-preview" class="row g-2 mt-2"></div>
+                        <textarea name="imagens_url" class="form-control mt-2" rows="3" placeholder="Ou cole as URLs das imagens aqui (uma por linha)"></textarea>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label d-block mb-2">Visualização Atual</label>
@@ -158,7 +161,8 @@
                             <!-- Galeria -->
                             <?php foreach ($imagensExtra as $img): ?>
                                 <div class="position-relative">
-                                    <img src="<?= base_url('uploads/produtos/' . esc($img['caminho_imagem'])) ?>" class="rounded border" style="width:100px; height:100px; object-fit:cover;">
+                                    <?php $isUrl = (strpos($img['caminho_imagem'], 'http://') === 0 || strpos($img['caminho_imagem'], 'https://') === 0); ?>
+                                    <img src="<?= $isUrl ? esc($img['caminho_imagem']) : base_url('uploads/produtos/' . esc($img['caminho_imagem'])) ?>" class="rounded border" style="width:100px; height:100px; object-fit:cover;">
                                     <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 p-0 d-flex align-items-center justify-content-center btn-remover-imagem" style="width: 24px; height: 24px;" data-id="<?= esc($img['id']) ?>" title="Excluir imagem">
                                         <i class="bi bi-x"></i>
                                     </button>
@@ -181,7 +185,7 @@
             </a>
         </div>
 
-        <?= form_close() ?>
+        </form>
     </div>
 </div>
 
@@ -273,6 +277,33 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // ---- LÓGICA DE PREVIEW DE IMAGENS (GALERIA) ----
+    const inputGaleria = document.getElementById('imagens');
+    const galleryPreview = document.getElementById('gallery-preview');
+
+    if (inputGaleria && galleryPreview) {
+        inputGaleria.addEventListener('change', function() {
+            galleryPreview.innerHTML = ''; // Limpa a galeria atual
+            
+            const files = Array.from(this.files);
+            
+            files.forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const col = document.createElement('div');
+                    col.className = 'col-3 col-md-2 position-relative';
+                    
+                    col.innerHTML = `
+                        <img src="${e.target.result}" class="img-thumbnail w-100" style="object-fit: cover; aspect-ratio: 1/1;" alt="Preview">
+                    `;
+                    
+                    galleryPreview.appendChild(col);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    }
 });
 </script>
 
