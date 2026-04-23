@@ -278,7 +278,7 @@ class ProdutosController extends BaseController
             return redirect()->back()->withInput()->with('errors', ['db' => 'Erro ao atualizar o produto no banco de dados.']);
         }
 
-        return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto atualizado com sucesso!');
+        return redirect()->to(site_url('admin/produtos/edit/' . $id))->with('success', 'Produto atualizado com sucesso!');
     }
 
     public function delete($id = null)

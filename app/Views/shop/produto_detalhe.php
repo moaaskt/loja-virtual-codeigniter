@@ -140,7 +140,7 @@
                     <?php foreach ($coresDisponiveis as $index => $cor): ?>
                         <label class="pdp-color-chip variant-color-label" data-color="<?= esc($cor) ?>" title="<?= esc($cor) ?>">
                             <input type="radio" name="cor" value="<?= esc($cor) ?>" class="variant-color-selector">
-                            <span class="pdp-color-swatch" style="background: <?= strtolower($cor) == 'branco' ? '#fff' : (strtolower($cor) == 'preto' ? '#000' : 'var(--brand-primary)') ?>; border: 1px solid #ddd;">
+                            <span class="pdp-color-swatch border border-secondary-subtle shadow-sm" style="background-color: <?= esc($cor) ?>;">
                                 <i class="bi bi-check2"></i>
                             </span>
                         </label>

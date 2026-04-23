@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </select>
             </td>
             <td>
-                <input type="text" name="variacoes[${variacaoIndex}][cor]" class="form-control form-control-sm" placeholder="Ex: Preto" required>
+                <input type="color" name="variacoes[${variacaoIndex}][cor]" class="form-control form-control-color p-1" style="width: 45px; height: 38px; cursor: pointer;" value="#000000" title="Escolha a cor" required>
             </td>
             <td>
                 <input type="number" name="variacoes[${variacaoIndex}][estoque]" class="form-control form-control-sm" placeholder="0" min="0" required>
