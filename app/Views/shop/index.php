@@ -30,12 +30,18 @@
                     <?php if (!empty($produtos) && is_array($produtos)): ?>
                        <?php foreach ($produtos as $produto): ?>
                            <div class="col">
-                               <div class="card h-100 shadow-sm">
-                                   <?php if (!empty($produto['imagem'])): ?>
-                                       <img src="<?= strpos($produto['imagem'] ?? '', 'http') === 0 ? esc($produto['imagem']) : base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" class="card-img-top" alt="<?= esc($produto['nome']) ?>" style="height: 200px; object-fit: cover;">
-                                   <?php else: ?>
-                                       <img src="<?= base_url('uploads/produtos/sem_imagem.png') ?>" class="card-img-top" alt="Sem Imagem" style="height: 200px; object-fit: cover;">
-                                   <?php endif; ?>
+                               <?php $esgotado = (int)$produto['estoque'] === 0; ?>
+                               <div class="card h-100 shadow-sm <?= $esgotado ? 'opacity-75' : '' ?>">
+                                   <div class="position-relative">
+                                       <?php if (!empty($produto['imagem'])): ?>
+                                           <img src="<?= strpos($produto['imagem'] ?? '', 'http') === 0 ? esc($produto['imagem']) : base_url('uploads/produtos/' . esc($produto['imagem'])) ?>" class="card-img-top" alt="<?= esc($produto['nome']) ?>" style="height: 200px; object-fit: cover;">
+                                       <?php else: ?>
+                                           <img src="<?= base_url('uploads/produtos/sem_imagem.png') ?>" class="card-img-top" alt="Sem Imagem" style="height: 200px; object-fit: cover;">
+                                       <?php endif; ?>
+                                       <?php if ($esgotado): ?>
+                                           <span class="badge bg-danger position-absolute top-0 start-0 m-2" style="font-size:.85rem;">Esgotado</span>
+                                       <?php endif; ?>
+                                   </div>
 
                                    <div class="card-body">
                                        <h5 class="card-title"><?= esc($produto['nome']) ?></h5>
@@ -44,6 +50,9 @@
                                    </div>
                                    <div class="card-footer text-center">
                                        <a href="<?= site_url('produto/' . $produto['id']) ?>" class="btn btn-primary">Ver Detalhes</a>
+                                       <?php if ($esgotado): ?>
+                                           <button class="btn btn-secondary btn-sm ms-1" disabled>Esgotado</button>
+                                       <?php endif; ?>
                                    </div>
                                </div>
                            </div>
@@ -131,11 +140,19 @@
                 const isHttp = produto.imagem && produto.imagem.startsWith('http');
                 const imagemUrl = isHttp ? produto.imagem : `<?= base_url('uploads/produtos/') ?>${produto.imagem || 'sem_imagem.png'}`;
                 const produtoUrl = `<?= site_url('produto/') ?>${produto.id}`;
+                const esgotado = parseInt(produto.estoque) === 0;
+
+                const badgeHtml   = esgotado ? `<span class="badge bg-danger position-absolute top-0 start-0 m-2" style="font-size:.85rem;">Esgotado</span>` : '';
+                const esgotadoBtn = esgotado ? `<button class="btn btn-secondary btn-sm ms-1" disabled>Esgotado</button>` : '';
+                const cardClass   = esgotado ? 'card h-100 shadow-sm opacity-75' : 'card h-100 shadow-sm';
 
                 const cardHtml = `
                     <div class="col">
-                        <div class="card h-100 shadow-sm">
-                            <img src="${imagemUrl}" class="card-img-top" alt="${produto.nome}" style="height: 200px; object-fit: cover;">
+                        <div class="${cardClass}">
+                            <div class="position-relative">
+                                <img src="${imagemUrl}" class="card-img-top" alt="${produto.nome}" style="height: 200px; object-fit: cover;">
+                                ${badgeHtml}
+                            </div>
                             <div class="card-body">
                                 <h5 class="card-title">${produto.nome}</h5>
                                 <p class="card-text text-muted">${produto.categoria_nome}</p>
@@ -143,6 +160,7 @@
                             </div>
                             <div class="card-footer text-center">
                                 <a href="${produtoUrl}" class="btn btn-primary">Ver Detalhes</a>
+                                ${esgotadoBtn}
                             </div>
                         </div>
                     </div>

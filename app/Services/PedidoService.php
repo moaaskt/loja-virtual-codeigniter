@@ -23,8 +23,15 @@ class PedidoService
      * Cria um pedido completo dentro de uma transaction.
      * Retorna ['ok' => true, 'pedido_id' => int] ou ['ok' => false, 'erro' => string].
      */
-    public function criarPedido(array $carrinho, int $clienteId): array
+    public function criarPedido(array $carrinho, int $clienteId, array $enderecoData = []): array
     {
+        $camposObrigatorios = ['cep', 'logradouro', 'numero', 'bairro', 'cidade', 'uf'];
+        foreach ($camposObrigatorios as $campo) {
+            if (empty($enderecoData[$campo])) {
+                return ['ok' => false, 'erro' => 'Por favor, preencha todos os campos obrigatórios de endereço.'];
+            }
+        }
+
         $db = \Config\Database::connect();
         $db->transStart();
 
@@ -47,6 +54,13 @@ class PedidoService
             'usuario_id'  => $clienteId,
             'valor_total' => $valorTotal,
             'status'      => 'pendente',
+            'cep'         => $enderecoData['cep'],
+            'logradouro'  => $enderecoData['logradouro'],
+            'numero'      => $enderecoData['numero'],
+            'complemento' => $enderecoData['complemento'] ?? null,
+            'bairro'      => $enderecoData['bairro'],
+            'cidade'      => $enderecoData['cidade'],
+            'uf'          => $enderecoData['uf'],
         ]);
         $pedidoId = $this->pedidoModel->getInsertID();
 

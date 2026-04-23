@@ -27,24 +27,32 @@
             <h5>Descrição</h5>
             <p><?= esc($produto['descricao']) ?></p>
 
-            <p><strong>Em estoque:</strong> <?= esc($produto['estoque']) ?> unidades</p>
+            <?php if ((int)$produto['estoque'] > 0): ?>
+                <p><strong>Em estoque:</strong> <?= esc($produto['estoque']) ?> unidades</p>
+            <?php else: ?>
+                <p><span class="badge bg-danger fs-6">Esgotado</span></p>
+            <?php endif; ?>
 
             <div class="mt-4">
-                <?= form_open('carrinho/adicionar') ?>
-                <input type="hidden" name="produto_id" value="<?= esc($produto['id']) ?>">
+                <?php if ((int)$produto['estoque'] > 0): ?>
+                    <?= form_open('carrinho/adicionar') ?>
+                    <input type="hidden" name="produto_id" value="<?= esc($produto['id']) ?>">
 
-                <div class="row">
-                    <div class="col-md-4">
-                        <label for="quantidade" class="form-label">Quantidade:</label>
-                        <input type="number" name="quantidade" id="quantidade" class="form-control" value="1" min="1"
-                            max="<?= esc($produto['estoque']) ?>">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="quantidade" class="form-label">Quantidade:</label>
+                            <input type="number" name="quantidade" id="quantidade" class="form-control" value="1" min="1"
+                                max="<?= esc($produto['estoque']) ?>">
+                        </div>
                     </div>
-                </div>
 
-                <div class="d-grid gap-2 mt-3">
-                    <button type="submit" class="btn btn-success btn-lg">Adicionar ao Carrinho</button>
-                </div>
-                <?= form_close() ?>
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="submit" class="btn btn-success btn-lg">Adicionar ao Carrinho</button>
+                    </div>
+                    <?= form_close() ?>
+                <?php else: ?>
+                    <button class="btn btn-secondary btn-lg w-100" disabled>Produto Esgotado</button>
+                <?php endif; ?>
             </div>
         </div>
     </div>

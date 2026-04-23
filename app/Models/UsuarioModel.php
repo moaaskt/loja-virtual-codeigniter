@@ -13,7 +13,7 @@ class UsuarioModel extends Model
     protected $protectFields    = true;
 
     // Esta linha resolve o Erro #2
-    protected $allowedFields    = ['nome', 'email', 'senha_hash', 'role'];
+    protected $allowedFields    = ['nome', 'email', 'senha_hash', 'role', 'ativo'];
 
     // Dates
     protected $useTimestamps    = true;
@@ -35,6 +35,19 @@ class UsuarioModel extends Model
             'matches' => 'As senhas não conferem.'
         ]
     ];
+
+    public function getClientesComEstatisticas($perPage = 20)
+    {
+        $this->select('usuarios.id, usuarios.nome, usuarios.email, usuarios.criado_em, usuarios.ativo,
+                        COUNT(pedidos.id) as total_pedidos,
+                        MAX(pedidos.criado_em) as ultimo_pedido')
+             ->join('pedidos', 'pedidos.usuario_id = usuarios.id', 'left')
+             ->where('usuarios.role', 'cliente')
+             ->groupBy('usuarios.id')
+             ->orderBy('usuarios.criado_em', 'DESC');
+
+        return $this->paginate($perPage);
+    }
 
     // Callbacks
     protected $beforeInsert   = ['hashPassword'];

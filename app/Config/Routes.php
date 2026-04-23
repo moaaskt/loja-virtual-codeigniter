@@ -41,6 +41,11 @@ $routes->group('admin', ['filter' => ['auth', 'admin']], static function ($route
     // Dashboard
     $routes->get('dashboard', 'Admin\AdminController::index');
 
+    // Clientes
+    $routes->get('clientes', 'Admin\ClienteController::index');
+    $routes->get('clientes/show/(:num)', 'Admin\ClienteController::show/$1');
+    $routes->post('clientes/toggle/(:num)', 'Admin\ClienteController::toggle/$1');
+
     // Pedidos
     $routes->get('pedidos', 'Admin\PedidoController::index');
     $routes->get('pedidos/detalhe/(:num)', 'Admin\PedidoController::detalhe/$1');
@@ -57,6 +62,8 @@ $routes->group('admin', ['filter' => ['auth', 'admin']], static function ($route
 
     // Produtos
     $routes->get('produtos', 'Admin\ProdutosController::index');
+    $routes->get('produtos/trash', 'Admin\ProdutosController::trash');
+    $routes->post('produtos/restore/(:num)', 'Admin\ProdutosController::restore/$1');
     $routes->get('produtos/new', 'Admin\ProdutosController::new');
     $routes->post('produtos/create', 'Admin\ProdutosController::create');
     $routes->get('produtos/edit/(:num)', 'Admin\ProdutosController::edit/$1');

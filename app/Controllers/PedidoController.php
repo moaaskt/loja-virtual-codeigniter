@@ -29,7 +29,8 @@ class PedidoController extends BaseController
             return redirect()->to(site_url('carrinho'))->with('error', 'Seu carrinho está vazio.');
         }
 
-        $resultado = $this->pedidoService->criarPedido($carrinho, (int) session()->get('usuario_id'));
+        $enderecoData = $this->request->getPost(['cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'uf']);
+        $resultado = $this->pedidoService->criarPedido($carrinho, (int) session()->get('usuario_id'), $enderecoData);
 
         if (!$resultado['ok']) {
             return redirect()->to(site_url('carrinho'))->with('error', $resultado['erro']);
