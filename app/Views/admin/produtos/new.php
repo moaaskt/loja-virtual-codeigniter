@@ -60,29 +60,61 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <label for="estoque" class="form-label">Estoque <span class="text-danger">*</span></label>
-                <input type="number" name="estoque" id="estoque" class="form-control"
-                    value="<?= old('estoque') ?>" placeholder="0" min="0">
+            <div class="col-12 mt-3">
+                <div class="p-3 bg-light border rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <p class="fw-semibold mb-0 text-muted" style="font-size:.8125rem; text-transform:uppercase; letter-spacing:.06em;">
+                            <i class="bi bi-box-seam me-1"></i>Variações de Estoque (SKUs)
+                        </p>
+                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" id="btn-add-variacao">
+                            <i class="bi bi-plus-lg me-1"></i>Adicionar Variação
+                        </button>
+                    </div>
+                    
+                    <div class="table-responsive border rounded bg-white">
+                        <table class="table table-hover align-middle mb-0" id="tabela-variacoes">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tamanho <span class="text-danger">*</span></th>
+                                    <th>Cor <span class="text-danger">*</span></th>
+                                    <th>Estoque <span class="text-danger">*</span></th>
+                                    <th class="text-center" style="width: 80px;">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-variacoes">
+                                <!-- Será preenchido via JS -->
+                            </tbody>
+                        </table>
+                        <div id="variacoes-empty" class="text-center p-4 text-muted">
+                            Nenhuma variação adicionada. Clique em "Adicionar Variação" para começar.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" name="frete_gratis" id="frete_gratis" value="1" <?= old('frete_gratis') ? 'checked' : '' ?>>
+                    <label class="form-check-label fw-semibold" for="frete_gratis">Habilitar Frete Grátis para este produto</label>
+                </div>
             </div>
 
             <div class="col-12">
                 <hr class="my-1">
                 <p class="fw-semibold mb-3 text-muted" style="font-size:.8125rem; text-transform:uppercase; letter-spacing:.06em;">
-                    <i class="bi bi-image me-1"></i>Imagem do Produto
+                    <i class="bi bi-image me-1"></i>Imagens do Produto
                 </p>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label for="imagem" class="form-label">Upload de arquivo</label>
-                        <input class="form-control" type="file" id="imagem" name="imagem"
-                            accept="image/*">
-                        <small class="text-muted">JPG, PNG, WEBP — Máx. 2MB</small>
+                        <label for="imagem" class="form-label">Imagem Principal <span class="text-danger">*</span></label>
+                        <input class="form-control" type="file" id="imagem" name="imagem" accept="image/*">
+                        <small class="text-muted">Upload ou URL abaixo</small>
+                        <input type="url" name="url_imagem" class="form-control mt-2" placeholder="Ou cole a URL aqui..." value="<?= old('url_imagem') ?>">
                     </div>
                     <div class="col-md-6">
-                        <label for="url_imagem" class="form-label">OU URL externa</label>
-                        <input type="url" name="url_imagem" id="url_imagem" class="form-control"
-                            value="<?= old('url_imagem') ?>"
-                            placeholder="https://exemplo.com/imagem.jpg">
+                        <label for="imagens_galeria" class="form-label">Galeria de Imagens (Opcional)</label>
+                        <input class="form-control" type="file" id="imagens_galeria" name="imagens_galeria[]" accept="image/*" multiple>
+                        <small class="text-muted">Selecione várias fotos para a galeria</small>
                     </div>
                 </div>
             </div>
@@ -100,5 +132,64 @@
         <?= form_close() ?>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnAddVariacao = document.getElementById('btn-add-variacao');
+    const tbodyVariacoes = document.getElementById('tbody-variacoes');
+    const variacoesEmpty = document.getElementById('variacoes-empty');
+    let variacaoIndex = 0;
+
+    function checkEmptyState() {
+        if (tbodyVariacoes.children.length === 0) {
+            variacoesEmpty.style.display = 'block';
+            document.getElementById('tabela-variacoes').style.display = 'none';
+        } else {
+            variacoesEmpty.style.display = 'none';
+            document.getElementById('tabela-variacoes').style.display = 'table';
+        }
+    }
+
+    btnAddVariacao.addEventListener('click', function() {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <select name="variacoes[${variacaoIndex}][tamanho]" class="form-select form-select-sm" required>
+                    <option value="">Selecione...</option>
+                    <option value="Único">Único</option>
+                    <option value="P">P</option>
+                    <option value="M">M</option>
+                    <option value="G">G</option>
+                    <option value="GG">GG</option>
+                </select>
+            </td>
+            <td>
+                <input type="text" name="variacoes[${variacaoIndex}][cor]" class="form-control form-control-sm" placeholder="Ex: Preto" required>
+            </td>
+            <td>
+                <input type="number" name="variacoes[${variacaoIndex}][estoque]" class="form-control form-control-sm" placeholder="0" min="0" required>
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger btn-remover-variacao" title="Remover">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+        tbodyVariacoes.appendChild(tr);
+        variacaoIndex++;
+        checkEmptyState();
+    });
+
+    tbodyVariacoes.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-remover-variacao')) {
+            e.target.closest('tr').remove();
+            checkEmptyState();
+        }
+    });
+
+    // Iniciar estado vazio
+    checkEmptyState();
+});
+</script>
 
 <?= $this->endSection() ?>
