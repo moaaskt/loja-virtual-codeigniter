@@ -52,6 +52,9 @@
                                     <?php endif; ?>
                                 </td>
                                 <td class="text-center">
+                                    <a href="<?= site_url('admin/clientes/show/' . $cliente['id']) ?>" class="btn btn-info btn-sm">
+                                        Detalhes
+                                    </a>
                                     <form action="<?= site_url('admin/clientes/toggle/' . $cliente['id']) ?>" method="post" class="d-inline">
                                         <?= csrf_field() ?>
                                         <?php if ($cliente['ativo']): ?>

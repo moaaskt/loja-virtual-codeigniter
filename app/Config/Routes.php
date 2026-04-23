@@ -43,6 +43,7 @@ $routes->group('admin', ['filter' => ['auth', 'admin']], static function ($route
 
     // Clientes
     $routes->get('clientes', 'Admin\ClienteController::index');
+    $routes->get('clientes/show/(:num)', 'Admin\ClienteController::show/$1');
     $routes->post('clientes/toggle/(:num)', 'Admin\ClienteController::toggle/$1');
 
     // Pedidos

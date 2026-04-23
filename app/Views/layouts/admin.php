@@ -43,6 +43,11 @@
                     <i class="bi bi-tags-fill me-2"></i> Categorias
                 </a>
             </li>
+             <li>
+                <a href="<?= site_url('admin/clientes') ?>" class="nav-link text-white">
+                    <i class="bi bi-person-fill me-2"></i> Clientes
+                </a>
+            </li>
         </ul>
         <hr>
         <div class="dropdown">
@@ -51,7 +56,7 @@
                 <strong><?= esc(session()->get('nome')) ?></strong>
             </a>
             <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-                <li><a class="dropdown-item" href="<?= site_url('/') ?>">Ver Loja</a></li>
+                <li><a class="dropdown-item" target="_blank" href="<?= site_url('/') ?>">Ver Loja</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="<?= site_url('logout') ?>">Sair</a></li>
             </ul>
