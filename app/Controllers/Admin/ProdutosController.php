@@ -127,17 +127,32 @@ class ProdutosController extends BaseController
 
     public function delete($id = null)
     {
-        if ($this->pedidoProdutoModel->where('produto_id', $id)->first()) {
-            return redirect()->to(site_url('admin/produtos'))
-                ->with('error', 'Este produto não pode ser excluído pois já faz parte de um ou mais pedidos.');
-        }
-
         try {
             $this->produtoModel->delete($id);
-            return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto excluído com sucesso!');
+            return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto movido para a lixeira.');
         } catch (\Exception $e) {
             return redirect()->to(site_url('admin/produtos'))->with('error', 'Erro ao excluir o produto: ' . $e->getMessage());
         }
+    }
+
+    public function trash()
+    {
+        $produtos = $this->produtoModel->onlyDeleted()
+            ->select('produtos.*, categorias.nome as categoria_nome')
+            ->join('categorias', 'categorias.id = produtos.categoria_id')
+            ->paginate(10);
+
+        return view('admin/produtos/trash', [
+            'produtos' => $produtos,
+            'pager'    => $this->produtoModel->pager,
+            'title'    => 'Lixeira de Produtos',
+        ]);
+    }
+
+    public function restore($id = null)
+    {
+        $this->produtoModel->onlyDeleted()->where('id', $id)->set(['deleted_at' => null])->update();
+        return redirect()->to(site_url('admin/produtos/trash'))->with('success', 'Produto restaurado com sucesso!');
     }
 
     /**

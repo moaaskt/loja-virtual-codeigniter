@@ -37,7 +37,7 @@ class PedidoModel extends Model
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
-    protected $allowedFields = ['usuario_id', 'valor_total', 'status'];
+    protected $allowedFields = ['usuario_id', 'valor_total', 'status', 'cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'uf'];
 
     // Dates
     protected $useTimestamps = true;
