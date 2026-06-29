@@ -23,10 +23,11 @@ class CarrinhoController extends BaseController
 
     public function adicionar()
     {
-        $produtoId = (int) $this->request->getPost('produto_id');
+        $produtoId  = (int) $this->request->getPost('produto_id');
         $quantidade = (int) $this->request->getPost('quantidade');
+        $variacaoId = (int) $this->request->getPost('variacao_id');
 
-        $resultado = $this->carrinhoService->adicionar($produtoId, $quantidade);
+        $resultado = $this->carrinhoService->adicionar($produtoId, $quantidade, $variacaoId);
 
         if (!$resultado['ok']) {
             return redirect()->back()->with('error', $resultado['erro']);
@@ -37,10 +38,10 @@ class CarrinhoController extends BaseController
 
     public function atualizar()
     {
-        $produtoId = (int) $this->request->getPost('produto_id');
+        $cartKey    = $this->request->getPost('cart_key');
         $quantidade = (int) $this->request->getPost('quantidade');
 
-        $resultado = $this->carrinhoService->atualizar($produtoId, $quantidade);
+        $resultado = $this->carrinhoService->atualizar($cartKey, $quantidade);
 
         if (!$resultado['ok']) {
             return redirect()->to(site_url('carrinho'))->with('error', $resultado['erro']);
@@ -49,9 +50,9 @@ class CarrinhoController extends BaseController
         return redirect()->to(site_url('carrinho'))->with('success', 'Quantidade atualizada!');
     }
 
-    public function remover($produto_id = null)
+    public function remover($cartKey = null)
     {
-        $this->carrinhoService->remover((int) $produto_id);
+        $this->carrinhoService->remover($cartKey);
         return redirect()->to(site_url('carrinho'))->with('success', 'Produto removido do carrinho!');
     }
 }

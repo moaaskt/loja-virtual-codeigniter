@@ -92,9 +92,21 @@ class HomeController extends BaseController
             throw new \CodeIgniter\Exceptions\PageNotFoundException('Produto não encontrado.');
         }
 
+        $relacionados = $model->getRelacionados(
+            (int) $produto['categoria_id'],
+            (int) $produto['id']
+        );
+
+        // Busca as imagens extras e as variações garantindo que retornem um array (vazio caso não existam)
+        $imagens = $model->getImagens((int) $produto['id']);
+        $variacoes = $model->getVariacoes((int) $produto['id']);
+
         $data = [
-            'title' => esc($produto['nome']),
-            'produto' => $produto
+            'title'        => esc($produto['nome']),
+            'produto'      => $produto,
+            'relacionados' => $relacionados,
+            'imagens'      => is_array($imagens) ? $imagens : [],
+            'variacoes'    => is_array($variacoes) ? $variacoes : [],
         ];
 
         return view('shop/produto_detalhe', $data);

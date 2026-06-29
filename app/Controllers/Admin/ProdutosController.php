@@ -41,16 +41,28 @@ class ProdutosController extends BaseController
     public function create()
     {
         $data = $this->request->getPost();
-        $img  = $this->request->getFile('imagem');
+        
+        // Calcular estoque total com base nas variações
+        $variacoes = $this->request->getPost('variacoes') ?? [];
+        $totalEstoque = 0;
+        foreach ($variacoes as $v) {
+            $totalEstoque += (int) $v['estoque'];
+        }
+        $data['estoque'] = $totalEstoque;
+        $data['cores'] = ''; // Limpando campos descontinuados
+        $data['tamanhos'] = '';
 
-        if (!$this->validateUpload($img)) {
-            return redirect()->back()
-                ->withInput()
-                ->with('errors', ['imagem' => 'A imagem deve ser JPEG, PNG ou WebP e ter no máximo 2 MB.'])
-                ->with('categorias', $this->categoriaModel->findAll());
+        // Garantia de Diretório
+        if (!is_dir(FCPATH . 'uploads/produtos/')) {
+            mkdir(FCPATH . 'uploads/produtos/', 0777, true);
         }
 
+        // --- Imagem Principal ---
+        $img = $this->request->getFile('imagem');
         if ($img && $img->isValid() && !$img->hasMoved()) {
+            if (!$this->validateUpload($img)) {
+                return redirect()->back()->withInput()->with('errors', ['imagem' => 'A imagem principal é inválida.']);
+            }
             $novoNome = $img->getRandomName();
             $img->move(FCPATH . 'uploads/produtos', $novoNome);
             $data['imagem'] = $novoNome;
@@ -58,14 +70,74 @@ class ProdutosController extends BaseController
             $data['imagem'] = $this->request->getPost('url_imagem');
         }
 
-        if ($this->produtoModel->insert($data)) {
-            return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto criado com sucesso!');
+        // --- Frete Grátis ---
+        $data['frete_gratis'] = isset($data['frete_gratis']) ? 1 : 0;
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        $produtoId = $this->produtoModel->insert($data);
+        if (!$produtoId) {
+            $db->transRollback();
+            return redirect()->back()
+                ->withInput()
+                ->with('errors', $this->produtoModel->errors())
+                ->with('categorias', $this->categoriaModel->findAll());
         }
 
-        return redirect()->back()
-            ->withInput()
-            ->with('errors', $this->produtoModel->errors())
-            ->with('categorias', $this->categoriaModel->findAll());
+        // --- Variações ---
+        foreach ($variacoes as $v) {
+            $db->table('produto_variacoes')->insert([
+                'produto_id' => $produtoId,
+                'tamanho' => $v['tamanho'],
+                'cor' => $v['cor'],
+                'estoque' => (int) $v['estoque']
+            ]);
+        }
+
+        // --- Galeria de Imagens ---
+        $galeriaFiles = $this->request->getFileMultiple('imagens');
+        log_message('debug', 'Arquivos recebidos: ' . print_r($_FILES, true));
+        if ($galeriaFiles) {
+            foreach ($galeriaFiles as $gFile) {
+                if ($gFile->isValid() && !$gFile->hasMoved()) {
+                    if ($this->validateUpload($gFile)) {
+                        $gNome = $gFile->getRandomName();
+                        $gFile->move(FCPATH . 'uploads/produtos', $gNome);
+                        $db->table('produto_imagens')->insert([
+                            'produto_id' => $produtoId,
+                            'caminho_imagem' => $gNome
+                        ]);
+                    }
+                } elseif ($gFile->getError() !== UPLOAD_ERR_NO_FILE) {
+                    log_message('error', 'Erro no arquivo: ' . $gFile->getErrorString());
+                    var_dump($gFile->getErrorString()); die();
+                }
+            }
+        }
+
+        // --- Galeria de Imagens (URLs) ---
+        $urlsInput = $this->request->getPost('imagens_url');
+        if (!empty($urlsInput)) {
+            $urls = explode("\n", $urlsInput);
+            foreach ($urls as $url) {
+                $url = trim($url);
+                if (filter_var($url, FILTER_VALIDATE_URL)) {
+                    $db->table('produto_imagens')->insert([
+                        'produto_id' => $produtoId,
+                        'caminho_imagem' => $url
+                    ]);
+                }
+            }
+        }
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->back()->withInput()->with('errors', ['db' => 'Erro ao salvar o produto no banco de dados.']);
+        }
+
+        return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto criado com sucesso!');
     }
 
     public function edit($id = null)
@@ -87,25 +159,36 @@ class ProdutosController extends BaseController
     public function update($id = null)
     {
         $data   = $this->request->getPost();
+        $produtoAntigo = $this->produtoModel->find($id);
+        
+        // Calcular estoque total com base nas variações
+        $variacoes = $this->request->getPost('variacoes') ?? [];
+        $totalEstoque = 0;
+        foreach ($variacoes as $v) {
+            $totalEstoque += (int) $v['estoque'];
+        }
+        $data['estoque'] = $totalEstoque;
+        $data['cores'] = '';
+        $data['tamanhos'] = '';
+        
+        // Garantia de Diretório
+        if (!is_dir(FCPATH . 'uploads/produtos/')) {
+            mkdir(FCPATH . 'uploads/produtos/', 0777, true);
+        }
+
+        // --- Imagem Principal ---
         $img    = $this->request->getFile('imagem');
         $urlImg = $this->request->getPost('url_imagem');
 
         if ($img && $img->isValid() && !$img->hasMoved()) {
             if (!$this->validateUpload($img)) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('errors', ['imagem' => 'A imagem deve ser JPEG, PNG ou WebP e ter no máximo 2 MB.'])
-                    ->with('categorias', $this->categoriaModel->findAll());
+                return redirect()->back()->withInput()->with('errors', ['imagem' => 'A imagem principal é inválida.']);
             }
 
-            $produtoAntigo = $this->produtoModel->find($id);
-            $imagemAntiga  = $produtoAntigo['imagem'] ?? null;
-
+            $imagemAntiga = $produtoAntigo['imagem'] ?? null;
             if ($imagemAntiga && strpos($imagemAntiga, 'http') !== 0) {
                 $caminhoAntigo = FCPATH . 'uploads/produtos/' . $imagemAntiga;
-                if (file_exists($caminhoAntigo)) {
-                    unlink($caminhoAntigo);
-                }
+                if (file_exists($caminhoAntigo)) { unlink($caminhoAntigo); }
             }
 
             $novoNome = $img->getRandomName();
@@ -115,14 +198,87 @@ class ProdutosController extends BaseController
             $data['imagem'] = $urlImg;
         }
 
-        if ($this->produtoModel->update($id, $data)) {
-            return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto atualizado com sucesso!');
+        // --- Frete Grátis ---
+        $data['frete_gratis'] = isset($data['frete_gratis']) ? 1 : 0;
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        if (!$this->produtoModel->update($id, $data)) {
+            $db->transRollback();
+            return redirect()->back()
+                ->withInput()
+                ->with('errors', $this->produtoModel->errors())
+                ->with('categorias', $this->categoriaModel->findAll());
         }
 
-        return redirect()->back()
-            ->withInput()
-            ->with('errors', $this->produtoModel->errors())
-            ->with('categorias', $this->categoriaModel->findAll());
+        // --- Variações (Abordagem simples: deletar antigas e inserir novas) ---
+        $db->table('produto_variacoes')->where('produto_id', $id)->delete();
+        foreach ($variacoes as $v) {
+            $db->table('produto_variacoes')->insert([
+                'produto_id' => $id,
+                'tamanho' => $v['tamanho'],
+                'cor' => $v['cor'],
+                'estoque' => (int) $v['estoque']
+            ]);
+        }
+
+        // --- Galeria de Imagens (Upload) ---
+        $galeriaFiles = $this->request->getFileMultiple('imagens');
+        log_message('debug', 'Arquivos recebidos: ' . print_r($_FILES, true));
+        if ($galeriaFiles) {
+            foreach ($galeriaFiles as $gFile) {
+                if ($gFile->isValid() && !$gFile->hasMoved()) {
+                    if ($this->validateUpload($gFile)) {
+                        $gNome = $gFile->getRandomName();
+                        $gFile->move(FCPATH . 'uploads/produtos', $gNome);
+                        $db->table('produto_imagens')->insert([
+                            'produto_id' => $id,
+                            'caminho_imagem' => $gNome
+                        ]);
+                    }
+                } elseif ($gFile->getError() !== UPLOAD_ERR_NO_FILE) {
+                    log_message('error', 'Erro no arquivo: ' . $gFile->getErrorString());
+                    var_dump($gFile->getErrorString()); die();
+                }
+            }
+        }
+
+        // --- Galeria de Imagens (URLs) ---
+        $urlsInput = $this->request->getPost('imagens_url');
+        if (!empty($urlsInput)) {
+            $urls = explode("\n", $urlsInput);
+            foreach ($urls as $url) {
+                $url = trim($url);
+                if (filter_var($url, FILTER_VALIDATE_URL)) {
+                    $db->table('produto_imagens')->insert([
+                        'produto_id' => $id,
+                        'caminho_imagem' => $url
+                    ]);
+                }
+            }
+        }
+
+        // --- Galeria de Imagens (Exclusão) ---
+        $imagensExcluir = $this->request->getPost('imagens_excluir') ?? [];
+        if (!empty($imagensExcluir)) {
+            $imagensNoBanco = $db->table('produto_imagens')->whereIn('id', $imagensExcluir)->where('produto_id', $id)->get()->getResultArray();
+            foreach ($imagensNoBanco as $imgDel) {
+                $caminho = FCPATH . 'uploads/produtos/' . $imgDel['caminho_imagem'];
+                if (file_exists($caminho)) {
+                    unlink($caminho);
+                }
+            }
+            $db->table('produto_imagens')->whereIn('id', $imagensExcluir)->delete();
+        }
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->back()->withInput()->with('errors', ['db' => 'Erro ao atualizar o produto no banco de dados.']);
+        }
+
+        return redirect()->to(site_url('admin/produtos/edit/' . $id))->with('success', 'Produto atualizado com sucesso!');
     }
 
     public function delete($id = null)

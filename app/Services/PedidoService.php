@@ -38,7 +38,8 @@ class PedidoService
         $itensPedido = [];
         $valorTotal  = 0;
 
-        foreach ($carrinho as $produtoId => $item) {
+        foreach ($carrinho as $cartKey => $item) {
+            $produtoId = $item['id'];
             $produto = $this->produtoModel->find((int) $produtoId);
 
             if (!$produto) {
@@ -47,7 +48,7 @@ class PedidoService
             }
 
             $valorTotal += $produto['preco'] * $item['quantidade'];
-            $itensPedido[$produtoId] = ['item' => $item, 'produto' => $produto];
+            $itensPedido[$cartKey] = ['item' => $item, 'produto' => $produto];
         }
 
         $this->pedidoModel->insert([
@@ -64,21 +65,44 @@ class PedidoService
         ]);
         $pedidoId = $this->pedidoModel->getInsertID();
 
-        foreach ($itensPedido as $produtoId => $dados) {
-            $item    = $dados['item'];
-            $produto = $dados['produto'];
+        foreach ($itensPedido as $cartKey => $dados) {
+            $item       = $dados['item'];
+            $produto    = $dados['produto'];
+            $produtoId  = $item['id'];
+            $variacaoId = $item['variacao_id'] ?? 0;
+            $quantidade = (int) $item['quantidade'];
 
-            $ok = $this->produtoModel->decrementarEstoque((int) $produtoId, (int) $item['quantidade'], $db);
-
-            if (!$ok) {
-                $db->transRollback();
-                return ['ok' => false, 'erro' => 'Estoque insuficiente para "' . esc($item['nome']) . '". Verifique seu carrinho.'];
+            // Baixa de estoque cirúrgica
+            if ($variacaoId > 0) {
+                // Valida e diminui do estoque da variação específica
+                $variacao = $db->table('produto_variacoes')->where('id', $variacaoId)->where('produto_id', $produtoId)->get()->getRowArray();
+                if (!$variacao || $variacao['estoque'] < $quantidade) {
+                    $db->transRollback();
+                    return ['ok' => false, 'erro' => 'Estoque insuficiente para a variação de "' . esc($item['nome']) . '".'];
+                }
+                
+                $db->table('produto_variacoes')
+                   ->where('id', $variacaoId)
+                   ->set('estoque', 'estoque - ' . $quantidade, false)
+                   ->update();
+                   
+                // Diminuir do produto total também
+                $this->produtoModel->decrementarEstoque((int) $produtoId, $quantidade, $db);
+            } else {
+                $ok = $this->produtoModel->decrementarEstoque((int) $produtoId, $quantidade, $db);
+                if (!$ok) {
+                    $db->transRollback();
+                    return ['ok' => false, 'erro' => 'Estoque insuficiente para "' . esc($item['nome']) . '". Verifique seu carrinho.'];
+                }
             }
 
             $this->pedidoProdutoModel->insert([
                 'pedido_id'      => $pedidoId,
                 'produto_id'     => $produtoId,
-                'quantidade'     => $item['quantidade'],
+                'variacao_id'    => $variacaoId > 0 ? $variacaoId : null,
+                'tamanho'        => $item['tamanho'] ?? null,
+                'cor'            => $item['cor'] ?? null,
+                'quantidade'     => $quantidade,
                 'preco_unitario' => $produto['preco'],
             ]);
         }

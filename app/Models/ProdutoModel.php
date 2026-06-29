@@ -13,7 +13,7 @@ class ProdutoModel extends Model
     protected $useSoftDeletes   = true;
     protected $deletedField     = 'deleted_at';
     protected $protectFields    = true;
-    protected $allowedFields    = ['nome', 'descricao', 'preco', 'estoque', 'imagem', 'categoria_id'];
+    protected $allowedFields    = ['nome', 'descricao', 'preco', 'estoque', 'imagem', 'imagens_galeria', 'cores', 'tamanhos', 'frete_gratis', 'categoria_id'];
 
     // Dates
     protected $useTimestamps = true;
@@ -119,6 +119,17 @@ public function decrementarEstoque(int $produtoId, int $quantidade, \CodeIgniter
     return true;
 }
 
+// Busca produtos relacionados (mesma categoria, excluindo o produto atual)
+public function getRelacionados(int $categoriaId, int $excluirProdutoId, int $limit = 4): array
+{
+    return $this->select('produtos.*, categorias.nome as categoria_nome')
+        ->join('categorias', 'categorias.id = produtos.categoria_id')
+        ->where('produtos.categoria_id', $categoriaId)
+        ->where('produtos.id !=', $excluirProdutoId)
+        ->limit($limit)
+        ->find();
+}
+
 // Método para obter todos os produtos com suas respectivas categorias
 public function getProdutosComCategoria($perPage = 10)
 {
@@ -128,5 +139,23 @@ public function getProdutosComCategoria($perPage = 10)
     return $this->paginate($perPage);
 }
 
+
+    // Retorna as imagens da galeria do produto
+    public function getImagens(int $produtoId): array
+    {
+        return $this->db->table('produto_imagens')
+            ->where('produto_id', $produtoId)
+            ->get()
+            ->getResultArray();
+    }
+
+    // Retorna as variações (SKUs) do produto
+    public function getVariacoes(int $produtoId): array
+    {
+        return $this->db->table('produto_variacoes')
+            ->where('produto_id', $produtoId)
+            ->get()
+            ->getResultArray();
+    }
 
 }
