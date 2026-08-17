@@ -1,7 +1,7 @@
 # Roadmap de Fases
 
 ## Phase 1: Estabilidade Técnica e Segurança (Dívidas Técnicas)
-- **Status:** Pending
+- **Status:** Completed
 - **Objetivo:** Resolver as dívidas técnicas críticas e garantir que as rotas estão protegidas.
 - **Tarefas principais:**
   - Corrigir incompatibilidade do PHP 7.4 vs 8.1 no Dockerfile.

@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Status
-- **Current Phase:** Phase 1 (Estabilidade Técnica e Segurança)
+- **Current Phase:** Phase 2 (Auditoria do Carrinho e Checkout)
 - **Current Plan:** None active
 - **Last Action:** Initialized GSD project structure and mapped codebase.
 
@@ -11,4 +11,4 @@
 - Requirements and Roadmap have been established based on the codebase analysis and user input.
 
 ## Next Steps
-Run `/gsd-plan-phase 1` to start planning Phase 1 (Technical Debts & Security).
+Run `/gsd-plan-phase 2` to start planning Phase 2 (Cart, Checkout & Image Upload).
