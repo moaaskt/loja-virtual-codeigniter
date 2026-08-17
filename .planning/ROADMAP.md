@@ -11,7 +11,7 @@
   - Remover `$indexPage = 'index.php'` no CI4 para URLs limpas.
 
 ## Phase 2: Auditoria e Validação do Core (Carrinho, Checkout e Upload)
-- **Status:** Pending
+- **Status:** Completed
 - **Objetivo:** Auditar fluxos críticos existentes para garantir que estão 100% funcionais antes de adicionar complexidade.
 - **Tarefas principais:**
   - Testar todo o fluxo do Carrinho de Compras.
