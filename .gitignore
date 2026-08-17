@@ -133,3 +133,4 @@ _modules/*
 
 # claude skills
 .claude
+gsd_commands.md
