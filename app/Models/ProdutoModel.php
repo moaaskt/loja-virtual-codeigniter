@@ -158,4 +158,90 @@ public function getProdutosComCategoria($perPage = 10)
             ->getResultArray();
     }
 
+    /**
+     * Busca produtos com filtros combinados:
+     *   - termo    : busca textual no nome/descrição/categoria
+     *   - categorias: array de IDs de categorias (OR entre elas)
+     *   - preco_min / preco_max : faixa de preços
+     *   - marcas   : array de nomes de marcas (busca em nome/descricao)
+     *   - generos  : array de gêneros (busca em nome/descricao)
+     *
+     * Retorna resultados paginados. Acesse $this->pager após a chamada.
+     */
+    public function getProdutosFiltrados(array $filtros = [], int $perPage = 12): array
+    {
+        $this->select('produtos.*, categorias.nome as categoria_nome');
+        $this->join('categorias', 'categorias.id = produtos.categoria_id');
+
+        // --- Filtro de TERMO LIVRE ---
+        $termo = $filtros['termo'] ?? '';
+        if (!empty($termo)) {
+            $this->groupStart();
+            $this->like('produtos.nome', $termo);
+            $this->orLike('produtos.descricao', $termo);
+            $this->orLike('categorias.nome', $termo);
+            $this->groupEnd();
+        }
+
+        // --- Filtro de CATEGORIAS (OR entre as selecionadas) ---
+        $categorias = $filtros['categorias'] ?? [];
+        // Remove o valor vazio ("Todas") que pode vir no array
+        $categorias = array_filter(array_map('intval', (array) $categorias));
+        if (!empty($categorias)) {
+            $this->whereIn('produtos.categoria_id', $categorias);
+        }
+
+        // --- Filtro de FAIXA DE PREÇO ---
+        $precoMin = isset($filtros['preco_min']) && $filtros['preco_min'] !== '' ? (float) $filtros['preco_min'] : null;
+        $precoMax = isset($filtros['preco_max']) && $filtros['preco_max'] !== '' ? (float) $filtros['preco_max'] : null;
+        if ($precoMin !== null) {
+            $this->where('produtos.preco >=', $precoMin);
+        }
+        if ($precoMax !== null) {
+            $this->where('produtos.preco <=', $precoMax);
+        }
+
+        // --- Filtro de MARCAS (busca textual em nome + descricao) ---
+        $marcas = array_filter((array) ($filtros['marcas'] ?? []));
+        if (!empty($marcas)) {
+            $this->groupStart();
+            foreach ($marcas as $i => $marca) {
+                if ($i === 0) {
+                    $this->groupStart();
+                    $this->like('produtos.nome', $marca);
+                    $this->orLike('produtos.descricao', $marca);
+                    $this->groupEnd();
+                } else {
+                    $this->orGroupStart();
+                    $this->like('produtos.nome', $marca);
+                    $this->orLike('produtos.descricao', $marca);
+                    $this->groupEnd();
+                }
+            }
+            $this->groupEnd();
+        }
+
+        // --- Filtro de GÊNERO (busca textual em nome + descricao) ---
+        $generos = array_filter((array) ($filtros['generos'] ?? []));
+        if (!empty($generos)) {
+            $this->groupStart();
+            foreach ($generos as $i => $genero) {
+                if ($i === 0) {
+                    $this->groupStart();
+                    $this->like('produtos.nome', $genero);
+                    $this->orLike('produtos.descricao', $genero);
+                    $this->groupEnd();
+                } else {
+                    $this->orGroupStart();
+                    $this->like('produtos.nome', $genero);
+                    $this->orLike('produtos.descricao', $genero);
+                    $this->groupEnd();
+                }
+            }
+            $this->groupEnd();
+        }
+
+        return $this->paginate($perPage);
+    }
+
 }

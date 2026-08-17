@@ -219,37 +219,85 @@
         const listaProdutos    = document.getElementById('lista-produtos');
         const pagerContainer   = document.querySelector('.pagination-container');
         const tituloPagina     = document.getElementById('titulo-pagina');
-        const tituloOriginal   = tituloPagina?.textContent ?? '';
 
-        if (!formBusca || !inputBusca || !listaProdutos) return;
+        if (!listaProdutos) return;
 
-        let debounceTimer;
+        // ----------------------------------------------------------------
+        // Coleta de filtros ativos do painel
+        // ----------------------------------------------------------------
+        function coletarFiltros() {
+            const params = new URLSearchParams();
 
-        inputBusca.addEventListener('keyup', (e) => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => buscarProdutos(e.target.value.trim()), 300);
-        });
+            // Termo de busca
+            const termo = inputBusca ? inputBusca.value.trim() : '';
+            if (termo) params.append('termo', termo);
 
-        formBusca.addEventListener('submit', (e) => {
-            e.preventDefault();
-            buscarProdutos(inputBusca.value.trim());
-        });
+            // Categorias (checkboxes)
+            document.querySelectorAll('.filter-check[name="categorias[]"]:checked').forEach(cb => {
+                if (cb.value !== '') params.append('categorias[]', cb.value);
+            });
 
-        async function buscarProdutos(termo) {
-            if (termo.length === 0) {
-                window.location.href = '<?= site_url('/') ?>';
-                return;
+            // Gêneros
+            document.querySelectorAll('.filter-check[name="generos[]"]:checked').forEach(cb => {
+                params.append('generos[]', cb.value);
+            });
+
+            // Marcas
+            document.querySelectorAll('.filter-check[name="marcas[]"]:checked').forEach(cb => {
+                params.append('marcas[]', cb.value);
+            });
+
+            // Faixa de preço
+            const precoMin = document.getElementById('price-range-min');
+            const precoMax = document.getElementById('price-range-max');
+            if (precoMin && parseInt(precoMin.value) > parseInt(precoMin.min)) {
+                params.append('preco_min', precoMin.value);
             }
+            if (precoMax && parseInt(precoMax.value) < parseInt(precoMax.max)) {
+                params.append('preco_max', precoMax.value);
+            }
+
+            return params;
+        }
+
+        // ----------------------------------------------------------------
+        // Requisição AJAX e renderização
+        // ----------------------------------------------------------------
+        async function aplicarFiltros() {
+            const params = coletarFiltros();
+            const url    = `<?= site_url('api/produtos/busca') ?>?${params.toString()}`;
+
+            listaProdutos.innerHTML = `
+                <div class="col-12 text-center py-5 text-muted">
+                    <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div>
+                    <p class="mt-2 mb-0">Buscando produtos...</p>
+                </div>`;
+            if (pagerContainer) pagerContainer.style.display = 'none';
+
             try {
-                const url      = `<?= site_url('api/produtos/busca') ?>?termo=${encodeURIComponent(termo)}`;
                 const response = await fetch(url);
-                const produtos = await response.json();
-                renderizarProdutos(produtos, termo);
-            } catch (error) {
-                console.error('Erro ao buscar produtos:', error);
+                const produtos  = await response.json();
+
+                const termo = params.get('termo') ?? '';
+                if (tituloPagina) {
+                    tituloPagina.textContent = termo
+                        ? `Resultados para: "${termo}"`
+                        : 'Vitrine de Produtos';
+                }
+
+                renderizarProdutos(produtos);
+            } catch (err) {
+                console.error('Erro ao buscar produtos:', err);
+                listaProdutos.innerHTML = `<div class="col-12"><div class="empty-state">
+                    <div class="empty-icon"><i class="bi bi-exclamation-circle"></i></div>
+                    <p class="fw-semibold mb-1">Erro ao carregar produtos</p>
+                    <small>Tente novamente em instantes.</small></div></div>`;
             }
         }
 
+        // ----------------------------------------------------------------
+        // Renderização de produtos
+        // ----------------------------------------------------------------
         function buildImageUrl(imagem) {
             if (!imagem) return '<?= base_url('uploads/produtos/sem_imagem.png') ?>';
             return imagem.startsWith('http')
@@ -257,18 +305,16 @@
                 : `<?= base_url('uploads/produtos/') ?>${imagem}`;
         }
 
-        function renderizarProdutos(produtos, termo) {
+        function renderizarProdutos(produtos) {
             listaProdutos.innerHTML = '';
-            if (tituloPagina) tituloPagina.textContent = `Resultados para: "${termo}"`;
-            if (pagerContainer) pagerContainer.style.display = 'none';
 
-            if (produtos.length === 0) {
+            if (!produtos || produtos.length === 0) {
                 listaProdutos.innerHTML = `
                     <div class="col-12">
                         <div class="empty-state">
                             <div class="empty-icon"><i class="bi bi-search"></i></div>
                             <p class="fw-semibold mb-1">Nenhum produto encontrado</p>
-                            <small>Tente outro termo de busca.</small>
+                            <small>Tente ajustar os filtros ou o termo de busca.</small>
                         </div>
                     </div>`;
                 return;
@@ -296,7 +342,7 @@
                                 <p class="product-card-price">${preco}</p>
                             </div>
                             <div class="product-card-footer">
-                                <a href="${url}" class="btn-details">
+                                <a href="${url}" class="btn-details" id="ver-produto-${produto.id}">
                                     <i class="bi ${icon}"></i> Ver Detalhes
                                 </a>
                             </div>
@@ -304,8 +350,57 @@
                     </div>`;
             });
         }
+
+        // ----------------------------------------------------------------
+        // Listeners de busca (debounce) + filtros
+        // ----------------------------------------------------------------
+        let debounceTimer;
+
+        if (inputBusca) {
+            inputBusca.addEventListener('keyup', e => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(aplicarFiltros, 350);
+            });
+        }
+
+        if (formBusca) {
+            formBusca.addEventListener('submit', e => {
+                e.preventDefault();
+                aplicarFiltros();
+            });
+        }
+
+        // Botões "Aplicar Filtros" (desktop e mobile)
+        ['btn-apply-filters', 'btn-apply-filters-mobile'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) btn.addEventListener('click', aplicarFiltros);
+        });
+
+        // Botão "Limpar tudo" — volta à home
+        const btnLimpar = document.getElementById('btn-limpar-filtros');
+        if (btnLimpar) {
+            btnLimpar.addEventListener('click', e => {
+                e.preventDefault();
+                // Desmarca todos os checkboxes de filtro
+                document.querySelectorAll('.filter-check').forEach(cb => {
+                    cb.checked = cb.value === ''; // mantém "Todas" checado
+                });
+                // Restaura o range de preço para defaults
+                const rMin = document.getElementById('price-range-min');
+                const rMax = document.getElementById('price-range-max');
+                const iMin = document.getElementById('price-input-min');
+                const iMax = document.getElementById('price-input-max');
+                if (rMin) { rMin.value = rMin.min; if (iMin) iMin.value = rMin.min; }
+                if (rMax) { rMax.value = rMax.max; if (iMax) iMax.value = rMax.max; }
+                // Limpa a busca
+                if (inputBusca) inputBusca.value = '';
+                if (tituloPagina) tituloPagina.textContent = 'Vitrine de Produtos';
+                aplicarFiltros();
+            });
+        }
     });
 </script>
+
 
 <script>
     /* ============================================================
