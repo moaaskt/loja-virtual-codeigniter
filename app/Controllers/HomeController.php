@@ -114,19 +114,24 @@ class HomeController extends BaseController
 
 
 
-    // Método para buscar produtos via API
+    // Método para buscar produtos via API (suporta filtros completos)
     public function buscaApi()
     {
         $model = new \App\Models\ProdutoModel();
 
-        $termo = $this->request->getGet('termo');
+        // Coleta todos os parâmetros de filtro enviados via GET
+        $filtros = [
+            'termo'     => $this->request->getGet('termo') ?? '',
+            'categorias'=> $this->request->getGet('categorias') ?? [],
+            'preco_min' => $this->request->getGet('preco_min') ?? '',
+            'preco_max' => $this->request->getGet('preco_max') ?? '',
+            'marcas'    => $this->request->getGet('marcas') ?? [],
+            'generos'   => $this->request->getGet('generos') ?? [],
+        ];
 
-        // Usamos o mesmo método de busca que já tínhamos no Model
-        $produtos = $model->searchProdutosComCategoria($termo, 12); // Limite de 12 resultados
+        $produtos = $model->getProdutosFiltrados($filtros, 24);
 
-        // A mágica está aqui: retorna os dados em formato JSON
         return $this->response->setJSON($produtos);
     }
-
 
 }

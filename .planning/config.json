@@ -1,0 +1,8 @@
+{
+  "intel": {
+    "enabled": true
+  },
+  "workflow": {
+    "mode": "standard"
+  }
+}
