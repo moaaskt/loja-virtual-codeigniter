@@ -249,4 +249,66 @@ class PagamentoTest extends CIUnitTestCase
         $this->assertEquals('cancelado', $pedidoFinal['status']);
         $this->assertEquals('falhou', $pedidoFinal['status_pagamento']);
     }
+
+    public function testWebhookControllerSimularComJsonValido(): void
+    {
+        $pedidoId = $this->criarPedidoTeste(150.00);
+        $pedido   = $this->pedidoModel->find($pedidoId);
+
+        $pix = $this->pagamentoService->gerarPix($pedido);
+        $this->assertTrue($pix['ok']);
+
+        $jsonPayload = json_encode([
+            'pedido_id' => $pedidoId,
+            'status'    => 'approved',
+            'evento'    => 'pago',
+        ]);
+
+        $request = service('request');
+        $request->setMethod('post');
+        $request->setHeader('Content-Type', 'application/json');
+        $request->setBody($jsonPayload);
+
+        $controller = new \App\Controllers\WebhookController();
+        $controller->initController(
+            $request,
+            service('response'),
+            service('logger')
+        );
+
+        $response = $controller->simular();
+        $this->assertEquals(200, $response->getStatusCode());
+        
+        $body = json_decode($response->getBody(), true);
+        $this->assertTrue($body['ok']);
+        $this->assertEquals('pago', $body['status']);
+    }
+
+    public function testWebhookControllerSimularComJsonVazioRetorna400(): void
+    {
+        $_POST = [];
+        $request = new \CodeIgniter\HTTP\IncomingRequest(
+            config('App'),
+            new \CodeIgniter\HTTP\URI('http://example.com/api/webhook/simular'),
+            '',
+            new \CodeIgniter\HTTP\UserAgent()
+        );
+        $request->setMethod('post');
+        $request->setHeader('Content-Type', 'application/json');
+        $request->setBody('');
+
+        $controller = new \App\Controllers\WebhookController();
+        $controller->initController(
+            $request,
+            service('response'),
+            service('logger')
+        );
+
+        $response = $controller->simular();
+        $this->assertEquals(400, $response->getStatusCode());
+
+        $body = json_decode($response->getBody(), true);
+        $this->assertFalse($body['ok']);
+        $this->assertStringContainsString('vazio ou formato inválido', $body['erro']);
+    }
 }

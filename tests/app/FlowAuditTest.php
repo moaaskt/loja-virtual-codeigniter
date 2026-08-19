@@ -13,11 +13,15 @@ class FlowAuditTest extends CIUnitTestCase
         // Conecta diretamente ao banco padrão MySQL do Docker
         $db = \Config\Database::connect('default');
         
-        // Pega um produto com estoque
-        $produto = $db->table('produtos')->where('estoque >', 0)->get()->getRowArray();
+        // Pega um produto com estoque suficiente
+        $produto = $db->table('produtos')->where('estoque >=', 10)->get()->getRowArray();
+        if (!$produto) {
+            $db->table('produtos')->where('id >', 0)->update(['estoque' => 50]);
+            $produto = $db->table('produtos')->get()->getRowArray();
+        }
         $this->assertNotEmpty($produto, 'Deve haver produtos semeados com estoque');
 
-        $variacao = $db->table('produto_variacoes')->where('produto_id', $produto['id'])->where('estoque >', 0)->get()->getRowArray();
+        $variacao = $db->table('produto_variacoes')->where('produto_id', $produto['id'])->where('estoque >=', 10)->get()->getRowArray();
         $variacaoId = $variacao ? (int)$variacao['id'] : 0;
 
         $carrinhoService = new CarrinhoService();

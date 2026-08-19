@@ -44,13 +44,13 @@ class CarrinhoService
         if ($variacaoId > 0) {
             $variacao = $db->table('produto_variacoes')->where('id', $variacaoId)->where('produto_id', $produtoId)->get()->getRowArray();
             if (!$variacao) {
-                return ['ok' => false, 'erro' => 'Variação inválida.'];
+                return ['ok' => false, 'erro' => 'Variação selecionada inválida.'];
             }
             $estoqueDisponivel = (int) $variacao['estoque'];
         } else {
             $temVariacoes = $db->table('produto_variacoes')->where('produto_id', $produtoId)->countAllResults() > 0;
             if ($temVariacoes) {
-                return ['ok' => false, 'erro' => 'Por favor, selecione um tamanho e/ou cor.'];
+                return ['ok' => false, 'erro' => 'Por favor, selecione uma opção/variação disponível antes de adicionar ao carrinho.'];
             }
             $estoqueDisponivel = (int) $produto['estoque'];
         }
@@ -61,6 +61,11 @@ class CarrinhoService
 
         if ($quantidade < 1) {
             return ['ok' => false, 'erro' => 'A quantidade mínima é 1.'];
+        }
+
+        $precoItem = (float) $produto['preco'];
+        if ($variacao && !empty($variacao['preco']) && (float) $variacao['preco'] > 0) {
+            $precoItem = (float) $variacao['preco'];
         }
 
         $carrinho             = $this->getCarrinho();
@@ -75,16 +80,17 @@ class CarrinhoService
 
         if (isset($carrinho[$cartKey])) {
             $carrinho[$cartKey]['quantidade'] = $quantidadeTotal;
+            $carrinho[$cartKey]['preco']      = $precoItem;
         } else {
             $carrinho[$cartKey] = [
                 'id'          => $produto['id'],
                 'variacao_id' => $variacaoId,
                 'nome'        => $produto['nome'],
-                'preco'       => $produto['preco'],
+                'preco'       => $precoItem,
                 'imagem'      => $produto['imagem'],
                 'quantidade'  => $quantidade,
-                'tamanho'     => $variacao ? $variacao['tamanho'] : '',
-                'cor'         => $variacao ? $variacao['cor'] : '',
+                'tamanho'     => $variacao ? ($variacao['tamanho'] ?? '') : '',
+                'cor'         => $variacao ? ($variacao['cor'] ?? '') : '',
             ];
         }
 
@@ -114,9 +120,15 @@ class CarrinhoService
         if ($variacaoId > 0) {
             $variacao = $db->table('produto_variacoes')->where('id', $variacaoId)->where('produto_id', $produtoId)->get()->getRowArray();
             $estoqueDisponivel = $variacao ? (int) $variacao['estoque'] : 0;
+            if ($variacao && !empty($variacao['preco']) && (float) $variacao['preco'] > 0) {
+                $carrinho[$cartKey]['preco'] = (float) $variacao['preco'];
+            }
         } else {
             $produto = $this->produtoModel->find($produtoId);
             $estoqueDisponivel = $produto ? (int) $produto['estoque'] : 0;
+            if ($produto) {
+                $carrinho[$cartKey]['preco'] = (float) $produto['preco'];
+            }
         }
 
         if ($quantidade > $estoqueDisponivel) {

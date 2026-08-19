@@ -19,6 +19,7 @@
 | Slug | Date | Status | Description |
 |---|---|---|---|
 | `filtro-instantaneo` | 2026-08-19 | complete ✓ | Implementação do Filtro Instantâneo (Eventos automáticos, Debounce 300ms, Sincronização de URL) e correção MD022 em gsd_commands.md |
+| `variacoes-genericas-skus` | 2026-08-19 | complete ✓ | Sistema de variações e SKUs genérico e flexível (Eletrônicos, Calçados, Roupas) com cor opcional, preço individual por variação e rótulos dinâmicos |
 
 ## Next Steps
 Avançar para o planejamento e implementação da **Phase 7: Notificações Transacionais por E-mail (SMTP)**.

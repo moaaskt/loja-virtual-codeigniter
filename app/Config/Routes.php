@@ -42,6 +42,7 @@ $routes->get('logout', 'AuthController::logout');
 $routes->group('minha-conta', ['filter' => 'auth'], static function ($routes) {
     $routes->get('pedidos', 'ClienteController::index');
 });
+$routes->get('checkout', 'PedidoController::checkout', ['filter' => 'auth']);
 $routes->post('checkout/finalizar', 'PedidoController::finalizar', ['filter' => 'auth']);
 $routes->get('pedido/pagamento/(:num)', 'PagamentoController::show/$1', ['filter' => 'auth']);
 $routes->get('pedido/sucesso/(:num)', 'PedidoController::sucesso/$1', ['filter' => 'auth']);

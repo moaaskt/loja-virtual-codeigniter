@@ -36,9 +36,7 @@
                                     <?php if (!empty($produto['tamanho']) || !empty($produto['cor'])): ?>
                                         <small class="text-muted d-block mt-1">
                                             <span class="badge bg-light text-dark border">
-                                                <?= !empty($produto['tamanho']) ? 'Tam: ' . esc($produto['tamanho']) : '' ?>
-                                                <?= !empty($produto['tamanho']) && !empty($produto['cor']) ? ' | ' : '' ?>
-                                                <?= !empty($produto['cor']) ? 'Cor: ' . esc($produto['cor']) : '' ?>
+                                                <?= esc($produto['tamanho'] ?? '') ?><?= !empty($produto['tamanho']) && !empty($produto['cor']) ? ' / ' : '' ?><?= esc($produto['cor'] ?? '') ?>
                                             </span>
                                         </small>
                                     <?php endif; ?>
@@ -145,14 +143,12 @@
                     </div>
 
                     <?php if (($pagamento['status'] ?? $pedido['status_pagamento'] ?? '') === 'pendente'): ?>
-                        <div class="mt-2">
-                            <?= form_open('api/webhook/simular') ?>
-                                <input type="hidden" name="pedido_id" value="<?= esc($pedido['id']) ?>">
-                                <input type="hidden" name="evento" value="pago">
-                                <button type="submit" class="btn btn-sm btn-outline-success w-100 rounded-pill" id="btn-simular-aprovacao">
-                                    <i class="bi bi-play-circle me-1"></i>Simular Confirmação via Webhook
-                                </button>
-                            <?= form_close() ?>
+                        <div class="mt-2" id="box-simular-webhook">
+                            <button type="button" class="btn btn-sm btn-outline-success w-100 rounded-pill" id="btn-simular-aprovacao"
+                                data-pedido-id="<?= esc($pedido['id']) ?>">
+                                <i class="bi bi-play-circle me-1"></i>Simular Confirmação via Webhook
+                            </button>
+                            <div id="simular-feedback" class="mt-2 small d-none"></div>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -195,4 +191,69 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btnSimular = document.getElementById('btn-simular-aprovacao');
+    const feedback   = document.getElementById('simular-feedback');
+
+    if (btnSimular) {
+        btnSimular.addEventListener('click', async function (e) {
+            e.preventDefault();
+            const idPedido = parseInt(this.dataset.pedidoId, 10);
+
+            btnSimular.disabled = true;
+            btnSimular.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Simulando...';
+            if (feedback) {
+                feedback.className = 'mt-2 small d-none';
+                feedback.innerHTML = '';
+            }
+
+            try {
+                const response = await fetch('<?= site_url('api/webhook/simular') ?>', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        pedido_id: idPedido,
+                        status: 'approved',
+                        evento: 'pago'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.ok) {
+                    if (feedback) {
+                        feedback.className = 'alert alert-success py-2 px-3 small mt-2 mb-0 rounded-3';
+                        feedback.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>' + (data.mensagem || 'Pagamento confirmado!');
+                    }
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 800);
+                } else {
+                    btnSimular.disabled = false;
+                    btnSimular.innerHTML = '<i class="bi bi-play-circle me-1"></i>Simular Confirmação via Webhook';
+                    if (feedback) {
+                        feedback.className = 'alert alert-danger py-2 px-3 small mt-2 mb-0 rounded-3';
+                        feedback.innerHTML = '<i class="bi bi-exclamation-circle-fill me-1"></i>' + (data.erro || 'Erro ao simular webhook.');
+                    }
+                }
+            } catch (err) {
+                console.error('Erro na simulação do webhook:', err);
+                btnSimular.disabled = false;
+                btnSimular.innerHTML = '<i class="bi bi-play-circle me-1"></i>Simular Confirmação via Webhook';
+                if (feedback) {
+                    feedback.className = 'alert alert-danger py-2 px-3 small mt-2 mb-0 rounded-3';
+                    feedback.innerHTML = '<i class="bi bi-exclamation-circle-fill me-1"></i>Erro de conexão ao simular webhook.';
+                }
+            }
+        });
+    }
+});
+</script>
 <?= $this->endSection() ?>

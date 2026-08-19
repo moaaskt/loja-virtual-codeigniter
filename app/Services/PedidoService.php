@@ -63,16 +63,29 @@ class PedidoService
         $subtotal    = 0.0;
 
         foreach ($carrinho as $cartKey => $item) {
-            $produtoId = $item['id'];
-            $produto = $this->produtoModel->find((int) $produtoId);
+            $produtoId  = $item['id'];
+            $variacaoId = $item['variacao_id'] ?? 0;
+            $produto    = $this->produtoModel->find((int) $produtoId);
 
             if (!$produto) {
                 $db->transRollback();
                 return ['ok' => false, 'erro' => 'O produto "' . esc($item['nome']) . '" não está mais disponível.'];
             }
 
-            $subtotal += (float) $produto['preco'] * (int) $item['quantidade'];
-            $itensPedido[$cartKey] = ['item' => $item, 'produto' => $produto];
+            $precoUnitario = (float) $produto['preco'];
+            if ($variacaoId > 0) {
+                $varRow = $db->table('produto_variacoes')->where('id', $variacaoId)->where('produto_id', $produtoId)->get()->getRowArray();
+                if ($varRow && !empty($varRow['preco']) && (float) $varRow['preco'] > 0) {
+                    $precoUnitario = (float) $varRow['preco'];
+                }
+            }
+
+            $subtotal += $precoUnitario * (int) $item['quantidade'];
+            $itensPedido[$cartKey] = [
+                'item'           => $item,
+                'produto'        => $produto,
+                'preco_unitario' => $precoUnitario,
+            ];
         }
 
         // Processamento de Cupom
@@ -123,11 +136,12 @@ class PedidoService
         $pedidoId = $this->pedidoModel->getInsertID();
 
         foreach ($itensPedido as $cartKey => $dados) {
-            $item       = $dados['item'];
-            $produto    = $dados['produto'];
-            $produtoId  = $item['id'];
-            $variacaoId = $item['variacao_id'] ?? 0;
-            $quantidade = (int) $item['quantidade'];
+            $item          = $dados['item'];
+            $produto       = $dados['produto'];
+            $produtoId     = $item['id'];
+            $variacaoId    = $item['variacao_id'] ?? 0;
+            $quantidade    = (int) $item['quantidade'];
+            $precoUnitario = $dados['preco_unitario'] ?? (float) $produto['preco'];
 
             // Baixa de estoque
             if ($variacaoId > 0) {
@@ -155,10 +169,10 @@ class PedidoService
                 'pedido_id'      => $pedidoId,
                 'produto_id'     => $produtoId,
                 'variacao_id'    => $variacaoId > 0 ? $variacaoId : null,
-                'tamanho'        => $item['tamanho'] ?? null,
-                'cor'            => $item['cor'] ?? null,
+                'tamanho'        => !empty($item['tamanho']) ? $item['tamanho'] : null,
+                'cor'            => !empty($item['cor']) ? $item['cor'] : null,
                 'quantidade'     => $quantidade,
-                'preco_unitario' => $produto['preco'],
+                'preco_unitario' => $precoUnitario,
             ]);
         }
 

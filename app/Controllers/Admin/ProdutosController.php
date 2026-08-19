@@ -87,12 +87,20 @@ class ProdutosController extends BaseController
 
         // --- Variações ---
         foreach ($variacoes as $v) {
-            $db->table('produto_variacoes')->insert([
-                'produto_id' => $produtoId,
-                'tamanho' => $v['tamanho'],
-                'cor' => $v['cor'],
-                'estoque' => (int) $v['estoque']
-            ]);
+            $tamanho = isset($v['tamanho']) ? trim($v['tamanho']) : '';
+            $cor     = isset($v['cor']) && trim($v['cor']) !== '' ? trim($v['cor']) : null;
+            $preco   = isset($v['preco']) && trim($v['preco']) !== '' ? (float) str_replace(',', '.', $v['preco']) : null;
+            $estoque = (int) ($v['estoque'] ?? 0);
+
+            if ($tamanho !== '' || $cor !== null) {
+                $db->table('produto_variacoes')->insert([
+                    'produto_id' => $produtoId,
+                    'tamanho'    => $tamanho !== '' ? $tamanho : null,
+                    'cor'        => $cor,
+                    'preco'      => $preco,
+                    'estoque'    => $estoque,
+                ]);
+            }
         }
 
         // --- Galeria de Imagens ---
@@ -215,12 +223,20 @@ class ProdutosController extends BaseController
         // --- Variações (Abordagem simples: deletar antigas e inserir novas) ---
         $db->table('produto_variacoes')->where('produto_id', $id)->delete();
         foreach ($variacoes as $v) {
-            $db->table('produto_variacoes')->insert([
-                'produto_id' => $id,
-                'tamanho' => $v['tamanho'],
-                'cor' => $v['cor'],
-                'estoque' => (int) $v['estoque']
-            ]);
+            $tamanho = isset($v['tamanho']) ? trim($v['tamanho']) : '';
+            $cor     = isset($v['cor']) && trim($v['cor']) !== '' ? trim($v['cor']) : null;
+            $preco   = isset($v['preco']) && trim($v['preco']) !== '' ? (float) str_replace(',', '.', $v['preco']) : null;
+            $estoque = (int) ($v['estoque'] ?? 0);
+
+            if ($tamanho !== '' || $cor !== null) {
+                $db->table('produto_variacoes')->insert([
+                    'produto_id' => $id,
+                    'tamanho'    => $tamanho !== '' ? $tamanho : null,
+                    'cor'        => $cor,
+                    'preco'      => $preco,
+                    'estoque'    => $estoque,
+                ]);
+            }
         }
 
         // --- Galeria de Imagens (Upload) ---

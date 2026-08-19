@@ -45,6 +45,12 @@ class AuthController extends BaseController
             ];
             $session->set($sessionData);
 
+            $redirectUrl = $session->get('redirect_url');
+            if ($redirectUrl) {
+                $session->remove('redirect_url');
+                return redirect()->to($redirectUrl)->with('success', 'Conta criada com sucesso!');
+            }
+
             return redirect()->to(site_url('/'))->with('success', 'Conta criada com sucesso!');
         } else {
             return redirect()->back()->withInput()->with('errors', $model->errors());
@@ -79,6 +85,12 @@ class AuthController extends BaseController
             $session->set($sessionData);
 
             // REDIRECIONAMENTO INTELIGENTE
+            $redirectUrl = $session->get('redirect_url');
+            if ($redirectUrl) {
+                $session->remove('redirect_url');
+                return redirect()->to($redirectUrl);
+            }
+
             if ($usuario['role'] === 'admin') {
                 return redirect()->to(site_url('admin/dashboard'));
             } else {

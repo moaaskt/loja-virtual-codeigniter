@@ -19,19 +19,28 @@ class WebhookController extends BaseController
      */
     public function receber()
     {
-        $payload = $this->request->getJSON(true) ?? $this->request->getPost();
+        $rawInput = $this->request->getBody();
+        $payload = !empty($rawInput) ? json_decode($rawInput, true) : null;
 
         if (empty($payload)) {
-            $rawInput = $this->request->getBody();
-            if (!empty($rawInput)) {
-                $payload = json_decode($rawInput, true) ?? [];
+            try {
+                $payload = $this->request->getJSON(true);
+            } catch (\Throwable $e) {
+                $payload = null;
             }
         }
 
         if (empty($payload)) {
+            $post = $this->request->getPost();
+            if (!empty($post)) {
+                $payload = $post;
+            }
+        }
+
+        if (empty($payload) || !is_array($payload)) {
             return $this->response->setStatusCode(400)->setJSON([
                 'ok'   => false,
-                'erro' => 'Payload vazio ou formato inválido.',
+                'erro' => 'Payload JSON vazio ou formato inválido.',
             ]);
         }
 
@@ -50,18 +59,41 @@ class WebhookController extends BaseController
      */
     public function simular()
     {
-        $payload = $this->request->getJSON(true) ?? $this->request->getPost();
+        $rawInput = $this->request->getBody();
+        $payload = !empty($rawInput) ? json_decode($rawInput, true) : null;
 
         if (empty($payload)) {
-            $rawInput = $this->request->getBody();
-            if (!empty($rawInput)) {
-                $payload = json_decode($rawInput, true) ?? [];
+            try {
+                $payload = $this->request->getJSON(true);
+            } catch (\Throwable $e) {
+                $payload = null;
             }
+        }
+
+        if (empty($payload)) {
+            $post = $this->request->getPost();
+            if (!empty($post)) {
+                $payload = $post;
+            }
+        }
+
+        $isJsonRequest = $this->request->isAJAX()
+            || str_contains($this->request->getHeaderLine('Content-Type'), 'application/json')
+            || str_contains($this->request->getHeaderLine('Accept'), 'application/json');
+
+        if (empty($payload) || !is_array($payload)) {
+            if ($isJsonRequest) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'ok'   => false,
+                    'erro' => 'Payload JSON vazio ou formato inválido.',
+                ]);
+            }
+            return redirect()->back()->with('error', 'Payload de simulação inválido ou vazio.');
         }
 
         $transacaoId = $payload['transacao_id'] ?? null;
         $pedidoId    = $payload['pedido_id'] ?? null;
-        $evento      = $payload['evento'] ?? 'pago';
+        $evento      = $payload['evento'] ?? $payload['status'] ?? 'pago';
 
         $resultado = $this->pagamentoService->processarWebhook([
             'transacao_id' => $transacaoId,
@@ -70,8 +102,9 @@ class WebhookController extends BaseController
             'pago_em'      => date('Y-m-d H:i:s'),
         ]);
 
-        if ($this->request->isAJAX()) {
-            return $this->response->setJSON($resultado);
+        if ($isJsonRequest) {
+            $statusCode = $resultado['ok'] ? 200 : 400;
+            return $this->response->setStatusCode($statusCode)->setJSON($resultado);
         }
 
         if (!$resultado['ok']) {

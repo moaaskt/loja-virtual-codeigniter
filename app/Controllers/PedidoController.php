@@ -23,6 +23,29 @@ class PedidoController extends BaseController
         helper('status');
     }
 
+    public function checkout()
+    {
+        if (!session()->get('isLoggedIn')) {
+            session()->set('redirect_url', site_url('checkout'));
+            return redirect()->to(site_url('login'))->with('info', 'Faça login ou crie sua conta para finalizar o seu pedido.');
+        }
+
+        $carrinhoService = new \App\Services\CarrinhoService();
+        $carrinho = $carrinhoService->getCarrinho();
+
+        if (empty($carrinho)) {
+            return redirect()->to(site_url('carrinho'))->with('error', 'Seu carrinho está vazio.');
+        }
+
+        $totais = $carrinhoService->calcularTotais();
+
+        return view('shop/checkout', [
+            'title'    => 'Checkout Seguro',
+            'carrinho' => $carrinho,
+            'totais'   => $totais,
+        ]);
+    }
+
     public function sucesso($pedidoId = null)
     {
         if (!session()->get('isLoggedIn')) {
@@ -52,7 +75,7 @@ class PedidoController extends BaseController
     public function finalizar()
     {
         if (!session()->get('isLoggedIn')) {
-            return redirect()->to(site_url('/'))->with('error', 'Você precisa estar logado para finalizar a compra.');
+            return redirect()->to(site_url('login'))->with('error', 'Você precisa estar logado para finalizar a compra.');
         }
 
         $carrinho = session()->get('carrinho') ?? [];
@@ -73,7 +96,7 @@ class PedidoController extends BaseController
         );
 
         if (!$resultado['ok']) {
-            return redirect()->to(site_url('carrinho'))->with('error', $resultado['erro']);
+            return redirect()->to(site_url('checkout'))->with('error', $resultado['erro'])->withInput();
         }
 
         $pedidoId = $resultado['pedido_id'];
