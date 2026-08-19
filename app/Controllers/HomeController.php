@@ -119,14 +119,19 @@ class HomeController extends BaseController
     {
         $model = new \App\Models\ProdutoModel();
 
+        $categorias = $this->request->getGet('categorias') ?? $this->request->getGet('categoria') ?? [];
+        $marcas     = $this->request->getGet('marcas') ?? $this->request->getGet('marca') ?? [];
+        $generos    = $this->request->getGet('generos') ?? $this->request->getGet('genero') ?? [];
+        $termo      = $this->request->getGet('termo') ?? $this->request->getGet('q') ?? $this->request->getGet('busca') ?? '';
+
         // Coleta todos os parâmetros de filtro enviados via GET
         $filtros = [
-            'termo'     => $this->request->getGet('termo') ?? '',
-            'categorias'=> $this->request->getGet('categorias') ?? [],
+            'termo'     => is_string($termo) ? trim($termo) : '',
+            'categorias'=> is_array($categorias) ? $categorias : [$categorias],
             'preco_min' => $this->request->getGet('preco_min') ?? '',
             'preco_max' => $this->request->getGet('preco_max') ?? '',
-            'marcas'    => $this->request->getGet('marcas') ?? [],
-            'generos'   => $this->request->getGet('generos') ?? [],
+            'marcas'    => is_array($marcas) ? $marcas : [$marcas],
+            'generos'   => is_array($generos) ? $generos : [$generos],
         ];
 
         $produtos = $model->getProdutosFiltrados($filtros, 24);

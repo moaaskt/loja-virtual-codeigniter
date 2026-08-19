@@ -214,69 +214,245 @@
 <?= $this->section('scripts') ?>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const formBusca        = document.getElementById('form-busca');
-        const inputBusca       = document.getElementById('input-busca');
-        const listaProdutos    = document.getElementById('lista-produtos');
-        const pagerContainer   = document.querySelector('.pagination-container');
-        const tituloPagina     = document.getElementById('titulo-pagina');
+        const formBusca      = document.getElementById('form-busca');
+        const inputBusca     = document.getElementById('input-busca');
+        const listaProdutos  = document.getElementById('lista-produtos');
+        const pagerContainer = document.querySelector('.pagination-container');
+        const tituloPagina   = document.getElementById('titulo-pagina');
+        const fabBadge       = document.getElementById('filter-count-badge');
+        const filterFab      = document.getElementById('filter-fab');
 
         if (!listaProdutos) return;
 
+        let currentAbortController = null;
+
         // ----------------------------------------------------------------
-        // Coleta de filtros ativos do painel
+        // Helper: Debounce
+        // ----------------------------------------------------------------
+        function debounce(func, wait = 300) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // ----------------------------------------------------------------
+        // Sincronização de Price Sliders e Inputs (Desktop e Mobile)
+        // ----------------------------------------------------------------
+        function getPriceBounds() {
+            const sampleSlider = document.querySelector('.price-range-thumb--min');
+            const minBound = sampleSlider ? parseInt(sampleSlider.min) || 0 : 0;
+            const maxBound = sampleSlider ? parseInt(sampleSlider.max) || 5000 : 5000;
+            return { minBound, maxBound };
+        }
+
+        function getPriceValues() {
+            const { minBound, maxBound } = getPriceBounds();
+            const minSlider = document.querySelector('.price-range-thumb--min');
+            const maxSlider = document.querySelector('.price-range-thumb--max');
+            const minVal = minSlider ? parseInt(minSlider.value) : minBound;
+            const maxVal = maxSlider ? parseInt(maxSlider.value) : maxBound;
+            return { minVal, maxVal, minBound, maxBound };
+        }
+
+        function updateAllPriceControls(minVal, maxVal) {
+            const { minBound, maxBound } = getPriceBounds();
+            const clampedMin = Math.max(minBound, Math.min(minVal, maxBound - 50));
+            const clampedMax = Math.min(maxBound, Math.max(maxVal, minBound + 50));
+
+            // Atualiza todos os sliders
+            document.querySelectorAll('.price-range-thumb--min').forEach(el => el.value = clampedMin);
+            document.querySelectorAll('.price-range-thumb--max').forEach(el => el.value = clampedMax);
+
+            // Atualiza todos os inputs numéricos
+            document.querySelectorAll('.price-input--min, #price-input-min').forEach(el => el.value = clampedMin);
+            document.querySelectorAll('.price-input--max, #price-input-max').forEach(el => el.value = clampedMax);
+
+            // Atualiza as barras visuais (range fill)
+            const pctMin = ((clampedMin - minBound) / (maxBound - minBound)) * 100;
+            const pctMax = ((clampedMax - minBound) / (maxBound - minBound)) * 100;
+            document.querySelectorAll('.price-range-fill, #range-fill').forEach(fill => {
+                fill.style.left  = pctMin + '%';
+                fill.style.width = (pctMax - pctMin) + '%';
+            });
+
+            countActiveFilters();
+        }
+
+        // ----------------------------------------------------------------
+        // Contagem de filtros ativos
+        // ----------------------------------------------------------------
+        function countActiveFilters() {
+            if (!fabBadge) return;
+            const checkedCategories = document.querySelectorAll('.filter-check[name="categorias[]"]:checked:not([value=""])');
+            const checkedGenders    = document.querySelectorAll('.filter-check[name="generos[]"]:checked');
+            const checkedBrands     = document.querySelectorAll('.filter-check[name="marcas[]"]:checked');
+
+            // Categorias, gêneros e marcas únicas
+            const catSet = new Set(Array.from(checkedCategories).map(cb => cb.value));
+            const genSet = new Set(Array.from(checkedGenders).map(cb => cb.value));
+            const brandSet = new Set(Array.from(checkedBrands).map(cb => cb.value));
+
+            const { minVal, maxVal, minBound, maxBound } = getPriceValues();
+            const priceActive = (minVal > minBound) || (maxVal < maxBound);
+            const searchActive = inputBusca && inputBusca.value.trim() !== '';
+
+            const total = catSet.size + genSet.size + brandSet.size + (priceActive ? 1 : 0) + (searchActive ? 1 : 0);
+
+            fabBadge.textContent = total;
+            fabBadge.classList.toggle('d-none', total === 0);
+        }
+
+        // ----------------------------------------------------------------
+        // Coleta de filtros e URL
         // ----------------------------------------------------------------
         function coletarFiltros() {
             const params = new URLSearchParams();
 
             // Termo de busca
             const termo = inputBusca ? inputBusca.value.trim() : '';
-            if (termo) params.append('termo', termo);
+            if (termo) params.set('termo', termo);
 
             // Categorias (checkboxes)
+            const catSet = new Set();
             document.querySelectorAll('.filter-check[name="categorias[]"]:checked').forEach(cb => {
-                if (cb.value !== '') params.append('categorias[]', cb.value);
+                if (cb.value !== '') catSet.add(cb.value);
             });
+            catSet.forEach(val => params.append('categorias[]', val));
 
             // Gêneros
+            const genSet = new Set();
             document.querySelectorAll('.filter-check[name="generos[]"]:checked').forEach(cb => {
-                params.append('generos[]', cb.value);
+                genSet.add(cb.value);
             });
+            genSet.forEach(val => params.append('generos[]', val));
 
             // Marcas
+            const brandSet = new Set();
             document.querySelectorAll('.filter-check[name="marcas[]"]:checked').forEach(cb => {
-                params.append('marcas[]', cb.value);
+                brandSet.add(cb.value);
             });
+            brandSet.forEach(val => params.append('marcas[]', val));
 
             // Faixa de preço
-            const precoMin = document.getElementById('price-range-min');
-            const precoMax = document.getElementById('price-range-max');
-            if (precoMin && parseInt(precoMin.value) > parseInt(precoMin.min)) {
-                params.append('preco_min', precoMin.value);
+            const { minVal, maxVal, minBound, maxBound } = getPriceValues();
+            if (minVal > minBound) {
+                params.set('preco_min', minVal);
             }
-            if (precoMax && parseInt(precoMax.value) < parseInt(precoMax.max)) {
-                params.append('preco_max', precoMax.value);
+            if (maxVal < maxBound) {
+                params.set('preco_max', maxVal);
             }
 
             return params;
         }
 
+        // Sincroniza a URL no navegador com os filtros ativos
+        function sincronizarUrl(params) {
+            const queryString = params.toString();
+            const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
+            const currentSearch = window.location.search.replace(/^\?/, '');
+
+            if (currentSearch !== queryString) {
+                window.history.pushState({ filters: queryString }, '', newUrl);
+            }
+        }
+
+        // Restaura filtros a partir da URL atual
+        function restaurarFiltrosDaUrl() {
+            const searchParams = new URLSearchParams(window.location.search);
+            let hasActiveFilter = false;
+
+            // Busca
+            const termo = searchParams.get('termo') || searchParams.get('q') || searchParams.get('busca') || '';
+            if (inputBusca) {
+                inputBusca.value = termo;
+                if (termo) hasActiveFilter = true;
+            }
+
+            // Categorias (suporta categorias[], categoria ou categorias)
+            const urlCategorias = searchParams.getAll('categorias[]').concat(
+                searchParams.getAll('categorias'),
+                searchParams.getAll('categoria')
+            ).filter(Boolean);
+
+            const hasSpecificCat = urlCategorias.length > 0;
+            document.querySelectorAll('.filter-check[name="categorias[]"]').forEach(cb => {
+                if (cb.value === '') {
+                    cb.checked = !hasSpecificCat;
+                } else {
+                    cb.checked = urlCategorias.includes(cb.value);
+                }
+            });
+            if (hasSpecificCat) hasActiveFilter = true;
+
+            // Gêneros
+            const urlGeneros = searchParams.getAll('generos[]').concat(
+                searchParams.getAll('generos'),
+                searchParams.getAll('genero')
+            ).filter(Boolean);
+
+            document.querySelectorAll('.filter-check[name="generos[]"]').forEach(cb => {
+                cb.checked = urlGeneros.includes(cb.value);
+            });
+            if (urlGeneros.length > 0) hasActiveFilter = true;
+
+            // Marcas
+            const urlMarcas = searchParams.getAll('marcas[]').concat(
+                searchParams.getAll('marcas'),
+                searchParams.getAll('marca')
+            ).map(m => m.toLowerCase()).filter(Boolean);
+
+            document.querySelectorAll('.filter-check[name="marcas[]"]').forEach(cb => {
+                cb.checked = urlMarcas.includes(cb.value.toLowerCase());
+            });
+            if (urlMarcas.length > 0) hasActiveFilter = true;
+
+            // Preço
+            const { minBound, maxBound } = getPriceBounds();
+            const pMin = searchParams.get('preco_min');
+            const pMax = searchParams.get('preco_max');
+
+            const finalMin = pMin !== null && !isNaN(parseInt(pMin)) ? parseInt(pMin) : minBound;
+            const finalMax = pMax !== null && !isNaN(parseInt(pMax)) ? parseInt(pMax) : maxBound;
+
+            if (finalMin > minBound || finalMax < maxBound) {
+                hasActiveFilter = true;
+            }
+
+            updateAllPriceControls(finalMin, finalMax);
+            countActiveFilters();
+
+            return hasActiveFilter;
+        }
+
         // ----------------------------------------------------------------
         // Requisição AJAX e renderização
         // ----------------------------------------------------------------
-        async function aplicarFiltros() {
+        async function aplicarFiltros(options = { pushState: true }) {
             const params = coletarFiltros();
-            const url    = `<?= site_url('api/produtos/busca') ?>?${params.toString()}`;
+
+            if (options.pushState) {
+                sincronizarUrl(params);
+            }
+
+            if (currentAbortController) {
+                currentAbortController.abort();
+            }
+            currentAbortController = new AbortController();
+
+            const url = `<?= site_url('api/produtos/busca') ?>?${params.toString()}`;
 
             listaProdutos.innerHTML = `
                 <div class="col-12 text-center py-5 text-muted">
                     <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div>
-                    <p class="mt-2 mb-0">Buscando produtos...</p>
+                    <p class="mt-2 mb-0">Atualizando produtos...</p>
                 </div>`;
             if (pagerContainer) pagerContainer.style.display = 'none';
 
             try {
-                const response = await fetch(url);
-                const produtos  = await response.json();
+                const response = await fetch(url, { signal: currentAbortController.signal });
+                const produtos = await response.json();
 
                 const termo = params.get('termo') ?? '';
                 if (tituloPagina) {
@@ -287,6 +463,7 @@
 
                 renderizarProdutos(produtos);
             } catch (err) {
+                if (err.name === 'AbortError') return;
                 console.error('Erro ao buscar produtos:', err);
                 listaProdutos.innerHTML = `<div class="col-12"><div class="empty-state">
                     <div class="empty-icon"><i class="bi bi-exclamation-circle"></i></div>
@@ -295,8 +472,10 @@
             }
         }
 
+        const debouncedAplicarFiltros = debounce(() => aplicarFiltros({ pushState: true }), 300);
+
         // ----------------------------------------------------------------
-        // Renderização de produtos
+        // Renderização dos cards de produto
         // ----------------------------------------------------------------
         function buildImageUrl(imagem) {
             if (!imagem) return '<?= base_url('uploads/produtos/sem_imagem.png') ?>';
@@ -352,134 +531,184 @@
         }
 
         // ----------------------------------------------------------------
-        // Listeners de busca (debounce) + filtros
+        // Escuta Automática de Eventos: Checkboxes
         // ----------------------------------------------------------------
-        let debounceTimer;
+        document.querySelectorAll('.filter-check').forEach(cb => {
+            cb.addEventListener('change', function () {
+                const name  = this.name;
+                const value = this.value;
+                const isChecked = this.checked;
 
+                // Sincroniza checkbox idêntico no desktop e mobile
+                document.querySelectorAll(`.filter-check[name="${name}"][value="${value}"]`).forEach(other => {
+                    other.checked = isChecked;
+                });
+
+                // Lógica de "Todas" vs Categorias individuais
+                if (name === 'categorias[]') {
+                    if (value === '') {
+                        if (isChecked) {
+                            // Desmarca todas as outras categorias
+                            document.querySelectorAll('.filter-check[name="categorias[]"]:not([value=""])').forEach(other => {
+                                other.checked = false;
+                            });
+                        }
+                    } else {
+                        // Se marcou uma categoria específica, desmarca "Todas"
+                        if (isChecked) {
+                            document.querySelectorAll('.filter-check[name="categorias[]"][value=""]').forEach(allCb => {
+                                allCb.checked = false;
+                            });
+                        } else {
+                            // Se desmarcou e nenhuma ficou marcada, marca "Todas"
+                            const anyChecked = document.querySelectorAll('.filter-check[name="categorias[]"]:checked:not([value=""])').length > 0;
+                            if (!anyChecked) {
+                                document.querySelectorAll('.filter-check[name="categorias[]"][value=""]').forEach(allCb => {
+                                    allCb.checked = true;
+                                });
+                            }
+                        }
+                    }
+                }
+
+                countActiveFilters();
+                aplicarFiltros({ pushState: true });
+            });
+        });
+
+        // ----------------------------------------------------------------
+        // Escuta com Debounce: Campo de Busca
+        // ----------------------------------------------------------------
         if (inputBusca) {
-            inputBusca.addEventListener('keyup', e => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(aplicarFiltros, 350);
+            inputBusca.addEventListener('input', () => {
+                countActiveFilters();
+                debouncedAplicarFiltros();
             });
         }
 
         if (formBusca) {
             formBusca.addEventListener('submit', e => {
                 e.preventDefault();
-                aplicarFiltros();
+                aplicarFiltros({ pushState: true });
             });
         }
 
-        // Botões "Aplicar Filtros" (desktop e mobile)
-        ['btn-apply-filters', 'btn-apply-filters-mobile'].forEach(id => {
-            const btn = document.getElementById(id);
-            if (btn) btn.addEventListener('click', aplicarFiltros);
+        // ----------------------------------------------------------------
+        // Escuta com Debounce: Sliders e Inputs de Preço
+        // ----------------------------------------------------------------
+        document.querySelectorAll('.price-range-thumb--min').forEach(el => {
+            el.addEventListener('input', function () {
+                const { maxVal } = getPriceValues();
+                const vMin = Math.min(parseInt(this.value) || 0, maxVal - 50);
+                updateAllPriceControls(vMin, maxVal);
+                debouncedAplicarFiltros();
+            });
         });
 
-        // Botão "Limpar tudo" — volta à home
-        const btnLimpar = document.getElementById('btn-limpar-filtros');
-        if (btnLimpar) {
-            btnLimpar.addEventListener('click', e => {
+        document.querySelectorAll('.price-range-thumb--max').forEach(el => {
+            el.addEventListener('input', function () {
+                const { minVal } = getPriceValues();
+                const vMax = Math.max(parseInt(this.value) || 5000, minVal + 50);
+                updateAllPriceControls(minVal, vMax);
+                debouncedAplicarFiltros();
+            });
+        });
+
+        document.querySelectorAll('.price-input--min, #price-input-min').forEach(el => {
+            const handlePriceInput = function () {
+                const { minBound, maxBound } = getPriceBounds();
+                const { maxVal } = getPriceValues();
+                const vMin = Math.max(minBound, Math.min(parseInt(this.value) || minBound, maxVal - 50));
+                updateAllPriceControls(vMin, maxVal);
+                debouncedAplicarFiltros();
+            };
+            el.addEventListener('input', handlePriceInput);
+            el.addEventListener('change', handlePriceInput);
+        });
+
+        document.querySelectorAll('.price-input--max, #price-input-max').forEach(el => {
+            const handlePriceInput = function () {
+                const { minBound, maxBound } = getPriceBounds();
+                const { minVal } = getPriceValues();
+                const vMax = Math.min(maxBound, Math.max(parseInt(this.value) || maxBound, minVal + 50));
+                updateAllPriceControls(minVal, vMax);
+                debouncedAplicarFiltros();
+            };
+            el.addEventListener('input', handlePriceInput);
+            el.addEventListener('change', handlePriceInput);
+        });
+
+        // ----------------------------------------------------------------
+        // Botão "Limpar tudo"
+        // ----------------------------------------------------------------
+        document.querySelectorAll('.filter-clear-all, #btn-limpar-filtros').forEach(btn => {
+            btn.addEventListener('click', e => {
                 e.preventDefault();
-                // Desmarca todos os checkboxes de filtro
+
+                // Marca "Todas" e desmarca o restante
                 document.querySelectorAll('.filter-check').forEach(cb => {
-                    cb.checked = cb.value === ''; // mantém "Todas" checado
+                    cb.checked = (cb.name === 'categorias[]' && cb.value === '');
                 });
-                // Restaura o range de preço para defaults
-                const rMin = document.getElementById('price-range-min');
-                const rMax = document.getElementById('price-range-max');
-                const iMin = document.getElementById('price-input-min');
-                const iMax = document.getElementById('price-input-max');
-                if (rMin) { rMin.value = rMin.min; if (iMin) iMin.value = rMin.min; }
-                if (rMax) { rMax.value = rMax.max; if (iMax) iMax.value = rMax.max; }
-                // Limpa a busca
+
+                // Reseta os valores de preço
+                const { minBound, maxBound } = getPriceBounds();
+                updateAllPriceControls(minBound, maxBound);
+
+                // Limpa o input de busca
                 if (inputBusca) inputBusca.value = '';
                 if (tituloPagina) tituloPagina.textContent = 'Vitrine de Produtos';
-                aplicarFiltros();
+
+                // Reseta a URL
+                window.history.pushState({}, '', window.location.pathname);
+
+                // Atualiza contagem e lista
+                countActiveFilters();
+                aplicarFiltros({ pushState: false });
             });
-        }
-    });
-</script>
-
-
-<script>
-    /* ============================================================
-       Filter Panel — Price Range Slider + Active Filter Counter
-       ============================================================ */
-    (function () {
-        const rangeMin    = document.getElementById('price-range-min');
-        const rangeMax    = document.getElementById('price-range-max');
-        const inputMin    = document.getElementById('price-input-min');
-        const inputMax    = document.getElementById('price-input-max');
-        const rangeFill   = document.getElementById('range-fill');
-        const fabBadge    = document.getElementById('filter-count-badge');
-        const filterFab   = document.getElementById('filter-fab');
-        const productGrid = document.getElementById('lista-produtos');
-
-        function updateRangeTrack() {
-            if (!rangeMin || !rangeMax || !rangeFill) return;
-            const min  = parseInt(rangeMin.min);
-            const max  = parseInt(rangeMax.max);
-            const valMin = parseInt(rangeMin.value);
-            const valMax = parseInt(rangeMax.value);
-            const pctMin = ((valMin - min) / (max - min)) * 100;
-            const pctMax = ((valMax - min) / (max - min)) * 100;
-            rangeFill.style.left  = pctMin + '%';
-            rangeFill.style.width = (pctMax - pctMin) + '%';
-        }
-
-        function syncPriceInputs() {
-            if (!rangeMin || !inputMin) return;
-            inputMin.value = rangeMin.value;
-            inputMax.value = rangeMax.value;
-            updateRangeTrack();
-            countActiveFilters();
-        }
-
-        function syncRangeFromInputs() {
-            if (!inputMin || !rangeMin) return;
-            const vMin = Math.min(parseInt(inputMin.value) || 0, parseInt(inputMax.value) - 1);
-            const vMax = Math.max(parseInt(inputMax.value) || 5000, parseInt(inputMin.value) + 1);
-            rangeMin.value = vMin;
-            rangeMax.value = vMax;
-            inputMin.value = vMin;
-            inputMax.value = vMax;
-            updateRangeTrack();
-            countActiveFilters();
-        }
-
-        function countActiveFilters() {
-            if (!fabBadge) return;
-            const checkboxes = document.querySelectorAll('.filter-check:checked');
-            const priceChanged = rangeMin && (parseInt(rangeMin.value) > parseInt(rangeMin.min)
-                || parseInt(rangeMax.value) < parseInt(rangeMax.max));
-            const total = checkboxes.length + (priceChanged ? 1 : 0);
-            fabBadge.textContent = total;
-            fabBadge.classList.toggle('d-none', total === 0);
-        }
-
-        /* Show/hide FAB on scroll */
-        function handleFabVisibility() {
-            if (!filterFab || !productGrid) return;
-            const rect = productGrid.getBoundingClientRect();
-            filterFab.classList.toggle('filter-fab--visible', rect.top < window.innerHeight && rect.bottom > 0);
-        }
-
-        if (rangeMin) rangeMin.addEventListener('input', syncPriceInputs);
-        if (rangeMax) rangeMax.addEventListener('input', syncPriceInputs);
-        if (inputMin) inputMin.addEventListener('change', syncRangeFromInputs);
-        if (inputMax) inputMax.addEventListener('change', syncRangeFromInputs);
-
-        document.querySelectorAll('.filter-check').forEach(cb => {
-            cb.addEventListener('change', countActiveFilters);
         });
 
+        // Botões "Aplicar Filtros" (desktop e mobile offcanvas)
+        ['btn-apply-filters', 'btn-apply-filters-mobile'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    aplicarFiltros({ pushState: true });
+                });
+            }
+        });
+
+        // ----------------------------------------------------------------
+        // Suporte a Navegação de Histórico (Voltar / Avançar no Navegador)
+        // ----------------------------------------------------------------
+        window.addEventListener('popstate', () => {
+            restaurarFiltrosDaUrl();
+            aplicarFiltros({ pushState: false });
+        });
+
+        // ----------------------------------------------------------------
+        // Visibilidade do Botão Flutuante (FAB) no Mobile
+        // ----------------------------------------------------------------
+        function handleFabVisibility() {
+            if (!filterFab || !listaProdutos) return;
+            const rect = listaProdutos.getBoundingClientRect();
+            filterFab.classList.toggle('filter-fab--visible', rect.top < window.innerHeight && rect.bottom > 0);
+        }
         window.addEventListener('scroll', handleFabVisibility, { passive: true });
 
-        /* Init */
-        updateRangeTrack();
-        countActiveFilters();
+        // ----------------------------------------------------------------
+        // Inicialização
+        // ----------------------------------------------------------------
+        const { minBound, maxBound } = getPriceBounds();
+        updateAllPriceControls(minBound, maxBound);
+
+        const hasUrlFilters = restaurarFiltrosDaUrl();
+        if (hasUrlFilters) {
+            aplicarFiltros({ pushState: false });
+        } else {
+            countActiveFilters();
+        }
+
         handleFabVisibility();
-    }());
+    });
 </script>
 <?= $this->endSection() ?>

@@ -115,7 +115,7 @@
                             <label for="price-input-min" class="price-input-label">Mín.</label>
                             <div class="price-input-group">
                                 <span class="price-input-prefix">R$</span>
-                                <input type="number" class="price-input" id="price-input-min"
+                                <input type="number" class="price-input price-input--min" id="price-input-min"
                                     min="0" max="5000" value="0" step="50"
                                     placeholder="0">
                             </div>
@@ -125,7 +125,7 @@
                             <label for="price-input-max" class="price-input-label">Máx.</label>
                             <div class="price-input-group">
                                 <span class="price-input-prefix">R$</span>
-                                <input type="number" class="price-input" id="price-input-max"
+                                <input type="number" class="price-input price-input--max" id="price-input-max"
                                     min="0" max="5000" value="5000" step="50"
                                     placeholder="5000">
                             </div>
