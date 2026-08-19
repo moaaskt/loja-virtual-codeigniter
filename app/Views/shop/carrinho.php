@@ -5,31 +5,58 @@
 <?= $this->section('content') ?>
 
 <style>
-/* Checkout Offcanvas Responsivo */
+/* Checkout Offcanvas Responsivo / Modal em Desktop */
 .offcanvas-checkout {
     width: 100vw !important;
     max-width: 100% !important;
-}
-
-@media (min-width: 768px) {
-    .offcanvas-checkout {
-        width: 520px !important;
-        max-width: 520px !important;
-    }
+    transition: transform 0.3s ease-in-out, opacity 0.25s ease !important;
 }
 
 @media (min-width: 992px) {
     .offcanvas-checkout {
-        width: 580px !important;
-        max-width: 580px !important;
+        top: 50% !important;
+        left: 50% !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: 880px !important;
+        max-width: 92vw !important;
+        height: auto !important;
+        max-height: 90vh !important;
+        border-radius: 1.25rem !important;
+        border: none !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+        transform: translate(-50%, -46%) scale(0.96) !important;
+        opacity: 0;
+    }
+
+    .offcanvas-checkout.show {
+        transform: translate(-50%, -50%) scale(1) !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    .offcanvas-checkout.hiding {
+        transform: translate(-50%, -46%) scale(0.96) !important;
+        opacity: 0 !important;
+    }
+
+    .offcanvas-checkout .offcanvas-body {
+        overflow-y: auto;
+        max-height: calc(90vh - 75px);
     }
 }
 
-@media (min-width: 1200px) {
-    .offcanvas-checkout {
-        width: 600px !important;
-        max-width: 600px !important;
-    }
+.checkout-summary-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+}
+
+.checkout-item-thumb {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 8px;
 }
 
 .pay-method-label {
@@ -318,237 +345,293 @@
 
     </div>
 
-    <!-- ===== CHECKOUT OFFCANVAS ===== -->
+    <!-- ===== CHECKOUT OFFCANVAS / MODAL ===== -->
     <div class="offcanvas offcanvas-end offcanvas-checkout shadow" tabindex="-1" id="offcanvasCheckout"
         aria-labelledby="offcanvasCheckoutLabel">
         <div class="offcanvas-header border-bottom py-3 px-4 bg-white">
-            <div>
-                <h2 class="offcanvas-title fw-bold fs-5 text-dark mb-0" id="offcanvasCheckoutLabel">
-                    <i class="bi bi-shield-lock-fill text-primary me-2"></i>Finalizar Compra
-                </h2>
-                <small class="text-muted">Preencha o endereço e selecione o pagamento</small>
+            <div class="d-flex align-items-center gap-2">
+                <div class="p-2 bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center" style="width:38px;height:38px;">
+                    <i class="bi bi-shield-lock-fill fs-5"></i>
+                </div>
+                <div>
+                    <h2 class="offcanvas-title fw-bold fs-5 text-dark mb-0" id="offcanvasCheckoutLabel">
+                        Finalizar Compra
+                    </h2>
+                    <small class="text-muted">Ambiente seguro com criptografia de ponta a ponta</small>
+                </div>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
         </div>
-        <div class="offcanvas-body p-4">
+        <div class="offcanvas-body p-3 p-lg-4">
             <?= form_open('checkout/finalizar', ['id' => 'form-checkout']) ?>
             <?= csrf_field() ?>
 
-            <!-- Seção Endereço -->
-            <div class="mb-3">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h3 class="fw-bold fs-6 mb-0 text-dark d-flex align-items-center">
-                        <i class="bi bi-geo-alt-fill text-primary me-2"></i>Endereço de Entrega
-                    </h3>
-                    <span class="text-muted small">* Campos obrigatórios</span>
-                </div>
-
-                <div class="row g-2">
-                    <!-- CEP -->
-                    <div class="col-12 col-sm-5 col-md-4">
-                        <div class="form-floating">
-                            <input type="text" id="cep" name="cep" class="form-control font-monospace"
-                                placeholder="00000-000" maxlength="9"
-                                value="<?= esc($freteAtivo['cep'] ?? '') ?>" required>
-                            <label for="cep">CEP <span class="text-danger">*</span></label>
+            <div class="row g-4">
+                <!-- Coluna da Esquerda: Endereço + Pagamento -->
+                <div class="col-lg-7">
+                    <!-- Seção Endereço -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h3 class="fw-bold fs-6 mb-0 text-dark d-flex align-items-center">
+                                <i class="bi bi-geo-alt-fill text-primary me-2"></i>1. Endereço de Entrega
+                            </h3>
+                            <span class="text-muted small">* Obrigatórios</span>
                         </div>
-                        <div id="cep-feedback" class="form-text text-danger d-none mt-1">
-                            <i class="bi bi-exclamation-circle me-1"></i>CEP não encontrado.
-                        </div>
-                    </div>
 
-                    <!-- Logradouro -->
-                    <div class="col-12 col-sm-7 col-md-8">
-                        <div class="form-floating">
-                            <input type="text" id="logradouro" name="logradouro" class="form-control"
-                                placeholder="Rua / Av." required>
-                            <label for="logradouro">Logradouro <span class="text-danger">*</span></label>
-                        </div>
-                    </div>
-
-                    <!-- Número -->
-                    <div class="col-12 col-sm-4 col-md-4">
-                        <div class="form-floating">
-                            <input type="text" id="numero" name="numero" class="form-control"
-                                placeholder="Nº" required>
-                            <label for="numero">Número <span class="text-danger">*</span></label>
-                        </div>
-                    </div>
-
-                    <!-- Complemento -->
-                    <div class="col-12 col-sm-8 col-md-8">
-                        <div class="form-floating">
-                            <input type="text" id="complemento" name="complemento" class="form-control"
-                                placeholder="Apto, bloco...">
-                            <label for="complemento">Complemento</label>
-                        </div>
-                    </div>
-
-                    <!-- Bairro -->
-                    <div class="col-12 col-sm-5 col-md-5">
-                        <div class="form-floating">
-                            <input type="text" id="bairro" name="bairro" class="form-control"
-                                placeholder="Bairro" required>
-                            <label for="bairro">Bairro <span class="text-danger">*</span></label>
-                        </div>
-                    </div>
-
-                    <!-- Cidade -->
-                    <div class="col-8 col-sm-5 col-md-5">
-                        <div class="form-floating">
-                            <input type="text" id="cidade" name="cidade" class="form-control"
-                                placeholder="Cidade" required>
-                            <label for="cidade">Cidade <span class="text-danger">*</span></label>
-                        </div>
-                    </div>
-
-                    <!-- UF -->
-                    <div class="col-4 col-sm-2 col-md-2">
-                        <div class="form-floating">
-                            <input type="text" id="uf" name="uf" class="form-control text-uppercase font-monospace"
-                                placeholder="UF" maxlength="2" required>
-                            <label for="uf">UF <span class="text-danger">*</span></label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ===== FORMA DE PAGAMENTO ===== -->
-            <div class="mt-4 pt-3 border-top">
-                <h3 class="fw-bold fs-6 mb-3 text-dark d-flex align-items-center">
-                    <i class="bi bi-credit-card-2-front text-primary me-2"></i>Forma de Pagamento
-                </h3>
-
-                <div class="row g-2 mb-3">
-                    <!-- Opção Pix -->
-                    <div class="col-6">
-                        <input type="radio" class="btn-check" name="forma_pagamento" id="pay_pix" value="pix" checked>
-                        <label class="btn btn-outline-light border text-dark w-100 p-3 text-start rounded-3 h-100 position-relative pay-method-label" for="pay_pix">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <span class="fw-bold d-flex align-items-center gap-1">
-                                    <i class="bi bi-qr-code text-success fs-5"></i> Pix
-                                </span>
-                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size:0.7rem;">
-                                    Instantâneo
-                                </span>
+                        <div class="row g-2">
+                            <!-- CEP -->
+                            <div class="col-12 col-sm-5">
+                                <div class="form-floating">
+                                    <input type="text" id="cep" name="cep" class="form-control font-monospace"
+                                        placeholder="00000-000" maxlength="9"
+                                        value="<?= esc($freteAtivo['cep'] ?? '') ?>" required>
+                                    <label for="cep">CEP <span class="text-danger">*</span></label>
+                                </div>
+                                <div id="cep-feedback" class="form-text text-danger d-none mt-1">
+                                    <i class="bi bi-exclamation-circle me-1"></i>CEP não encontrado.
+                                </div>
                             </div>
-                            <small class="text-muted d-block" style="font-size:0.75rem;">Aprovação imediata via QR Code</small>
-                        </label>
+
+                            <!-- Logradouro -->
+                            <div class="col-12 col-sm-7">
+                                <div class="form-floating">
+                                    <input type="text" id="logradouro" name="logradouro" class="form-control"
+                                        placeholder="Rua / Av." required>
+                                    <label for="logradouro">Logradouro <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+
+                            <!-- Número -->
+                            <div class="col-12 col-sm-4">
+                                <div class="form-floating">
+                                    <input type="text" id="numero" name="numero" class="form-control"
+                                        placeholder="Nº" required>
+                                    <label for="numero">Número <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+
+                            <!-- Complemento -->
+                            <div class="col-12 col-sm-8">
+                                <div class="form-floating">
+                                    <input type="text" id="complemento" name="complemento" class="form-control"
+                                        placeholder="Apto, bloco...">
+                                    <label for="complemento">Complemento</label>
+                                </div>
+                            </div>
+
+                            <!-- Bairro -->
+                            <div class="col-12 col-sm-5">
+                                <div class="form-floating">
+                                    <input type="text" id="bairro" name="bairro" class="form-control"
+                                        placeholder="Bairro" required>
+                                    <label for="bairro">Bairro <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+
+                            <!-- Cidade -->
+                            <div class="col-8 col-sm-5">
+                                <div class="form-floating">
+                                    <input type="text" id="cidade" name="cidade" class="form-control"
+                                        placeholder="Cidade" required>
+                                    <label for="cidade">Cidade <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+
+                            <!-- UF -->
+                            <div class="col-4 col-sm-2">
+                                <div class="form-floating">
+                                    <input type="text" id="uf" name="uf" class="form-control text-uppercase font-monospace"
+                                        placeholder="UF" maxlength="2" required>
+                                    <label for="uf">UF <span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Opção Cartão de Crédito -->
-                    <div class="col-6">
-                        <input type="radio" class="btn-check" name="forma_pagamento" id="pay_cartao" value="cartao_credito">
-                        <label class="btn btn-outline-light border text-dark w-100 p-3 text-start rounded-3 h-100 position-relative pay-method-label" for="pay_cartao">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <span class="fw-bold d-flex align-items-center gap-1">
-                                    <i class="bi bi-credit-card text-primary fs-5"></i> Cartão
-                                </span>
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size:0.7rem;">
-                                    Até 12x
-                                </span>
+                    <!-- Seção Forma de Pagamento -->
+                    <div class="pt-3 border-top">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h3 class="fw-bold fs-6 mb-0 text-dark d-flex align-items-center">
+                                <i class="bi bi-credit-card-2-front text-primary me-2"></i>2. Forma de Pagamento
+                            </h3>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <!-- Opção Pix -->
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="forma_pagamento" id="pay_pix" value="pix" checked>
+                                <label class="btn btn-outline-light border text-dark w-100 p-3 text-start rounded-3 h-100 position-relative pay-method-label" for="pay_pix">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="fw-bold d-flex align-items-center gap-1">
+                                            <i class="bi bi-qr-code text-success fs-5"></i> Pix
+                                        </span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size:0.7rem;">
+                                            Instantâneo
+                                        </span>
+                                    </div>
+                                    <small class="text-muted d-block" style="font-size:0.75rem;">Aprovação imediata</small>
+                                </label>
                             </div>
-                            <small class="text-muted d-block" style="font-size:0.75rem;">Crédito à vista ou parcelado</small>
-                        </label>
+
+                            <!-- Opção Cartão de Crédito -->
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="forma_pagamento" id="pay_cartao" value="cartao_credito">
+                                <label class="btn btn-outline-light border text-dark w-100 p-3 text-start rounded-3 h-100 position-relative pay-method-label" for="pay_cartao">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="fw-bold d-flex align-items-center gap-1">
+                                            <i class="bi bi-credit-card text-primary fs-5"></i> Cartão
+                                        </span>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size:0.7rem;">
+                                            Até 12x
+                                        </span>
+                                    </div>
+                                    <small class="text-muted d-block" style="font-size:0.75rem;">Crédito ou parcelado</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Detalhes Pix Box -->
+                        <div id="box-pix-info" class="card bg-success-subtle border-0 rounded-3 p-3 mb-3">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-shield-check text-success fs-4 mt-0"></i>
+                                <div>
+                                    <div class="fw-bold text-success-emphasis small">Pagamento Rápido e Seguro</div>
+                                    <p class="text-muted small mb-0" style="font-size:0.8rem;">
+                                        Ao confirmar seu pedido, geraremos o <strong>QR Code</strong> e o código <strong>Pix Copia e Cola</strong> para pagamento instantâneo no app do seu banco.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos de Cartão de Crédito Box -->
+                        <div id="box-cartao-campos" class="d-none card border-0 bg-light rounded-3 p-3 mb-3">
+                            <div class="row g-2">
+                                <!-- Número do Cartão -->
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold text-muted mb-1" for="cartao_numero">Número do Cartão</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0" id="card-brand-icon">
+                                            <i class="bi bi-credit-card text-muted"></i>
+                                        </span>
+                                        <input type="text" id="cartao_numero" name="cartao_numero" class="form-control border-start-0 font-monospace"
+                                            placeholder="0000 0000 0000 0000" maxlength="19">
+                                    </div>
+                                </div>
+
+                                <!-- Nome Impresso -->
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold text-muted mb-1" for="cartao_nome">Nome no Cartão (como impresso)</label>
+                                    <input type="text" id="cartao_nome" name="cartao_nome" class="form-control text-uppercase"
+                                        placeholder="NOME COMPLETO">
+                                </div>
+
+                                <!-- Validade -->
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold text-muted mb-1" for="cartao_validade">Validade</label>
+                                    <input type="text" id="cartao_validade" name="cartao_validade" class="form-control font-monospace"
+                                        placeholder="MM/AA" maxlength="5">
+                                </div>
+
+                                <!-- CVV -->
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold text-muted mb-1" for="cartao_cvv">CVV</label>
+                                    <input type="text" id="cartao_cvv" name="cartao_cvv" class="form-control font-monospace"
+                                        placeholder="123" maxlength="4">
+                                </div>
+
+                                <!-- Parcelas -->
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold text-muted mb-1" for="cartao_parcelas">Parcelamento</label>
+                                    <select id="cartao_parcelas" name="cartao_parcelas" class="form-select">
+                                        <?php for ($p = 1; $p <= 12; $p++): ?>
+                                            <?php $valorParc = $totalFinal / $p; ?>
+                                            <option value="<?= $p ?>">
+                                                <?= $p ?>x de R$ <?= number_format($valorParc, 2, ',', '.') ?> <?= $p === 1 ? '(à vista)' : '(sem juros)' ?>
+                                            </option>
+                                        <?php endfor; ?>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
-                <!-- Detalhes Pix Box -->
-                <div id="box-pix-info" class="card bg-success-subtle border-0 rounded-3 p-3 mb-3">
-                    <div class="d-flex align-items-start gap-2">
-                        <i class="bi bi-shield-check text-success fs-4 mt-0"></i>
+                <!-- Coluna da Direita: Resumo do Pedido e Botão -->
+                <div class="col-lg-5">
+                    <div class="checkout-summary-card p-3 p-lg-4 h-100 d-flex flex-column justify-content-between">
                         <div>
-                            <div class="fw-bold text-success-emphasis small">Pagamento Rápido e Seguro</div>
-                            <p class="text-muted small mb-0" style="font-size:0.8rem;">
-                                Ao confirmar seu pedido, geraremos o <strong>QR Code</strong> e o código <strong>Pix Copia e Cola</strong> para pagamento no seu banco.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h3 class="fw-bold fs-6 mb-0 text-dark d-flex align-items-center">
+                                    <i class="bi bi-receipt text-primary me-2"></i>Resumo do Pedido
+                                </h3>
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill"><?= count($carrinho) ?> <?= count($carrinho) === 1 ? 'item' : 'itens' ?></span>
+                            </div>
 
-                <!-- Campos de Cartão de Crédito Box -->
-                <div id="box-cartao-campos" class="d-none card border-0 bg-light rounded-3 p-3 mb-3">
-                    <div class="row g-2">
-                        <!-- Número do Cartão -->
-                        <div class="col-12">
-                            <label class="form-label small fw-semibold text-muted mb-1" for="cartao_numero">Número do Cartão</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0" id="card-brand-icon">
-                                    <i class="bi bi-credit-card text-muted"></i>
+                            <!-- Lista compacta de Itens -->
+                            <div class="mb-3 overflow-auto" style="max-height: 180px;">
+                                <?php foreach ($carrinho as $item): ?>
+                                    <div class="d-flex align-items-center gap-2 py-2 border-bottom border-light-subtle">
+                                        <img src="<?= strpos($item['imagem'], 'http') === 0
+                                            ? esc($item['imagem'])
+                                            : base_url('uploads/produtos/' . esc($item['imagem'])) ?>"
+                                            alt="<?= esc($item['nome']) ?>"
+                                            class="checkout-item-thumb">
+                                        <div class="flex-grow-1 min-w-0">
+                                            <div class="small fw-semibold text-truncate text-dark"><?= esc($item['nome']) ?></div>
+                                            <div class="text-muted" style="font-size:0.75rem;">
+                                                <?= $item['quantidade'] ?>x R$ <?= number_format($item['preco'], 2, ',', '.') ?>
+                                                <?php if (!empty($item['tamanho']) || !empty($item['cor'])): ?>
+                                                    (<?= esc($item['tamanho'] ?? '') ?><?= !empty($item['tamanho']) && !empty($item['cor']) ? '/' : '' ?><?= esc($item['cor'] ?? '') ?>)
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        <div class="small fw-bold text-dark text-nowrap">
+                                            R$ <?= number_format($item['preco'] * $item['quantidade'], 2, ',', '.') ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+
+                            <!-- Breakdown Financeiro -->
+                            <div class="d-flex justify-content-between small text-muted mb-2">
+                                <span>Subtotal</span>
+                                <span>R$ <?= esc(number_format($subtotal, 2, ',', '.')) ?></span>
+                            </div>
+                            <?php if ($desconto > 0): ?>
+                                <div class="d-flex justify-content-between small text-success mb-2">
+                                    <span>Desconto (<?= esc($cupomAtivo['codigo'] ?? '') ?>)</span>
+                                    <span>- R$ <?= esc(number_format($desconto, 2, ',', '.')) ?></span>
+                                </div>
+                            <?php endif; ?>
+                            <div class="d-flex justify-content-between small text-muted mb-3">
+                                <span>Frete <?= $freteAtivo ? '(' . esc($freteAtivo['modalidade']) . ')' : '' ?></span>
+                                <span class="text-success fw-semibold">
+                                    <?= $freteAtivo ? ((float)$freteAtivo['valor'] === 0.0 ? 'GRÁTIS' : 'R$ ' . number_format($freteAtivo['valor'], 2, ',', '.')) : 'A calcular' ?>
                                 </span>
-                                <input type="text" id="cartao_numero" name="cartao_numero" class="form-control border-start-0 font-monospace"
-                                    placeholder="0000 0000 0000 0000" maxlength="19">
+                            </div>
+
+                            <div class="border-top pt-3 d-flex justify-content-between align-items-center mb-4">
+                                <span class="fw-bold fs-6 text-dark">Total</span>
+                                <span class="fw-bold fs-4 text-success" id="checkout-total-val">R$ <?= esc(number_format($totalFinal, 2, ',', '.')) ?></span>
                             </div>
                         </div>
 
-                        <!-- Nome Impresso -->
-                        <div class="col-12">
-                            <label class="form-label small fw-semibold text-muted mb-1" for="cartao_nome">Nome no Cartão (como impresso)</label>
-                            <input type="text" id="cartao_nome" name="cartao_nome" class="form-control text-uppercase"
-                                placeholder="NOME COMPLETO">
-                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-success w-100 py-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
+                                style="border-radius:12px; font-size:1.05rem;" id="btn-confirmar-pedido">
+                                <i class="bi bi-bag-check-fill fs-5"></i>
+                                Confirmar Pedido
+                            </button>
 
-                        <!-- Validade -->
-                        <div class="col-6">
-                            <label class="form-label small fw-semibold text-muted mb-1" for="cartao_validade">Validade</label>
-                            <input type="text" id="cartao_validade" name="cartao_validade" class="form-control font-monospace"
-                                placeholder="MM/AA" maxlength="5">
-                        </div>
-
-                        <!-- CVV -->
-                        <div class="col-6">
-                            <label class="form-label small fw-semibold text-muted mb-1" for="cartao_cvv">CVV</label>
-                            <input type="text" id="cartao_cvv" name="cartao_cvv" class="form-control font-monospace"
-                                placeholder="123" maxlength="4">
-                        </div>
-
-                        <!-- Parcelas -->
-                        <div class="col-12">
-                            <label class="form-label small fw-semibold text-muted mb-1" for="cartao_parcelas">Parcelamento</label>
-                            <select id="cartao_parcelas" name="cartao_parcelas" class="form-select">
-                                <?php for ($p = 1; $p <= 12; $p++): ?>
-                                    <?php $valorParc = $totalFinal / $p; ?>
-                                    <option value="<?= $p ?>">
-                                        <?= $p ?>x de R$ <?= number_format($valorParc, 2, ',', '.') ?> <?= $p === 1 ? '(à vista)' : '(sem juros)' ?>
-                                    </option>
-                                <?php endfor; ?>
-                            </select>
+                            <div class="text-center mt-2">
+                                <small class="text-muted d-flex align-items-center justify-content-center gap-1" style="font-size:0.75rem;">
+                                    <i class="bi bi-shield-check text-success"></i> Compra 100% segura e garantida
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-            </div>
-
-            <!-- Resumo Financeiro no Checkout -->
-            <div class="card bg-light border-0 rounded-3 p-3 mt-3">
-                <div class="d-flex justify-content-between small text-muted mb-1">
-                    <span>Subtotal</span>
-                    <span>R$ <?= esc(number_format($subtotal, 2, ',', '.')) ?></span>
-                </div>
-                <?php if ($desconto > 0): ?>
-                    <div class="d-flex justify-content-between small text-success mb-1">
-                        <span>Desconto (<?= esc($cupomAtivo['codigo'] ?? '') ?>)</span>
-                        <span>- R$ <?= esc(number_format($desconto, 2, ',', '.')) ?></span>
-                    </div>
-                <?php endif; ?>
-                <div class="d-flex justify-content-between small text-muted mb-2">
-                    <span>Frete <?= $freteAtivo ? '(' . esc($freteAtivo['modalidade']) . ')' : '' ?></span>
-                    <span class="text-success fw-semibold">
-                        <?= $freteAtivo ? ((float)$freteAtivo['valor'] === 0.0 ? 'GRÁTIS' : 'R$ ' . number_format($freteAtivo['valor'], 2, ',', '.')) : 'A calcular' ?>
-                    </span>
-                </div>
-                <div class="border-top pt-2 d-flex justify-content-between fw-bold fs-5 text-dark">
-                    <span>Total do Pedido</span>
-                    <span class="text-success" id="checkout-total-val">R$ <?= esc(number_format($totalFinal, 2, ',', '.')) ?></span>
-                </div>
-            </div>
-
-            <div class="border-top mt-4 pt-4">
-                <button type="submit" class="btn btn-success w-100 py-3 fw-bold shadow-sm"
-                    style="border-radius:12px; font-size:1.05rem;" id="btn-confirmar-pedido">
-                    <i class="bi bi-bag-check-fill me-2"></i>
-                    Confirmar Pedido
-                </button>
             </div>
 
             <?= form_close() ?>
