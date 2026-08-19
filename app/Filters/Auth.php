@@ -27,8 +27,14 @@ class Auth implements FilterInterface
     {
         // Se a sessão 'isLoggedIn' não existir...
         if (! session()->get('isLoggedIn')) {
-            // ...redireciona o usuário para a página de login.
-            return redirect()->to(site_url('login'));
+            $currentUrl = current_url();
+            session()->set('redirect_url', $currentUrl);
+
+            $mensagem = str_contains($currentUrl, 'checkout')
+                ? 'Faça login ou crie sua conta para finalizar o seu pedido.'
+                : 'Faça login ou crie sua conta para continuar.';
+
+            return redirect()->to(site_url('login'))->with('info', $mensagem);
         }
     }
 

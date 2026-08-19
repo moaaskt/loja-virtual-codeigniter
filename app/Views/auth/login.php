@@ -167,9 +167,36 @@
             background: rgba(255,255,255,.12);
         }
 
+        .alert-info {
+            background: rgba(99,102,241,.18);
+            border: 1px solid rgba(99,102,241,.4);
+            color: #c7d2fe;
+            border-radius: 10px;
+            font-size: .875rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .alert-success {
+            background: rgba(34,197,94,.18);
+            border: 1px solid rgba(34,197,94,.4);
+            color: #86efac;
+            border-radius: 10px;
+            font-size: .875rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .alert-warning {
+            background: rgba(234,179,8,.18);
+            border: 1px solid rgba(234,179,8,.4);
+            color: #fde047;
+            border-radius: 10px;
+            font-size: .875rem;
+            margin-bottom: 1.25rem;
+        }
+
         .alert-danger {
-            background: rgba(239,68,68,.15);
-            border: 1px solid rgba(239,68,68,.3);
+            background: rgba(239,68,68,.18);
+            border: 1px solid rgba(239,68,68,.4);
             color: #fca5a5;
             border-radius: 10px;
             font-size: .875rem;
@@ -187,10 +214,31 @@
         <h1 class="auth-title">Bem-vindo(a) de volta</h1>
         <p class="auth-subtitle">Acesse sua conta G'Store</p>
 
+        <?php if (session()->getFlashdata('info')): ?>
+            <div class="alert alert-info d-flex align-items-center gap-2">
+                <i class="bi bi-info-circle-fill fs-5"></i>
+                <div><?= session()->getFlashdata('info') ?></div>
+            </div>
+        <?php endif; ?>
+
+        <?php if (session()->getFlashdata('success')): ?>
+            <div class="alert alert-success d-flex align-items-center gap-2">
+                <i class="bi bi-check-circle-fill fs-5"></i>
+                <div><?= session()->getFlashdata('success') ?></div>
+            </div>
+        <?php endif; ?>
+
+        <?php if (session()->getFlashdata('warning')): ?>
+            <div class="alert alert-warning d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                <div><?= session()->getFlashdata('warning') ?></div>
+            </div>
+        <?php endif; ?>
+
         <?php if (session()->getFlashdata('error')): ?>
             <div class="alert alert-danger d-flex align-items-center gap-2">
-                <i class="bi bi-exclamation-circle-fill"></i>
-                <?= session()->getFlashdata('error') ?>
+                <i class="bi bi-exclamation-circle-fill fs-5"></i>
+                <div><?= session()->getFlashdata('error') ?></div>
             </div>
         <?php endif; ?>
 

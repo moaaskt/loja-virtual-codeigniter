@@ -26,7 +26,8 @@ class PedidoController extends BaseController
     public function checkout()
     {
         if (!session()->get('isLoggedIn')) {
-            return redirect()->to(site_url('login'))->with('error', 'Faça login para continuar com o checkout.');
+            session()->set('redirect_url', site_url('checkout'));
+            return redirect()->to(site_url('login'))->with('info', 'Faça login ou crie sua conta para finalizar o seu pedido.');
         }
 
         $carrinhoService = new \App\Services\CarrinhoService();
