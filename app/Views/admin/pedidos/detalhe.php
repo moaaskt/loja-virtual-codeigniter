@@ -36,9 +36,7 @@
                                     <?php if (!empty($produto['tamanho']) || !empty($produto['cor'])): ?>
                                         <small class="text-muted d-block mt-1">
                                             <span class="badge bg-light text-dark border">
-                                                <?= !empty($produto['tamanho']) ? 'Tam: ' . esc($produto['tamanho']) : '' ?>
-                                                <?= !empty($produto['tamanho']) && !empty($produto['cor']) ? ' | ' : '' ?>
-                                                <?= !empty($produto['cor']) ? 'Cor: ' . esc($produto['cor']) : '' ?>
+                                                <?= esc($produto['tamanho'] ?? '') ?><?= !empty($produto['tamanho']) && !empty($produto['cor']) ? ' / ' : '' ?><?= esc($produto['cor'] ?? '') ?>
                                             </span>
                                         </small>
                                     <?php endif; ?>

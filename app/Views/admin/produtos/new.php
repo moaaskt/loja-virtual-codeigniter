@@ -43,7 +43,7 @@
             <div class="col-md-6">
                 <label for="nome" class="form-label">Nome do Produto <span class="text-danger">*</span></label>
                 <input type="text" name="nome" id="nome" class="form-control"
-                    value="<?= old('nome') ?>" placeholder="Ex.: Tênis Air Max" required>
+                    value="<?= old('nome') ?>" placeholder="Ex.: iPhone 15 128GB, Tênis Esportivo, etc." required>
             </div>
 
             <div class="col-12">
@@ -53,20 +53,24 @@
             </div>
 
             <div class="col-md-4">
-                <label for="preco" class="form-label">Preço (R$) <span class="text-danger">*</span></label>
+                <label for="preco" class="form-label">Preço Base (R$) <span class="text-danger">*</span></label>
                 <div class="input-group">
                     <span class="input-group-text">R$</span>
                     <input type="number" step="0.01" name="preco" id="preco" class="form-control"
-                        value="<?= old('preco') ?>" placeholder="0,00">
+                        value="<?= old('preco') ?>" placeholder="0,00" required>
                 </div>
+                <small class="text-muted">Preço padrão caso a variação não tenha preço específico.</small>
             </div>
 
             <div class="col-12 mt-3">
                 <div class="p-3 bg-light border rounded">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <p class="fw-semibold mb-0 text-muted" style="font-size:.8125rem; text-transform:uppercase; letter-spacing:.06em;">
-                            <i class="bi bi-box-seam me-1"></i>Variações de Estoque (SKUs)
-                        </p>
+                        <div>
+                            <p class="fw-semibold mb-0 text-dark" style="font-size:.875rem; text-transform:uppercase; letter-spacing:.05em;">
+                                <i class="bi bi-boxes text-primary me-1"></i>Variações de Estoque & SKUs
+                            </p>
+                            <small class="text-muted">Adicione opções como capacidade (128GB, 256GB), voltagem (110V, 220V), tamanho (P, M, 41), cor opcional e preços individuais.</small>
+                        </div>
                         <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" id="btn-add-variacao">
                             <i class="bi bi-plus-lg me-1"></i>Adicionar Variação
                         </button>
@@ -76,9 +80,10 @@
                         <table class="table table-hover align-middle mb-0" id="tabela-variacoes">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Tamanho <span class="text-danger">*</span></th>
-                                    <th>Cor <span class="text-danger">*</span></th>
-                                    <th>Estoque <span class="text-danger">*</span></th>
+                                    <th>Variação / Atributo <span class="text-danger">*</span></th>
+                                    <th>Cor <span class="text-muted small fw-normal">(Opcional)</span></th>
+                                    <th style="min-width: 160px;">Preço Individual <span class="text-muted small fw-normal">(Opcional)</span></th>
+                                    <th style="min-width: 120px;">Estoque <span class="text-danger">*</span></th>
                                     <th class="text-center" style="width: 80px;">Ação</th>
                                 </tr>
                             </thead>
@@ -87,11 +92,36 @@
                             </tbody>
                         </table>
                         <div id="variacoes-empty" class="text-center p-4 text-muted">
-                            Nenhuma variação adicionada. Clique em "Adicionar Variação" para começar.
+                            <i class="bi bi-box-seam fs-3 d-block mb-2 text-secondary opacity-50"></i>
+                            Nenhuma variação adicionada. Clique em "<strong>Adicionar Variação</strong>" para cadastrar SKUs.
                         </div>
                     </div>
                 </div>
             </div>
+
+            <datalist id="variacao-sugestoes">
+                <option value="Único"></option>
+                <option value="P"></option>
+                <option value="M"></option>
+                <option value="G"></option>
+                <option value="GG"></option>
+                <option value="128GB"></option>
+                <option value="256GB"></option>
+                <option value="512GB"></option>
+                <option value="1TB"></option>
+                <option value="110V"></option>
+                <option value="220V"></option>
+                <option value="Bivolt"></option>
+                <option value="36"></option>
+                <option value="37"></option>
+                <option value="38"></option>
+                <option value="39"></option>
+                <option value="40"></option>
+                <option value="41"></option>
+                <option value="42"></option>
+                <option value="43"></option>
+                <option value="44"></option>
+            </datalist>
 
             <div class="col-md-12">
                 <div class="form-check form-switch mt-2">
@@ -157,17 +187,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>
-                <select name="variacoes[${variacaoIndex}][tamanho]" class="form-select form-select-sm" required>
-                    <option value="">Selecione...</option>
-                    <option value="Único">Único</option>
-                    <option value="P">P</option>
-                    <option value="M">M</option>
-                    <option value="G">G</option>
-                    <option value="GG">GG</option>
-                </select>
+                <input type="text" name="variacoes[${variacaoIndex}][tamanho]" class="form-control form-control-sm" placeholder="Ex: 128GB, 110V, P, 41" list="variacao-sugestoes" required>
             </td>
             <td>
-                <input type="color" name="variacoes[${variacaoIndex}][cor]" class="form-control form-control-color p-1" style="width: 45px; height: 38px; cursor: pointer;" value="#000000" title="Escolha a cor" required>
+                <input type="text" name="variacoes[${variacaoIndex}][cor]" class="form-control form-control-sm" placeholder="Ex: Preto, Azul (opcional)">
+            </td>
+            <td>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">R$</span>
+                    <input type="number" step="0.01" min="0" name="variacoes[${variacaoIndex}][preco]" class="form-control form-control-sm" placeholder="Preço base">
+                </div>
             </td>
             <td>
                 <input type="number" name="variacoes[${variacaoIndex}][estoque]" class="form-control form-control-sm" placeholder="0" min="0" required>

@@ -85,9 +85,9 @@
                                             <span class="fw-semibold d-block"><?= esc($item['nome']) ?></span>
                                             <?php if (!empty($item['tamanho']) || !empty($item['cor'])): ?>
                                                 <small class="text-muted d-block mt-1">
-                                                    <?= !empty($item['tamanho']) ? 'Tamanho: ' . esc($item['tamanho']) : '' ?>
+                                                    <?= !empty($item['tamanho']) ? 'Opção: <span class="fw-semibold text-dark">' . esc($item['tamanho']) . '</span>' : '' ?>
                                                     <?= !empty($item['tamanho']) && !empty($item['cor']) ? ' | ' : '' ?>
-                                                    <?= !empty($item['cor']) ? 'Cor: ' . esc($item['cor']) : '' ?>
+                                                    <?= !empty($item['cor']) ? 'Cor: <span class="fw-semibold text-dark">' . esc($item['cor']) . '</span>' : '' ?>
                                                 </small>
                                             <?php endif; ?>
                                         </td>

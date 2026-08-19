@@ -46,9 +46,9 @@
                                                     <span class="d-block fw-semibold"><?= esc($item['nome']) ?></span>
                                                     <?php if (!empty($item['tamanho']) || !empty($item['cor'])): ?>
                                                         <small class="text-muted d-block mt-1">
-                                                            <?= !empty($item['tamanho']) ? 'Tamanho: ' . esc($item['tamanho']) : '' ?>
-                                                            <?= !empty($item['tamanho']) && !empty($item['cor']) ? ' | ' : '' ?>
-                                                            <?= !empty($item['cor']) ? 'Cor: ' . esc($item['cor']) : '' ?>
+                                                            <span class="badge bg-light text-dark border">
+                                                                <?= esc($item['tamanho'] ?? '') ?><?= !empty($item['tamanho']) && !empty($item['cor']) ? ' / ' : '' ?><?= esc($item['cor'] ?? '') ?>
+                                                            </span>
                                                         </small>
                                                     <?php endif; ?>
                                                     <small class="text-muted d-block">Quantidade: <?= esc($item['quantidade']) ?></small>

@@ -31,11 +31,13 @@
         foreach ($variacoes as $var) {
             $t = trim($var['tamanho'] ?? '');
             $c = trim($var['cor'] ?? '');
+            $p = (!empty($var['preco']) && (float)$var['preco'] > 0) ? (float)$var['preco'] : (float)$produto['preco'];
             
             $variacoesData[] = [
-                'id' => $var['id'],
+                'id'      => (int)$var['id'],
                 'tamanho' => $t,
-                'cor' => $c,
+                'cor'     => $c,
+                'preco'   => $p,
                 'estoque' => (int)$var['estoque']
             ];
             
@@ -45,6 +47,35 @@
             if ($c !== '' && !in_array($c, $coresDisponiveis)) {
                 $coresDisponiveis[] = $c;
             }
+        }
+    }
+
+    // Determinar Rótulo Dinâmico para a Variação / Atributo
+    $rotuloVariacao = 'Variação / Opção';
+    if (!empty($tamanhosDisponiveis)) {
+        $isVoltagem = true;
+        $isCapacidade = true;
+        $isTamanho = true;
+        foreach ($tamanhosDisponiveis as $itemVal) {
+            $valUpper = strtoupper(trim($itemVal));
+            if (!preg_match('/^(110V|220V|127V|BIVOLT|\d+V)$/i', $valUpper)) {
+                $isVoltagem = false;
+            }
+            if (!preg_match('/^\d+\s*(GB|TB|MB|G|T)$/i', $valUpper)) {
+                $isCapacidade = false;
+            }
+            if (!preg_match('/^(PP|P|M|G|GG|XG|XGG|XXG|ÚNICO|UNICO|\d{2})$/i', $valUpper)) {
+                $isTamanho = false;
+            }
+        }
+        if ($isCapacidade) {
+            $rotuloVariacao = 'Capacidade / Modelo';
+        } elseif ($isVoltagem) {
+            $rotuloVariacao = 'Voltagem';
+        } elseif ($isTamanho) {
+            $rotuloVariacao = 'Tamanho';
+        } else {
+            $rotuloVariacao = 'Variação / Opção';
         }
     }
 ?>
@@ -101,26 +132,27 @@
 
             <h1 class="pdp-title" id="pdp-title"><?= esc($produto['nome']) ?></h1>
 
-            <div class="price-tag mb-3">
+            <div class="price-tag mb-3" id="pdp-price">
                 R$ <?= esc(number_format($produto['preco'], 2, ',', '.')) ?>
             </div>
 
             <!-- Stock Indicator -->
             <?php if (!$esgotado): ?>
-                <div class="pdp-stock-badge pdp-stock-available">
+                <div class="pdp-stock-badge pdp-stock-available" id="pdp-stock-badge">
                     <i class="bi bi-check-circle-fill"></i>
-                    <?= esc($produto['estoque']) ?> unidades em estoque
+                    <span id="pdp-stock-text"><?= esc($produto['estoque']) ?> unidades em estoque</span>
                 </div>
             <?php else: ?>
-                <div class="pdp-stock-badge pdp-stock-unavailable">
-                    <i class="bi bi-x-circle-fill"></i> Esgotado
+                <div class="pdp-stock-badge pdp-stock-unavailable" id="pdp-stock-badge">
+                    <i class="bi bi-x-circle-fill"></i>
+                    <span id="pdp-stock-text">Esgotado</span>
                 </div>
             <?php endif; ?>
 
-            <!-- Size Selector -->
+            <!-- Variation / Attribute Selector -->
             <?php if (!empty($tamanhosDisponiveis)): ?>
             <div class="pdp-variant-section">
-                <p class="pdp-variant-label">Tamanho</p>
+                <p class="pdp-variant-label" id="pdp-variant-type-label"><?= esc($rotuloVariacao) ?></p>
                 <div class="pdp-variant-options" id="size-options">
                     <?php foreach ($tamanhosDisponiveis as $index => $tamanho): ?>
                         <label class="pdp-variant-chip variant-size-label" data-size="<?= esc($tamanho) ?>">
@@ -132,17 +164,22 @@
             </div>
             <?php endif; ?>
 
-            <!-- Color Selector -->
+            <!-- Color Selector (Optional) -->
             <?php if (!empty($coresDisponiveis)): ?>
             <div class="pdp-variant-section">
                 <p class="pdp-variant-label">Cor</p>
-                <div class="pdp-variant-options" id="color-options">
+                <div class="pdp-variant-options d-flex flex-wrap gap-2" id="color-options">
                     <?php foreach ($coresDisponiveis as $index => $cor): ?>
+                        <?php $isHex = preg_match('/^#([a-f0-9]{3}){1,2}\b/i', $cor); ?>
                         <label class="pdp-color-chip variant-color-label" data-color="<?= esc($cor) ?>" title="<?= esc($cor) ?>">
                             <input type="radio" name="cor" value="<?= esc($cor) ?>" class="variant-color-selector">
-                            <span class="pdp-color-swatch border border-secondary-subtle shadow-sm" style="background-color: <?= esc($cor) ?>;">
-                                <i class="bi bi-check2"></i>
-                            </span>
+                            <?php if ($isHex): ?>
+                                <span class="pdp-color-swatch border border-secondary-subtle shadow-sm" style="background-color: <?= esc($cor) ?>;">
+                                    <i class="bi bi-check2"></i>
+                                </span>
+                            <?php else: ?>
+                                <span class="pdp-variant-chip variant-size-label d-inline-block px-3 py-1 border rounded-pill small fw-semibold"><?= esc($cor) ?></span>
+                            <?php endif; ?>
                         </label>
                     <?php endforeach; ?>
                 </div>
@@ -323,15 +360,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Lógica de Variações ---
     const variacoes = <?= json_encode($variacoesData ?? []) ?>;
+    const basePreco = <?= (float) $produto['preco'] ?>;
+    const baseEstoque = <?= (int) $produto['estoque'] ?>;
     const btnAddCart = document.getElementById('btn-add-cart');
     const inputVariacaoId = document.getElementById('variacao_id');
+    const priceDisplay = document.getElementById('pdp-price');
+    const stockText = document.getElementById('pdp-stock-text');
     
     const formAddCart = document.getElementById('form-add-cart');
     if (formAddCart) {
         formAddCart.addEventListener('submit', function(e) {
             if (variacoes.length > 0 && !inputVariacaoId.value) {
                 e.preventDefault();
-                alert('Por favor, selecione um tamanho e/ou cor disponíveis antes de adicionar ao carrinho.');
+                alert('Por favor, selecione uma opção disponível antes de adicionar ao carrinho.');
             }
         });
     }
@@ -339,6 +380,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const colorRadios = document.querySelectorAll('.variant-color-selector');
     const hasSizes = sizeRadios.length > 0;
     const hasColors = colorRadios.length > 0;
+
+    function formatMoney(valor) {
+        return 'R$ ' + Number(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
     function checkVariations() {
         if (!hasSizes && !hasColors) return;
@@ -364,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     label.style.opacity = '0.4';
                     label.style.textDecoration = 'line-through';
                     const input = label.querySelector('input');
-                    if(input.checked) { input.checked = false; selectedSize = null; }
+                    if(input && input.checked) { input.checked = false; selectedSize = null; }
                 } else {
                     label.style.opacity = '1';
                     label.style.textDecoration = 'none';
@@ -379,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!available) {
                     label.style.opacity = '0.3';
                     const input = label.querySelector('input');
-                    if(input.checked) { input.checked = false; selectedColor = null; }
+                    if(input && input.checked) { input.checked = false; selectedColor = null; }
                 } else {
                     label.style.opacity = '1';
                 }
@@ -398,6 +443,14 @@ document.addEventListener('DOMContentLoaded', function () {
             inputVariacaoId.value = matchingVar.id;
             btnAddCart.disabled = false;
             btnAddCart.classList.remove('pdp-add-to-cart--disabled');
+            
+            // Atualizar preço dinâmico na tela
+            if (priceDisplay) {
+                priceDisplay.innerText = formatMoney(matchingVar.preco);
+            }
+            if (stockText) {
+                stockText.innerText = matchingVar.estoque + ' unidades em estoque';
+            }
             if(qtyInput) {
                 qtyInput.max = matchingVar.estoque;
                 if(parseInt(qtyInput.value) > matchingVar.estoque) {
@@ -408,6 +461,12 @@ document.addEventListener('DOMContentLoaded', function () {
             inputVariacaoId.value = '';
             btnAddCart.disabled = true;
             btnAddCart.classList.add('pdp-add-to-cart--disabled');
+            if (priceDisplay) {
+                priceDisplay.innerText = formatMoney(basePreco);
+            }
+            if (stockText) {
+                stockText.innerText = baseEstoque + ' unidades em estoque';
+            }
         }
     }
 

@@ -196,8 +196,11 @@
                                     <div>
                                         <div class="fw-semibold small text-truncate" style="max-width:180px;"><?= esc($it['nome']) ?></div>
                                         <small class="text-muted" style="font-size:0.75rem;">
-                                            <?= !empty($it['tamanho']) ? 'Tam: ' . esc($it['tamanho']) . ' ' : '' ?>
-                                            <?= !empty($it['cor']) ? 'Cor: ' . esc($it['cor']) . ' ' : '' ?>
+                                            <?php if (!empty($it['tamanho']) || !empty($it['cor'])): ?>
+                                                <span class="badge bg-light text-dark border me-1">
+                                                    <?= esc($it['tamanho'] ?? '') ?><?= !empty($it['tamanho']) && !empty($it['cor']) ? ' / ' : '' ?><?= esc($it['cor'] ?? '') ?>
+                                                </span>
+                                            <?php endif; ?>
                                             Qtd: <?= esc($it['quantidade']) ?>
                                         </small>
                                     </div>
