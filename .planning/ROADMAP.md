@@ -39,7 +39,7 @@
   - Implementar endpoint de Webhook para recepção de status de pagamento e atualização de pedidos.
 
 ### Phase 7: Notificações Transacionais por E-mail
-- **Status:** Pending
+- **Status:** Planned 📋
 - **Objetivo:** Configurar serviço de e-mail (SMTP) e disparar notificações automáticas no ciclo de vida dos pedidos.
 - **Tarefas principais:**
   - Configurar serviço de envio de e-mails no CodeIgniter 4.

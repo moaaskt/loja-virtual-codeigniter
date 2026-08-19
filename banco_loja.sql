@@ -176,8 +176,9 @@ DROP TABLE IF EXISTS `produto_variacoes`;
 CREATE TABLE `produto_variacoes` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `produto_id` int unsigned NOT NULL,
-  `tamanho` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `cor` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `tamanho` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `cor` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `preco` decimal(10,2) DEFAULT NULL,
   `estoque` int NOT NULL DEFAULT '0',
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,

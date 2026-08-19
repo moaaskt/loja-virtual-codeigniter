@@ -90,4 +90,12 @@ $routes->group('admin', ['filter' => ['auth', 'admin']], static function ($route
     $routes->post('cupons/update/(:num)', 'Admin\CuponsController::update/$1');
     $routes->post('cupons/delete/(:num)', 'Admin\CuponsController::delete/$1');
     $routes->post('cupons/toggle/(:num)', 'Admin\CuponsController::toggle/$1');
+
+    // E-mails & Notificações
+    $routes->get('emails', 'Admin\EmailPreviewController::index');
+    $routes->get('emails/preview/(:segment)', 'Admin\EmailPreviewController::preview/$1');
+    $routes->post('emails/testar', 'Admin\EmailPreviewController::testar');
+
+    // Reenvio de e-mails de pedidos
+    $routes->get('pedidos/reenviar-email/(:num)/(:segment)', 'Admin\PedidoController::reenviarEmail/$1/$2');
 });

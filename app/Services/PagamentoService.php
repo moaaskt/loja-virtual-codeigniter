@@ -9,11 +9,13 @@ class PagamentoService
 {
     protected PagamentoModel $pagamentoModel;
     protected PedidoModel $pedidoModel;
+    protected EmailService $emailService;
 
     public function __construct()
     {
         $this->pagamentoModel = new PagamentoModel();
         $this->pedidoModel    = new PedidoModel();
+        $this->emailService   = new EmailService();
     }
 
     /**
@@ -298,6 +300,9 @@ class PagamentoService
             $this->pagamentoModel->marcarComoPago((int) $pagamento['id'], $pagoEm);
             $this->pedidoModel->atualizarStatusPagamento($pedidoIdAlvo, 'pago', 'pago');
 
+            // Dispara notificação de pagamento aprovado
+            $this->emailService->notificarPagamentoAprovado($pedidoIdAlvo);
+
             return [
                 'ok'           => true,
                 'mensagem'     => 'Pagamento aprovado com sucesso via Webhook.',
@@ -312,6 +317,9 @@ class PagamentoService
             $motivo = $payload['motivo'] ?? 'Pagamento cancelado ou não autorizado pelo gateway.';
             $this->pagamentoModel->marcarComoFalho((int) $pagamento['id'], $motivo);
             $this->pedidoModel->atualizarStatusPagamento($pedidoIdAlvo, 'falhou', 'cancelado');
+
+            // Dispara notificação de pedido cancelado
+            $this->emailService->notificarPedidoCancelado($pedidoIdAlvo, $motivo);
 
             return [
                 'ok'           => true,

@@ -28,6 +28,7 @@ class PedidoModel extends Model
         'bairro',
         'cidade',
         'uf',
+        'codigo_rastreio',
     ];
 
     // Dates
@@ -56,6 +57,11 @@ class PedidoModel extends Model
         $this->orderBy('pedidos.criado_em', 'DESC');
 
         return $this->paginate($perPage);
+    }
+
+    public function atualizarRastreio(int $pedidoId, string $codigoRastreio): bool
+    {
+        return $this->update($pedidoId, ['codigo_rastreio' => $codigoRastreio]);
     }
 
     public function atualizarStatusPagamento(int $pedidoId, string $statusPagamento, ?string $novoStatusPedido = null): bool

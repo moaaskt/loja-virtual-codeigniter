@@ -2,16 +2,16 @@
 
 ## Current Status
 - **Current Milestone:** Milestone 2 (E-Commerce Avançado — Pagamentos, Frete, Cupons, Avaliações e Métricas)
-- **Current Phase:** Phase 6 (Gateway de Pagamento — Pix e Cartão de Crédito) — Concluída ✓
-- **Next Phase:** Phase 7 (Notificações Transacionais por E-mail — SMTP)
-- **Last Action:** Executada com sucesso a Phase 6 com suporte a Pix (QR Code/Copia e Cola/Polling), Cartão de Crédito (Luhn/Parcelas), Webhook de atualização e cobertura 100% no PHPUnit.
+- **Current Phase:** Phase 7 (Notificações Transacionais por E-mail — SMTP) — Planejada 📋
+- **Next Phase:** Phase 8 (Avaliações e Reviews de Produtos)
+- **Last Action:** Criado o plano de execução detalhado da Phase 7 em `.planning/phases/07-notificacoes-email/PLAN.md`.
 
 ## Progress Summary
 - **Milestone 1:** 100% Concluído (Fases 1 a 4) ✓
 - **Milestone 2:**
   - [x] Phase 5: Cálculo de Frete e Cupons de Desconto ✓
   - [x] Phase 6: Gateway de Pagamento (Pix / Cartão de Crédito) ✓
-  - [ ] Phase 7: Notificações Transacionais por E-mail (SMTP)
+  - [ ] Phase 7: Notificações Transacionais por E-mail (SMTP) 📋 (Planejada)
   - [ ] Phase 8: Avaliações e Reviews de Produtos
   - [ ] Phase 9: Relatórios e Métricas Avançadas no Painel Admin
 
@@ -23,4 +23,4 @@
 | `variacoes-dinamicas-categoria` | 2026-08-19 | complete ✓ | Adaptação dinâmica da interface de variações/SKUs nos formulários admin (new.php e edit.php) com base na categoria selecionada |
 
 ## Next Steps
-Avançar para o planejamento e implementação da **Phase 7: Notificações Transacionais por E-mail (SMTP)**.
+Executar a **Phase 7: Notificações Transacionais por E-mail (SMTP)** via `/gsd-execute-phase 7`.

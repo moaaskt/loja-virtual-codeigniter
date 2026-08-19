@@ -74,6 +74,13 @@
                     Clientes
                 </a>
             </li>
+            <li>
+                <a href="<?= site_url('admin/emails') ?>"
+                    class="nav-link <?= str_starts_with(uri_string(), 'admin/emails') ? 'active' : '' ?>">
+                    <i class="bi bi-envelope-fill"></i>
+                    E-mails
+                </a>
+            </li>
         </ul>
     </nav>
 

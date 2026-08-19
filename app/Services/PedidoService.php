@@ -14,6 +14,7 @@ class PedidoService
     protected ProdutoModel $produtoModel;
     protected CupomModel $cupomModel;
     protected PagamentoService $pagamentoService;
+    protected EmailService $emailService;
 
     public function __construct()
     {
@@ -22,6 +23,7 @@ class PedidoService
         $this->produtoModel       = new ProdutoModel();
         $this->cupomModel         = new CupomModel();
         $this->pagamentoService   = new PagamentoService();
+        $this->emailService       = new EmailService();
     }
 
     /**
@@ -213,6 +215,15 @@ class PedidoService
         session()->remove('carrinho');
         session()->remove('cupom');
         session()->remove('frete');
+
+        // --- Disparos de e-mail ---
+        // E-mail: Pedido criado
+        $this->emailService->notificarPedidoCriado($pedidoId);
+
+        // E-mail: Pagamento aprovado imediatamente (cartão aprovado na hora)
+        if ($formaPagamento === 'cartao_credito' && isset($resultadoPagamento['status']) && $resultadoPagamento['status'] === 'pago') {
+            $this->emailService->notificarPagamentoAprovado($pedidoId);
+        }
 
         return [
             'ok'               => true,
