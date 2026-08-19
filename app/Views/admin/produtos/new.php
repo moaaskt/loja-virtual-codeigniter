@@ -69,7 +69,7 @@
                             <p class="fw-semibold mb-0 text-dark" style="font-size:.875rem; text-transform:uppercase; letter-spacing:.05em;">
                                 <i class="bi bi-boxes text-primary me-1"></i>Variações de Estoque & SKUs
                             </p>
-                            <small class="text-muted">Adicione opções como capacidade (128GB, 256GB), voltagem (110V, 220V), tamanho (P, M, 41), seletor de cor opcional e preços individuais.</small>
+                            <small class="text-muted" id="variacoes-helper-text">Adicione opções como tamanho/numeração ou capacidade/voltagem, cor opcional e preços individuais.</small>
                         </div>
                         <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" id="btn-add-variacao">
                             <i class="bi bi-plus-lg me-1"></i>Adicionar Variação
@@ -80,7 +80,7 @@
                         <table class="table table-hover align-middle mb-0" id="tabela-variacoes">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Variação / Atributo <span class="text-danger">*</span></th>
+                                    <th id="th-variacao-titulo">Variação / Atributo <span class="text-danger">*</span></th>
                                     <th style="min-width: 190px;">Cor <span class="text-muted small fw-normal">(Opcional)</span></th>
                                     <th style="min-width: 160px;">Preço Individual <span class="text-muted small fw-normal">(Opcional)</span></th>
                                     <th style="min-width: 120px;">Estoque <span class="text-danger">*</span></th>
@@ -171,7 +171,72 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnAddVariacao = document.getElementById('btn-add-variacao');
     const tbodyVariacoes = document.getElementById('tbody-variacoes');
     const variacoesEmpty = document.getElementById('variacoes-empty');
+    const selectCategoria = document.getElementById('categoria_id');
+    const thVariacaoTitulo = document.getElementById('th-variacao-titulo');
+    const datalistSugestoes = document.getElementById('variacao-sugestoes');
     let variacaoIndex = 0;
+
+    // ---- CONFIGURAÇÃO DINÂMICA DE CATEGORIAS ----
+    const configCategorias = {
+        moda: {
+            titulo: 'Tamanho / Numeração',
+            placeholder: 'Ex: P, M, G, 38, 41, Único',
+            sugestoes: ['PP', 'P', 'M', 'G', 'GG', 'XG', 'XGG', 'Único', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45']
+        },
+        eletronicos: {
+            titulo: 'Capacidade / Voltagem / Atributo',
+            placeholder: 'Ex: 128GB, 256GB, 110V, 220V, Bivolt',
+            sugestoes: ['128GB', '256GB', '512GB', '1TB', '2TB', '8GB RAM', '16GB RAM', '32GB RAM', '110V', '220V', '127V', 'Bivolt']
+        },
+        geral: {
+            titulo: 'Variação / Atributo',
+            placeholder: 'Ex: 128GB, P, 110V, 41',
+            sugestoes: ['Único', 'P', 'M', 'G', 'GG', '128GB', '256GB', '512GB', '1TB', '110V', '220V', 'Bivolt', '38', '39', '40', '41', '42']
+        }
+    };
+
+    let currentCategoryConfig = configCategorias.geral;
+
+    function getCategoryConfig() {
+        if (!selectCategoria || selectCategoria.selectedIndex <= 0) {
+            return configCategorias.geral;
+        }
+        const texto = selectCategoria.options[selectCategoria.selectedIndex].text;
+        const normalizado = texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+        if (/moda|roupa|vestuario|calcado|tenis|sapato|camis|calca|short|vestido|calcados/i.test(normalizado)) {
+            return configCategorias.moda;
+        }
+        if (/eletron|informat|computad|celular|smartphone|eletro|tv|audio|som|gamer|fone/i.test(normalizado)) {
+            return configCategorias.eletronicos;
+        }
+        return configCategorias.geral;
+    }
+
+    function atualizarInterfaceCategoria() {
+        currentCategoryConfig = getCategoryConfig();
+
+        // 1. Atualiza cabeçalho da tabela
+        if (thVariacaoTitulo) {
+            thVariacaoTitulo.innerHTML = `${currentCategoryConfig.titulo} <span class="text-danger">*</span>`;
+        }
+
+        // 2. Atualiza datalist de sugestões
+        if (datalistSugestoes) {
+            datalistSugestoes.innerHTML = currentCategoryConfig.sugestoes
+                .map(opt => `<option value="${opt}"></option>`)
+                .join('');
+        }
+
+        // 3. Atualiza placeholders dos inputs existentes
+        document.querySelectorAll('#tbody-variacoes input[name*="[tamanho]"]').forEach(input => {
+            input.placeholder = currentCategoryConfig.placeholder;
+        });
+    }
+
+    if (selectCategoria) {
+        selectCategoria.addEventListener('change', atualizarInterfaceCategoria);
+    }
 
     function checkEmptyState() {
         if (tbodyVariacoes.children.length === 0) {
@@ -187,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>
-                <input type="text" name="variacoes[${variacaoIndex}][tamanho]" class="form-control form-control-sm" placeholder="Ex: 128GB, 110V, P, 41" list="variacao-sugestoes" required>
+                <input type="text" name="variacoes[${variacaoIndex}][tamanho]" class="form-control form-control-sm" placeholder="${currentCategoryConfig.placeholder}" list="variacao-sugestoes" required>
             </td>
             <td>
                 <div class="input-group input-group-sm">
@@ -239,7 +304,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Iniciar estado vazio
+    // Iniciar estado e categoria inicial
+    atualizarInterfaceCategoria();
     checkEmptyState();
 
     // ---- LÓGICA DE PREVIEW DE IMAGENS (GALERIA) ----
