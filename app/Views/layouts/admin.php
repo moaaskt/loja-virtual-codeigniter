@@ -140,5 +140,6 @@
     toggleBtn?.addEventListener('click', openSidebar);
     overlay.addEventListener('click', closeSidebar);
 </script>
+<?= $this->renderSection('scripts') ?>
 </body>
 </html>
