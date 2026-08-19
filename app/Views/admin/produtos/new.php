@@ -69,7 +69,7 @@
                             <p class="fw-semibold mb-0 text-dark" style="font-size:.875rem; text-transform:uppercase; letter-spacing:.05em;">
                                 <i class="bi bi-boxes text-primary me-1"></i>Variações de Estoque & SKUs
                             </p>
-                            <small class="text-muted">Adicione opções como capacidade (128GB, 256GB), voltagem (110V, 220V), tamanho (P, M, 41), cor opcional e preços individuais.</small>
+                            <small class="text-muted">Adicione opções como capacidade (128GB, 256GB), voltagem (110V, 220V), tamanho (P, M, 41), seletor de cor opcional e preços individuais.</small>
                         </div>
                         <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" id="btn-add-variacao">
                             <i class="bi bi-plus-lg me-1"></i>Adicionar Variação
@@ -81,7 +81,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Variação / Atributo <span class="text-danger">*</span></th>
-                                    <th>Cor <span class="text-muted small fw-normal">(Opcional)</span></th>
+                                    <th style="min-width: 190px;">Cor <span class="text-muted small fw-normal">(Opcional)</span></th>
                                     <th style="min-width: 160px;">Preço Individual <span class="text-muted small fw-normal">(Opcional)</span></th>
                                     <th style="min-width: 120px;">Estoque <span class="text-danger">*</span></th>
                                     <th class="text-center" style="width: 80px;">Ação</th>
@@ -190,7 +190,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 <input type="text" name="variacoes[${variacaoIndex}][tamanho]" class="form-control form-control-sm" placeholder="Ex: 128GB, 110V, P, 41" list="variacao-sugestoes" required>
             </td>
             <td>
-                <input type="text" name="variacoes[${variacaoIndex}][cor]" class="form-control form-control-sm" placeholder="Ex: Preto, Azul (opcional)">
+                <div class="input-group input-group-sm">
+                    <input type="color" class="form-control form-control-color p-1 color-picker-input" value="#000000" style="width: 38px; height: 31px; cursor: pointer;" title="Escolha a cor">
+                    <input type="text" name="variacoes[${variacaoIndex}][cor]" class="form-control form-control-sm color-text-input" placeholder="Ex: #000000 ou Preto">
+                </div>
             </td>
             <td>
                 <div class="input-group input-group-sm">
@@ -216,6 +219,23 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target.closest('.btn-remover-variacao')) {
             e.target.closest('tr').remove();
             checkEmptyState();
+        }
+    });
+
+    // Sincronização inteligente entre o Color Picker e o Input Text de Cor
+    tbodyVariacoes.addEventListener('input', function(e) {
+        if (e.target.classList.contains('color-picker-input')) {
+            const group = e.target.closest('.input-group');
+            const textInput = group ? group.querySelector('.color-text-input') : null;
+            if (textInput) {
+                textInput.value = e.target.value;
+            }
+        } else if (e.target.classList.contains('color-text-input')) {
+            const group = e.target.closest('.input-group');
+            const pickerInput = group ? group.querySelector('.color-picker-input') : null;
+            if (pickerInput && /^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                pickerInput.value = e.target.value;
+            }
         }
     });
 

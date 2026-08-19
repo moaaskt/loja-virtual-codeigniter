@@ -78,6 +78,71 @@
             $rotuloVariacao = 'Variação / Opção';
         }
     }
+
+    if (!function_exists('resolverCorCss')) {
+        function resolverCorCss(string $cor): string {
+            $c = mb_strtolower(trim($cor), 'UTF-8');
+            $map = [
+                'preto'            => '#111111',
+                'black'            => '#111111',
+                'branco'           => '#ffffff',
+                'white'            => '#ffffff',
+                'cinza'            => '#6c757d',
+                'cinza espacial'   => '#4a4d52',
+                'space gray'       => '#4a4d52',
+                'gray'             => '#6c757d',
+                'grey'             => '#6c757d',
+                'prata'            => '#d1d5db',
+                'silver'           => '#d1d5db',
+                'dourado'          => '#f59e0b',
+                'ouro'             => '#f59e0b',
+                'gold'             => '#f59e0b',
+                'vermelho'         => '#ef4444',
+                'red'              => '#ef4444',
+                'azul'             => '#3b82f6',
+                'blue'             => '#3b82f6',
+                'azul marinho'     => '#1e3a8a',
+                'navy'             => '#1e3a8a',
+                'azul celeste'     => '#38bdf8',
+                'verde'            => '#10b981',
+                'green'            => '#10b981',
+                'verde escuro'     => '#065f46',
+                'amarelo'          => '#eab308',
+                'yellow'           => '#eab308',
+                'laranja'          => '#f97316',
+                'orange'           => '#f97316',
+                'rosa'             => '#ec4899',
+                'pink'             => '#ec4899',
+                'roxo'             => '#8b5cf6',
+                'purple'           => '#8b5cf6',
+                'marrom'           => '#78350f',
+                'brown'            => '#78350f',
+                'bege'             => '#fef3c7',
+                'beige'            => '#fef3c7',
+                'titânio'          => '#878681',
+                'titanio'          => '#878681',
+                'titânio natural'  => '#9a948d',
+                'titanio natural'  => '#9a948d',
+                'titânio preto'    => '#2e2e2e',
+                'titanio preto'    => '#2e2e2e',
+                'titânio azul'     => '#2e3a4e',
+                'titanio azul'     => '#2e3a4e',
+                'titânio branco'   => '#e5e5e5',
+                'titanio branco'   => '#e5e5e5',
+            ];
+
+            if (isset($map[$c])) {
+                return $map[$c];
+            }
+            if (preg_match('/^#([a-f0-9]{3}){1,2}\b/i', $cor)) {
+                return $cor;
+            }
+            if (preg_match('/^[a-z]+$/i', $c)) {
+                return $c;
+            }
+            return '#6c757d';
+        }
+    }
 ?>
 
 <!-- ===== BREADCRUMB ===== -->
@@ -164,22 +229,18 @@
             </div>
             <?php endif; ?>
 
-            <!-- Color Selector (Optional) -->
+            <!-- Color Selector (Optional visual swatch) -->
             <?php if (!empty($coresDisponiveis)): ?>
             <div class="pdp-variant-section">
-                <p class="pdp-variant-label">Cor</p>
-                <div class="pdp-variant-options d-flex flex-wrap gap-2" id="color-options">
+                <p class="pdp-variant-label">Cor: <span id="selected-color-name" class="fw-semibold text-primary ms-1"></span></p>
+                <div class="pdp-variant-options d-flex flex-wrap gap-2 align-items-center" id="color-options">
                     <?php foreach ($coresDisponiveis as $index => $cor): ?>
-                        <?php $isHex = preg_match('/^#([a-f0-9]{3}){1,2}\b/i', $cor); ?>
+                        <?php $cssColor = resolverCorCss($cor); ?>
                         <label class="pdp-color-chip variant-color-label" data-color="<?= esc($cor) ?>" title="<?= esc($cor) ?>">
                             <input type="radio" name="cor" value="<?= esc($cor) ?>" class="variant-color-selector">
-                            <?php if ($isHex): ?>
-                                <span class="pdp-color-swatch border border-secondary-subtle shadow-sm" style="background-color: <?= esc($cor) ?>;">
-                                    <i class="bi bi-check2"></i>
-                                </span>
-                            <?php else: ?>
-                                <span class="pdp-variant-chip variant-size-label d-inline-block px-3 py-1 border rounded-pill small fw-semibold"><?= esc($cor) ?></span>
-                            <?php endif; ?>
+                            <span class="pdp-color-swatch border shadow-sm" style="background-color: <?= esc($cssColor) ?>;" title="<?= esc($cor) ?>">
+                                <i class="bi bi-check2"></i>
+                            </span>
                         </label>
                     <?php endforeach; ?>
                 </div>
@@ -366,6 +427,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputVariacaoId = document.getElementById('variacao_id');
     const priceDisplay = document.getElementById('pdp-price');
     const stockText = document.getElementById('pdp-stock-text');
+    const selectedColorName = document.getElementById('selected-color-name');
     
     const formAddCart = document.getElementById('form-add-cart');
     if (formAddCart) {
@@ -399,6 +461,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (hasColors) {
             const checkedColor = document.querySelector('.variant-color-selector:checked');
             if (checkedColor) selectedColor = checkedColor.value;
+        }
+
+        if (selectedColorName) {
+            selectedColorName.innerText = selectedColor ? selectedColor : '';
         }
 
         if (hasSizes) {
