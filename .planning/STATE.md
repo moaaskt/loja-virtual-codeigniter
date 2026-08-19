@@ -2,16 +2,15 @@
 
 ## Current Status
 - **Current Milestone:** Milestone 2 (E-Commerce Avançado — Pagamentos, Frete, Cupons, Avaliações e Métricas)
-- **Current Phase:** Phase 7 (Notificações Transacionais por E-mail — SMTP) — Planejada 📋
-- **Next Phase:** Phase 8 (Avaliações e Reviews de Produtos)
-- **Last Action:** Criado o plano de execução detalhado da Phase 7 em `.planning/phases/07-notificacoes-email/PLAN.md`.
+- **Current Phase:** Phase 8 (Avaliações e Reviews de Produtos) — Próxima
+- **Last Action:** Executada a Phase 7 — Notificações Transacionais por E-mail (SMTP) — 41 testes, 188 asserções passando ✓
 
 ## Progress Summary
 - **Milestone 1:** 100% Concluído (Fases 1 a 4) ✓
 - **Milestone 2:**
   - [x] Phase 5: Cálculo de Frete e Cupons de Desconto ✓
   - [x] Phase 6: Gateway de Pagamento (Pix / Cartão de Crédito) ✓
-  - [ ] Phase 7: Notificações Transacionais por E-mail (SMTP) 📋 (Planejada)
+  - [x] Phase 7: Notificações Transacionais por E-mail (SMTP) ✓
   - [ ] Phase 8: Avaliações e Reviews de Produtos
   - [ ] Phase 9: Relatórios e Métricas Avançadas no Painel Admin
 
@@ -23,4 +22,4 @@
 | `variacoes-dinamicas-categoria` | 2026-08-19 | complete ✓ | Adaptação dinâmica da interface de variações/SKUs nos formulários admin (new.php e edit.php) com base na categoria selecionada |
 
 ## Next Steps
-Executar a **Phase 7: Notificações Transacionais por E-mail (SMTP)** via `/gsd-execute-phase 7`.
+Avançar para a **Phase 8: Avaliações e Reviews de Produtos**.
