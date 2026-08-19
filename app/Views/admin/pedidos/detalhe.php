@@ -76,6 +76,26 @@
                         <?= esc(date('d/m/Y H:i', strtotime($pedido['criado_em']))) ?>
                     </dd>
 
+                    <?php if (!empty($pedido['cupom_codigo'])): ?>
+                        <dt class="col-5 text-muted small fw-normal">Cupom</dt>
+                        <dd class="col-7 mb-0 text-success fw-semibold" style="font-size:.875rem;">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace">
+                                <?= esc($pedido['cupom_codigo']) ?>
+                            </span>
+                            (- R$ <?= esc(number_format($pedido['desconto_valor'], 2, ',', '.')) ?>)
+                        </dd>
+                    <?php endif; ?>
+
+                    <?php if (!empty($pedido['frete_modalidade']) || (float)($pedido['frete_valor'] ?? 0) > 0): ?>
+                        <dt class="col-5 text-muted small fw-normal">Frete</dt>
+                        <dd class="col-7 mb-0 text-muted" style="font-size:.875rem;">
+                            <?= esc($pedido['frete_modalidade'] ?? 'Entrega') ?>: 
+                            <strong class="text-dark">
+                                <?= (float)$pedido['frete_valor'] === 0.0 ? 'Grátis' : 'R$ ' . number_format($pedido['frete_valor'], 2, ',', '.') ?>
+                            </strong>
+                        </dd>
+                    <?php endif; ?>
+
                     <dt class="col-5 text-muted small fw-normal">Total</dt>
                     <dd class="col-7 mb-0 fs-5 fw-bold text-success">
                         R$ <?= esc(number_format($pedido['valor_total'], 2, ',', '.')) ?>

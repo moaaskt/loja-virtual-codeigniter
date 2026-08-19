@@ -6,23 +6,46 @@ use CodeIgniter\Model;
 
 class PedidoModel extends Model
 {
+    protected $DBGroup          = 'default';
+    protected $table            = 'pedidos';
+    protected $primaryKey       = 'id';
+    protected $useAutoIncrement = true;
+    protected $returnType       = 'array';
+    protected $allowedFields    = [
+        'usuario_id',
+        'valor_total',
+        'cupom_codigo',
+        'desconto_valor',
+        'frete_modalidade',
+        'frete_valor',
+        'status',
+        'cep',
+        'logradouro',
+        'numero',
+        'complemento',
+        'bairro',
+        'cidade',
+        'uf',
+    ];
+
+    // Dates
+    protected $useTimestamps = true;
+    protected $createdField  = 'criado_em';
+    protected $updatedField  = ''; // Não temos coluna atualizado_em em pedidos
 
     public function getPedidosPorUsuario($usuarioId)
     {
-        // Busca os pedidos ordenando pelos mais recentes primeiro
         return $this->where('usuario_id', $usuarioId)
             ->orderBy('criado_em', 'DESC')
             ->findAll();
     }
 
     public function getPedidoComCliente($id)
-{
-    $this->select('pedidos.*, usuarios.nome as cliente_nome, usuarios.email as cliente_email');
-    $this->join('usuarios', 'usuarios.id = pedidos.usuario_id');
-    return $this->find($id);
-}
-
-
+    {
+        $this->select('pedidos.*, usuarios.nome as cliente_nome, usuarios.email as cliente_email');
+        $this->join('usuarios', 'usuarios.id = pedidos.usuario_id');
+        return $this->find($id);
+    }
 
     public function getAllPedidosComCliente($perPage = 10)
     {
@@ -32,15 +55,4 @@ class PedidoModel extends Model
 
         return $this->paginate($perPage);
     }
-
-    protected $table = 'pedidos';
-    protected $primaryKey = 'id';
-    protected $useAutoIncrement = true;
-    protected $returnType = 'array';
-    protected $allowedFields = ['usuario_id', 'valor_total', 'status', 'cep', 'logradouro', 'numero', 'complemento', 'bairro', 'cidade', 'uf'];
-
-    // Dates
-    protected $useTimestamps = true;
-    protected $createdField = 'criado_em';
-    protected $updatedField = ''; // Não temos uma coluna 'atualizado_em'
 }

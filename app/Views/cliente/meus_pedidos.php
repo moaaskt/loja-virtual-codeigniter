@@ -55,6 +55,28 @@
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </ul>
+
+                            <?php if (!empty($pedido['cupom_codigo']) || (float)($pedido['desconto_valor'] ?? 0) > 0 || !empty($pedido['frete_modalidade']) || (float)($pedido['frete_valor'] ?? 0) > 0): ?>
+                                <div class="mt-3 pt-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-2 small">
+                                    <div class="text-muted">
+                                        <?php if (!empty($pedido['cupom_codigo'])): ?>
+                                            <span class="me-3">
+                                                <i class="bi bi-tag-fill text-success me-1"></i>Cupom: 
+                                                <strong class="text-success"><?= esc($pedido['cupom_codigo']) ?> (- R$ <?= esc(number_format($pedido['desconto_valor'], 2, ',', '.')) ?>)</strong>
+                                            </span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($pedido['frete_modalidade']) || (float)($pedido['frete_valor'] ?? 0) > 0): ?>
+                                            <span>
+                                                <i class="bi bi-truck text-primary me-1"></i>Frete: 
+                                                <strong><?= esc($pedido['frete_modalidade'] ?? 'Entrega') ?> (<?= (float)$pedido['frete_valor'] === 0.0 ? 'Grátis' : 'R$ ' . number_format($pedido['frete_valor'], 2, ',', '.') ?>)</strong>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="fw-bold fs-6">
+                                        Total: <span class="text-success">R$ <?= esc(number_format($pedido['valor_total'], 2, ',', '.')) ?></span>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
