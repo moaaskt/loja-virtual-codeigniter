@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\CupomModel;
 use App\Models\PedidoModel;
 use App\Models\PedidoProdutoModel;
 use App\Models\ProdutoModel;
@@ -11,20 +12,30 @@ class PedidoService
     protected PedidoModel $pedidoModel;
     protected PedidoProdutoModel $pedidoProdutoModel;
     protected ProdutoModel $produtoModel;
+    protected CupomModel $cupomModel;
+    protected PagamentoService $pagamentoService;
 
     public function __construct()
     {
-        $this->pedidoModel       = new PedidoModel();
+        $this->pedidoModel        = new PedidoModel();
         $this->pedidoProdutoModel = new PedidoProdutoModel();
-        $this->produtoModel      = new ProdutoModel();
+        $this->produtoModel       = new ProdutoModel();
+        $this->cupomModel         = new CupomModel();
+        $this->pagamentoService   = new PagamentoService();
     }
 
     /**
-     * Cria um pedido completo dentro de uma transaction.
-     * Retorna ['ok' => true, 'pedido_id' => int] ou ['ok' => false, 'erro' => string].
+     * Cria um pedido completo dentro de uma transaction e processa o pagamento.
+     * Retorna ['ok' => true, 'pedido_id' => int, ...] ou ['ok' => false, 'erro' => string].
      */
-    public function criarPedido(array $carrinho, int $clienteId, array $enderecoData = []): array
-    {
+    public function criarPedido(
+        array $carrinho,
+        int $clienteId,
+        array $enderecoData = [],
+        ?array $cupomData = null,
+        ?array $freteData = null,
+        ?array $pagamentoData = null
+    ): array {
         $camposObrigatorios = ['cep', 'logradouro', 'numero', 'bairro', 'cidade', 'uf'];
         foreach ($camposObrigatorios as $campo) {
             if (empty($enderecoData[$campo])) {
@@ -32,11 +43,24 @@ class PedidoService
             }
         }
 
-        $db = \Config\Database::connect();
+        $formaPagamento = $pagamentoData['forma_pagamento'] ?? 'pix';
+        if (!in_array($formaPagamento, ['pix', 'cartao_credito'])) {
+            return ['ok' => false, 'erro' => 'Selecione uma forma de pagamento válida (Pix ou Cartão de Crédito).'];
+        }
+
+        // Pré-validação rápida se for cartão de crédito
+        if ($formaPagamento === 'cartao_credito') {
+            $validacaoCartao = $this->pagamentoService->validarDadosCartao($pagamentoData ?? []);
+            if (!$validacaoCartao['valido']) {
+                return ['ok' => false, 'erro' => $validacaoCartao['erro']];
+            }
+        }
+
+        $db = \Config\Database::connect('default');
         $db->transStart();
 
         $itensPedido = [];
-        $valorTotal  = 0;
+        $subtotal    = 0.0;
 
         foreach ($carrinho as $cartKey => $item) {
             $produtoId = $item['id'];
@@ -47,21 +71,54 @@ class PedidoService
                 return ['ok' => false, 'erro' => 'O produto "' . esc($item['nome']) . '" não está mais disponível.'];
             }
 
-            $valorTotal += $produto['preco'] * $item['quantidade'];
+            $subtotal += (float) $produto['preco'] * (int) $item['quantidade'];
             $itensPedido[$cartKey] = ['item' => $item, 'produto' => $produto];
         }
 
+        // Processamento de Cupom
+        $descontoValor = 0.0;
+        $cupomCodigo   = null;
+        $cupomId       = null;
+
+        $cupomSessao = $cupomData ?? session()->get('cupom');
+        if (!empty($cupomSessao['codigo'])) {
+            $validacaoCupom = $this->cupomModel->validarCupom($cupomSessao['codigo'], $subtotal);
+            if ($validacaoCupom['valido']) {
+                $descontoValor = (float) $validacaoCupom['desconto'];
+                $cupomCodigo   = $validacaoCupom['cupom']['codigo'];
+                $cupomId       = (int) $validacaoCupom['cupom']['id'];
+            }
+        }
+
+        // Processamento de Frete
+        $freteSessao     = $freteData ?? session()->get('frete');
+        $freteValor      = 0.0;
+        $freteModalidade = null;
+
+        if (!empty($freteSessao)) {
+            $freteValor      = max(0.0, (float) ($freteSessao['valor'] ?? 0));
+            $freteModalidade = $freteSessao['modalidade'] ?? 'Padrão';
+        }
+
+        $valorTotal = max(0.0, $subtotal - $descontoValor) + $freteValor;
+
         $this->pedidoModel->insert([
-            'usuario_id'  => $clienteId,
-            'valor_total' => $valorTotal,
-            'status'      => 'pendente',
-            'cep'         => $enderecoData['cep'],
-            'logradouro'  => $enderecoData['logradouro'],
-            'numero'      => $enderecoData['numero'],
-            'complemento' => $enderecoData['complemento'] ?? null,
-            'bairro'      => $enderecoData['bairro'],
-            'cidade'      => $enderecoData['cidade'],
-            'uf'          => $enderecoData['uf'],
+            'usuario_id'       => $clienteId,
+            'valor_total'      => $valorTotal,
+            'cupom_codigo'     => $cupomCodigo,
+            'desconto_valor'   => $descontoValor,
+            'frete_modalidade' => $freteModalidade,
+            'frete_valor'      => $freteValor,
+            'forma_pagamento'  => $formaPagamento,
+            'status_pagamento' => 'pendente',
+            'status'           => 'pendente',
+            'cep'              => $enderecoData['cep'],
+            'logradouro'       => $enderecoData['logradouro'],
+            'numero'           => $enderecoData['numero'],
+            'complemento'      => $enderecoData['complemento'] ?? null,
+            'bairro'           => $enderecoData['bairro'],
+            'cidade'           => $enderecoData['cidade'],
+            'uf'               => $enderecoData['uf'],
         ]);
         $pedidoId = $this->pedidoModel->getInsertID();
 
@@ -72,21 +129,19 @@ class PedidoService
             $variacaoId = $item['variacao_id'] ?? 0;
             $quantidade = (int) $item['quantidade'];
 
-            // Baixa de estoque cirúrgica
+            // Baixa de estoque
             if ($variacaoId > 0) {
-                // Valida e diminui do estoque da variação específica
                 $variacao = $db->table('produto_variacoes')->where('id', $variacaoId)->where('produto_id', $produtoId)->get()->getRowArray();
                 if (!$variacao || $variacao['estoque'] < $quantidade) {
                     $db->transRollback();
                     return ['ok' => false, 'erro' => 'Estoque insuficiente para a variação de "' . esc($item['nome']) . '".'];
                 }
-                
+
                 $db->table('produto_variacoes')
                    ->where('id', $variacaoId)
                    ->set('estoque', 'estoque - ' . $quantidade, false)
                    ->update();
-                   
-                // Diminuir do produto total também
+
                 $this->produtoModel->decrementarEstoque((int) $produtoId, $quantidade, $db);
             } else {
                 $ok = $this->produtoModel->decrementarEstoque((int) $produtoId, $quantidade, $db);
@@ -107,12 +162,49 @@ class PedidoService
             ]);
         }
 
+        // Incrementa uso do cupom
+        if ($cupomId) {
+            $this->cupomModel->incrementarUso($cupomId);
+        }
+
         $db->transComplete();
 
         if ($db->transStatus() === false) {
             return ['ok' => false, 'erro' => 'Houve um erro ao processar seu pedido. Tente novamente.'];
         }
 
-        return ['ok' => true, 'pedido_id' => $pedidoId];
+        $pedidoCriado = [
+            'id'          => $pedidoId,
+            'valor_total' => $valorTotal,
+        ];
+
+        // Processa o pagamento após criação do pedido
+        $resultadoPagamento = null;
+        if ($formaPagamento === 'pix') {
+            $resultadoPagamento = $this->pagamentoService->gerarPix($pedidoCriado);
+        } elseif ($formaPagamento === 'cartao_credito') {
+            $resultadoPagamento = $this->pagamentoService->processarCartao($pedidoCriado, $pagamentoData ?? []);
+            if (!$resultadoPagamento['ok']) {
+                // Em caso de falha de cartão, cancela o status do pedido
+                $this->pedidoModel->atualizarStatusPagamento($pedidoId, 'falhou', 'cancelado');
+                return [
+                    'ok'        => false,
+                    'pedido_id' => $pedidoId,
+                    'erro'      => $resultadoPagamento['erro'],
+                ];
+            }
+        }
+
+        // Limpa sessões de compra
+        session()->remove('carrinho');
+        session()->remove('cupom');
+        session()->remove('frete');
+
+        return [
+            'ok'               => true,
+            'pedido_id'        => $pedidoId,
+            'forma_pagamento'  => $formaPagamento,
+            'pagamento'        => $resultadoPagamento,
+        ];
     }
 }

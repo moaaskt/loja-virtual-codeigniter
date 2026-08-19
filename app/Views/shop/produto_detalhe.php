@@ -205,6 +205,27 @@
                     <span>Compra Segura</span>
                 </div>
             </div>
+
+            <!-- ===== SIMULADOR DE FRETE ===== -->
+            <div class="pdp-frete-card card border-0 shadow-sm mt-4 p-3 rounded-4 bg-light">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="fw-bold fs-6">
+                        <i class="bi bi-truck text-primary me-2"></i>Calcular Frete e Prazo
+                    </span>
+                    <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" class="small text-muted text-decoration-none">
+                        Não sei meu CEP
+                    </a>
+                </div>
+                <div class="input-group mb-2">
+                    <input type="text" id="cep-calculo" class="form-control rounded-start-pill font-monospace"
+                           placeholder="00000-000" maxlength="9" aria-label="CEP para entrega">
+                    <button class="btn btn-primary rounded-end-pill px-4 fw-semibold" type="button" id="btn-calcular-frete">
+                        Calcular
+                    </button>
+                </div>
+                <div id="resultado-frete-pdp" class="mt-2"></div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -397,6 +418,91 @@ document.addEventListener('DOMContentLoaded', function () {
         btnAddCart.disabled = true;
         btnAddCart.classList.add('pdp-add-to-cart--disabled');
         checkVariations();
+    }
+
+    // --- Simulador de Frete PDP ---
+    const cepInput = document.getElementById('cep-calculo');
+    const btnCalcularFrete = document.getElementById('btn-calcular-frete');
+    const resultadoFrete = document.getElementById('resultado-frete-pdp');
+
+    if (cepInput && btnCalcularFrete && resultadoFrete) {
+        cepInput.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').replace(/^(\d{5})(\d)/, '$1-$2').substring(0, 9);
+        });
+
+        cepInput.addEventListener('keyup', function (e) {
+            if (e.key === 'Enter') {
+                btnCalcularFrete.click();
+            }
+        });
+
+        btnCalcularFrete.addEventListener('click', async function () {
+            const cep = cepInput.value.replace(/\D/g, '');
+            if (cep.length !== 8) {
+                resultadoFrete.innerHTML = `
+                    <div class="alert alert-warning py-2 px-3 small mb-0 rounded-3">
+                        <i class="bi bi-exclamation-triangle me-1"></i>Digite um CEP válido com 8 dígitos.
+                    </div>`;
+                return;
+            }
+
+            resultadoFrete.innerHTML = `
+                <div class="text-center py-3 text-muted small">
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                    Calculando opções de frete...
+                </div>`;
+
+            try {
+                const formData = new FormData();
+                formData.append('cep', cep);
+                formData.append('produto_id', '<?= esc($produto['id']) ?>');
+                formData.append('quantidade', qtyInput ? qtyInput.value : 1);
+
+                const response = await fetch('<?= site_url('api/frete/calcular') ?>', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                if (!data.ok) {
+                    resultadoFrete.innerHTML = `
+                        <div class="alert alert-danger py-2 px-3 small mb-0 rounded-3">
+                            <i class="bi bi-exclamation-circle me-1"></i>${data.erro || 'Não foi possível calcular o frete.'}
+                        </div>`;
+                    return;
+                }
+
+                let html = `<div class="list-group list-group-flush rounded-3 border">`;
+                data.opcoes.forEach(op => {
+                    const precoFmt = op.valor === 0
+                        ? `<span class="badge bg-success-subtle text-success border border-success-subtle fw-bold fs-6">GRÁTIS</span>`
+                        : `<strong class="text-success fs-6">R$ ${op.valor.toFixed(2).replace('.', ',')}</strong>`;
+
+                    html += `
+                        <div class="list-group-item d-flex align-items-center justify-content-between py-2 px-3 ${op.destaque ? 'bg-success-subtle bg-opacity-25' : ''}">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi ${op.icone} text-primary fs-5"></i>
+                                <div>
+                                    <div class="fw-semibold small">${op.nome}</div>
+                                    <small class="text-muted" style="font-size:0.75rem;">Chega em ${op.prazo}</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                ${precoFmt}
+                            </div>
+                        </div>`;
+                });
+                html += `</div>`;
+                resultadoFrete.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                resultadoFrete.innerHTML = `
+                    <div class="alert alert-danger py-2 px-3 small mb-0 rounded-3">
+                        <i class="bi bi-exclamation-circle me-1"></i>Erro ao calcular frete. Tente novamente.
+                    </div>`;
+            }
+        });
     }
 });
 </script>

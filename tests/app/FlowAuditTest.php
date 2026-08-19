@@ -17,18 +17,21 @@ class FlowAuditTest extends CIUnitTestCase
         $produto = $db->table('produtos')->where('estoque >', 0)->get()->getRowArray();
         $this->assertNotEmpty($produto, 'Deve haver produtos semeados com estoque');
 
+        $variacao = $db->table('produto_variacoes')->where('produto_id', $produto['id'])->where('estoque >', 0)->get()->getRowArray();
+        $variacaoId = $variacao ? (int)$variacao['id'] : 0;
+
         $carrinhoService = new CarrinhoService();
         $carrinhoService->limpar();
 
         // 1. Teste de adição ao carrinho
-        $resAdd = $carrinhoService->adicionar((int)$produto['id'], 2);
-        $this->assertTrue($resAdd['ok'], 'Deve adicionar produto ao carrinho');
+        $resAdd = $carrinhoService->adicionar((int)$produto['id'], 2, $variacaoId);
+        $this->assertTrue($resAdd['ok'], 'Deve adicionar produto ao carrinho: ' . ($resAdd['erro'] ?? ''));
 
         $cart = $carrinhoService->getCarrinho();
         $this->assertCount(1, $cart);
 
         // 2. Teste de tentativa de adicionar mais do que o estoque total
-        $resExcesso = $carrinhoService->adicionar((int)$produto['id'], 99999);
+        $resExcesso = $carrinhoService->adicionar((int)$produto['id'], 99999, $variacaoId);
         $this->assertFalse($resExcesso['ok'], 'Não deve permitir adicionar quantidade superior ao estoque');
 
         // 3. Teste de checkout (PedidoService)

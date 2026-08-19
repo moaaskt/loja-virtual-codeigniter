@@ -2,12 +2,12 @@
 
 namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
+use App\Models\PagamentoModel;
 use App\Models\PedidoModel;
 use App\Models\PedidoProdutoModel;
 
 class PedidoController extends BaseController
 {
-    // ... (seu método index() continua aqui, sem alterações) ...
     public function index()
     {
         $model = new PedidoModel();
@@ -16,19 +16,17 @@ class PedidoController extends BaseController
             'title'          => 'Gerenciamento de Pedidos',
             'pedidos'        => $model->getAllPedidosComCliente(15),
             'pager'          => $model->pager,
-            'status_options' => ['pendente', 'processando', 'enviado', 'entregue', 'cancelado']
+            'status_options' => ['pendente', 'pago', 'processando', 'enviado', 'entregue', 'cancelado'],
         ];
 
         return view('admin/pedidos/index', $data);
     }
 
-
-    // O método detalhe() foi corrigido
     public function detalhe($id = null)
     {
-        $pedidoModel = new PedidoModel();
-        // Agora podemos usar o nome curto da classe
+        $pedidoModel        = new PedidoModel();
         $pedidoProdutoModel = new PedidoProdutoModel();
+        $pagamentoModel     = new PagamentoModel();
 
         $pedido = $pedidoModel->getPedidoComCliente($id);
 
@@ -39,26 +37,25 @@ class PedidoController extends BaseController
         $data = [
             'title'          => 'Detalhes do Pedido #' . $pedido['id'],
             'pedido'         => $pedido,
-            'produtos' => $pedidoProdutoModel->getProdutosDePedido($id),
-            'status_options' => ['pendente', 'processando', 'enviado', 'entregue', 'cancelado']
+            'pagamento'      => $pagamentoModel->buscarPorPedido($id),
+            'produtos'       => $pedidoProdutoModel->getProdutosDePedido($id),
+            'status_options' => ['pendente', 'pago', 'processando', 'enviado', 'entregue', 'cancelado'],
         ];
 
         return view('admin/pedidos/detalhe', $data);
     }
 
-    // Adicionei o método de atualizar status que tínhamos antes
     public function atualizarStatus($id = null)
     {
         $model = new PedidoModel();
         $novoStatus = $this->request->getPost('status');
-        $statusPermitidos = ['pendente', 'processando', 'enviado', 'entregue', 'cancelado'];
+        $statusPermitidos = ['pendente', 'pago', 'processando', 'enviado', 'entregue', 'cancelado'];
 
         if (empty($novoStatus) || !in_array($novoStatus, $statusPermitidos)) {
             return redirect()->to(site_url('admin/pedidos'))->with('error', 'Status inválido.');
         }
 
         if ($model->update($id, ['status' => $novoStatus])) {
-            // Redireciona de volta para a página de DETALHES com a mensagem
             return redirect()->to(site_url('admin/pedidos/detalhe/' . $id))->with('success', 'Status do pedido atualizado!');
         } else {
             return redirect()->to(site_url('admin/pedidos/detalhe/' . $id))->with('error', 'Erro ao atualizar o status.');

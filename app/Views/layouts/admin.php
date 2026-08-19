@@ -61,6 +61,13 @@
                 </a>
             </li>
             <li>
+                <a href="<?= site_url('admin/cupons') ?>"
+                    class="nav-link <?= str_starts_with(uri_string(), 'admin/cupons') ? 'active' : '' ?>">
+                    <i class="bi bi-ticket-perforated-fill"></i>
+                    Cupons
+                </a>
+            </li>
+            <li>
                 <a href="<?= site_url('admin/clientes') ?>"
                     class="nav-link <?= str_starts_with(uri_string(), 'admin/clientes') ? 'active' : '' ?>">
                     <i class="bi bi-people-fill"></i>

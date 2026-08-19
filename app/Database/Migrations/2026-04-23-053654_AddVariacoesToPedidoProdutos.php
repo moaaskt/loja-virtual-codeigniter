@@ -19,7 +19,11 @@ class AddVariacoesToPedidoProdutos extends Migration
 
     public function down()
     {
-        $this->forge->dropForeignKey('pedido_produtos', 'fk_pedido_produtos_variacao_id');
+        try {
+            $this->forge->dropForeignKey('pedido_produtos', 'fk_pedido_produtos_variacao_id');
+        } catch (\Throwable $e) {
+            // Ignore if foreign key was not created with this explicit name
+        }
         $this->forge->dropColumn('pedido_produtos', ['variacao_id', 'tamanho', 'cor']);
     }
 }
