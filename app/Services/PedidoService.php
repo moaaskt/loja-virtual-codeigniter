@@ -13,6 +13,7 @@ class PedidoService
     protected PedidoProdutoModel $pedidoProdutoModel;
     protected ProdutoModel $produtoModel;
     protected CupomModel $cupomModel;
+    protected PagamentoService $pagamentoService;
 
     public function __construct()
     {
@@ -20,23 +21,38 @@ class PedidoService
         $this->pedidoProdutoModel = new PedidoProdutoModel();
         $this->produtoModel       = new ProdutoModel();
         $this->cupomModel         = new CupomModel();
+        $this->pagamentoService   = new PagamentoService();
     }
 
     /**
-     * Cria um pedido completo dentro de uma transaction.
-     * Retorna ['ok' => true, 'pedido_id' => int] ou ['ok' => false, 'erro' => string].
+     * Cria um pedido completo dentro de uma transaction e processa o pagamento.
+     * Retorna ['ok' => true, 'pedido_id' => int, ...] ou ['ok' => false, 'erro' => string].
      */
     public function criarPedido(
         array $carrinho,
         int $clienteId,
         array $enderecoData = [],
         ?array $cupomData = null,
-        ?array $freteData = null
+        ?array $freteData = null,
+        ?array $pagamentoData = null
     ): array {
         $camposObrigatorios = ['cep', 'logradouro', 'numero', 'bairro', 'cidade', 'uf'];
         foreach ($camposObrigatorios as $campo) {
             if (empty($enderecoData[$campo])) {
                 return ['ok' => false, 'erro' => 'Por favor, preencha todos os campos obrigatórios de endereço.'];
+            }
+        }
+
+        $formaPagamento = $pagamentoData['forma_pagamento'] ?? 'pix';
+        if (!in_array($formaPagamento, ['pix', 'cartao_credito'])) {
+            return ['ok' => false, 'erro' => 'Selecione uma forma de pagamento válida (Pix ou Cartão de Crédito).'];
+        }
+
+        // Pré-validação rápida se for cartão de crédito
+        if ($formaPagamento === 'cartao_credito') {
+            $validacaoCartao = $this->pagamentoService->validarDadosCartao($pagamentoData ?? []);
+            if (!$validacaoCartao['valido']) {
+                return ['ok' => false, 'erro' => $validacaoCartao['erro']];
             }
         }
 
@@ -93,6 +109,8 @@ class PedidoService
             'desconto_valor'   => $descontoValor,
             'frete_modalidade' => $freteModalidade,
             'frete_valor'      => $freteValor,
+            'forma_pagamento'  => $formaPagamento,
+            'status_pagamento' => 'pendente',
             'status'           => 'pendente',
             'cep'              => $enderecoData['cep'],
             'logradouro'       => $enderecoData['logradouro'],
@@ -155,11 +173,38 @@ class PedidoService
             return ['ok' => false, 'erro' => 'Houve um erro ao processar seu pedido. Tente novamente.'];
         }
 
+        $pedidoCriado = [
+            'id'          => $pedidoId,
+            'valor_total' => $valorTotal,
+        ];
+
+        // Processa o pagamento após criação do pedido
+        $resultadoPagamento = null;
+        if ($formaPagamento === 'pix') {
+            $resultadoPagamento = $this->pagamentoService->gerarPix($pedidoCriado);
+        } elseif ($formaPagamento === 'cartao_credito') {
+            $resultadoPagamento = $this->pagamentoService->processarCartao($pedidoCriado, $pagamentoData ?? []);
+            if (!$resultadoPagamento['ok']) {
+                // Em caso de falha de cartão, cancela o status do pedido
+                $this->pedidoModel->atualizarStatusPagamento($pedidoId, 'falhou', 'cancelado');
+                return [
+                    'ok'        => false,
+                    'pedido_id' => $pedidoId,
+                    'erro'      => $resultadoPagamento['erro'],
+                ];
+            }
+        }
+
         // Limpa sessões de compra
         session()->remove('carrinho');
         session()->remove('cupom');
         session()->remove('frete');
 
-        return ['ok' => true, 'pedido_id' => $pedidoId];
+        return [
+            'ok'               => true,
+            'pedido_id'        => $pedidoId,
+            'forma_pagamento'  => $formaPagamento,
+            'pagamento'        => $resultadoPagamento,
+        ];
     }
 }

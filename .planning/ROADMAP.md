@@ -31,7 +31,7 @@
   - Implementar validação e aplicação de cupom no Carrinho e Checkout com recálculo automático de totais.
 
 ### Phase 6: Gateway de Pagamento (Pix e Cartão de Crédito)
-- **Status:** Pending
+- **Status:** Completed ✓
 - **Objetivo:** Integrar fluxo de pagamento transacional com Pix (QR Code/Copia e Cola) e Cartão de Crédito, com webhook de confirmação.
 - **Tarefas principais:**
   - Criar serviço de gateway de pagamento para Pix e Cartão de Crédito.

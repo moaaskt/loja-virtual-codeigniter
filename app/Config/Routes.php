@@ -15,8 +15,11 @@ $routes->get('categoria/(:num)', 'HomeController::produtosPorCategoria/$1');
 $routes->get('busca', 'HomeController::busca');
 $routes->get('api/produtos/busca', 'HomeController::buscaApi');
 
-// Frete
+// Frete & Pagamentos
 $routes->post('api/frete/calcular', 'FreteController::calcular');
+$routes->post('api/webhook/pagamento', 'WebhookController::receber');
+$routes->post('api/webhook/simular', 'WebhookController::simular');
+$routes->get('api/pedidos/(:num)/status-pagamento', 'PagamentoController::status/$1');
 
 // Carrinho
 $routes->get('carrinho', 'CarrinhoController::index');
@@ -40,6 +43,8 @@ $routes->group('minha-conta', ['filter' => 'auth'], static function ($routes) {
     $routes->get('pedidos', 'ClienteController::index');
 });
 $routes->post('checkout/finalizar', 'PedidoController::finalizar', ['filter' => 'auth']);
+$routes->get('pedido/pagamento/(:num)', 'PagamentoController::show/$1', ['filter' => 'auth']);
+$routes->get('pedido/sucesso/(:num)', 'PedidoController::sucesso/$1', ['filter' => 'auth']);
 $routes->get('pedido/sucesso', 'PedidoController::sucesso', ['filter' => 'auth']);
 
 // --- ROTAS DO PAINEL ADMINISTRATIVO ---

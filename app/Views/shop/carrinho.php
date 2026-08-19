@@ -4,6 +4,52 @@
 
 <?= $this->section('content') ?>
 
+<style>
+/* Checkout Offcanvas Responsivo */
+.offcanvas-checkout {
+    width: 100vw !important;
+    max-width: 100% !important;
+}
+
+@media (min-width: 768px) {
+    .offcanvas-checkout {
+        width: 520px !important;
+        max-width: 520px !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .offcanvas-checkout {
+        width: 580px !important;
+        max-width: 580px !important;
+    }
+}
+
+@media (min-width: 1200px) {
+    .offcanvas-checkout {
+        width: 600px !important;
+        max-width: 600px !important;
+    }
+}
+
+.pay-method-label {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-width: 2px !important;
+}
+
+.pay-method-label:hover {
+    border-color: #6366f1 !important;
+    background-color: #f8fafc;
+}
+
+.btn-check:checked + .pay-method-label {
+    border-color: #6366f1 !important;
+    background-color: #eef2ff !important;
+    box-shadow: 0 0 0 1px #6366f1;
+}
+</style>
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h1 class="fs-4 fw-bold mb-0">
         <i class="bi bi-bag-fill text-primary me-2"></i><?= esc($title) ?>
@@ -273,85 +319,208 @@
     </div>
 
     <!-- ===== CHECKOUT OFFCANVAS ===== -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasCheckout"
-        aria-labelledby="offcanvasCheckoutLabel" style="width:min(520px, 100vw);">
-        <div class="offcanvas-header border-bottom">
+    <div class="offcanvas offcanvas-end offcanvas-checkout shadow" tabindex="-1" id="offcanvasCheckout"
+        aria-labelledby="offcanvasCheckoutLabel">
+        <div class="offcanvas-header border-bottom py-3 px-4 bg-white">
             <div>
-                <h2 class="offcanvas-title fw-bold fs-5" id="offcanvasCheckoutLabel">
-                    <i class="bi bi-geo-alt-fill text-primary me-2"></i>Endereço de Entrega
+                <h2 class="offcanvas-title fw-bold fs-5 text-dark mb-0" id="offcanvasCheckoutLabel">
+                    <i class="bi bi-shield-lock-fill text-primary me-2"></i>Finalizar Compra
                 </h2>
-                <small class="text-muted">Preencha para finalizar seu pedido</small>
+                <small class="text-muted">Preencha o endereço e selecione o pagamento</small>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
         </div>
-        <div class="offcanvas-body">
+        <div class="offcanvas-body p-4">
             <?= form_open('checkout/finalizar', ['id' => 'form-checkout']) ?>
             <?= csrf_field() ?>
 
-            <div class="row g-3">
-                <div class="col-md-5">
-                    <div class="form-floating">
-                        <input type="text" id="cep" name="cep" class="form-control"
-                            placeholder="00000-000" maxlength="9"
-                            value="<?= esc($freteAtivo['cep'] ?? '') ?>" required>
-                        <label for="cep">CEP <span class="text-danger">*</span></label>
-                    </div>
-                    <div id="cep-feedback" class="form-text text-danger d-none mt-1">
-                        <i class="bi bi-exclamation-circle me-1"></i>CEP não encontrado.
-                    </div>
+            <!-- Seção Endereço -->
+            <div class="mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h3 class="fw-bold fs-6 mb-0 text-dark d-flex align-items-center">
+                        <i class="bi bi-geo-alt-fill text-primary me-2"></i>Endereço de Entrega
+                    </h3>
+                    <span class="text-muted small">* Campos obrigatórios</span>
                 </div>
 
-                <div class="col-md-7">
-                    <div class="form-floating">
-                        <input type="text" id="logradouro" name="logradouro" class="form-control"
-                            placeholder="Rua / Av." required>
-                        <label for="logradouro">Logradouro <span class="text-danger">*</span></label>
+                <div class="row g-2">
+                    <!-- CEP -->
+                    <div class="col-12 col-sm-5 col-md-4">
+                        <div class="form-floating">
+                            <input type="text" id="cep" name="cep" class="form-control font-monospace"
+                                placeholder="00000-000" maxlength="9"
+                                value="<?= esc($freteAtivo['cep'] ?? '') ?>" required>
+                            <label for="cep">CEP <span class="text-danger">*</span></label>
+                        </div>
+                        <div id="cep-feedback" class="form-text text-danger d-none mt-1">
+                            <i class="bi bi-exclamation-circle me-1"></i>CEP não encontrado.
+                        </div>
                     </div>
-                </div>
 
-                <div class="col-4">
-                    <div class="form-floating">
-                        <input type="text" id="numero" name="numero" class="form-control"
-                            placeholder="Nº" required>
-                        <label for="numero">Número <span class="text-danger">*</span></label>
+                    <!-- Logradouro -->
+                    <div class="col-12 col-sm-7 col-md-8">
+                        <div class="form-floating">
+                            <input type="text" id="logradouro" name="logradouro" class="form-control"
+                                placeholder="Rua / Av." required>
+                            <label for="logradouro">Logradouro <span class="text-danger">*</span></label>
+                        </div>
                     </div>
-                </div>
 
-                <div class="col-8">
-                    <div class="form-floating">
-                        <input type="text" id="complemento" name="complemento" class="form-control"
-                            placeholder="Apto, bloco...">
-                        <label for="complemento">Complemento</label>
+                    <!-- Número -->
+                    <div class="col-12 col-sm-4 col-md-4">
+                        <div class="form-floating">
+                            <input type="text" id="numero" name="numero" class="form-control"
+                                placeholder="Nº" required>
+                            <label for="numero">Número <span class="text-danger">*</span></label>
+                        </div>
                     </div>
-                </div>
 
-                <div class="col-md-5">
-                    <div class="form-floating">
-                        <input type="text" id="bairro" name="bairro" class="form-control"
-                            placeholder="Bairro" required>
-                        <label for="bairro">Bairro <span class="text-danger">*</span></label>
+                    <!-- Complemento -->
+                    <div class="col-12 col-sm-8 col-md-8">
+                        <div class="form-floating">
+                            <input type="text" id="complemento" name="complemento" class="form-control"
+                                placeholder="Apto, bloco...">
+                            <label for="complemento">Complemento</label>
+                        </div>
                     </div>
-                </div>
 
-                <div class="col-md-5">
-                    <div class="form-floating">
-                        <input type="text" id="cidade" name="cidade" class="form-control"
-                            placeholder="Cidade" required>
-                        <label for="cidade">Cidade <span class="text-danger">*</span></label>
+                    <!-- Bairro -->
+                    <div class="col-12 col-sm-5 col-md-5">
+                        <div class="form-floating">
+                            <input type="text" id="bairro" name="bairro" class="form-control"
+                                placeholder="Bairro" required>
+                            <label for="bairro">Bairro <span class="text-danger">*</span></label>
+                        </div>
                     </div>
-                </div>
 
-                <div class="col-md-2">
-                    <div class="form-floating">
-                        <input type="text" id="uf" name="uf" class="form-control"
-                            placeholder="UF" maxlength="2" required>
-                        <label for="uf">UF <span class="text-danger">*</span></label>
+                    <!-- Cidade -->
+                    <div class="col-8 col-sm-5 col-md-5">
+                        <div class="form-floating">
+                            <input type="text" id="cidade" name="cidade" class="form-control"
+                                placeholder="Cidade" required>
+                            <label for="cidade">Cidade <span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+
+                    <!-- UF -->
+                    <div class="col-4 col-sm-2 col-md-2">
+                        <div class="form-floating">
+                            <input type="text" id="uf" name="uf" class="form-control text-uppercase font-monospace"
+                                placeholder="UF" maxlength="2" required>
+                            <label for="uf">UF <span class="text-danger">*</span></label>
+                        </div>
                     </div>
                 </div>
             </div>
 
+            <!-- ===== FORMA DE PAGAMENTO ===== -->
+            <div class="mt-4 pt-3 border-top">
+                <h3 class="fw-bold fs-6 mb-3 text-dark d-flex align-items-center">
+                    <i class="bi bi-credit-card-2-front text-primary me-2"></i>Forma de Pagamento
+                </h3>
+
+                <div class="row g-2 mb-3">
+                    <!-- Opção Pix -->
+                    <div class="col-6">
+                        <input type="radio" class="btn-check" name="forma_pagamento" id="pay_pix" value="pix" checked>
+                        <label class="btn btn-outline-light border text-dark w-100 p-3 text-start rounded-3 h-100 position-relative pay-method-label" for="pay_pix">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="fw-bold d-flex align-items-center gap-1">
+                                    <i class="bi bi-qr-code text-success fs-5"></i> Pix
+                                </span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size:0.7rem;">
+                                    Instantâneo
+                                </span>
+                            </div>
+                            <small class="text-muted d-block" style="font-size:0.75rem;">Aprovação imediata via QR Code</small>
+                        </label>
+                    </div>
+
+                    <!-- Opção Cartão de Crédito -->
+                    <div class="col-6">
+                        <input type="radio" class="btn-check" name="forma_pagamento" id="pay_cartao" value="cartao_credito">
+                        <label class="btn btn-outline-light border text-dark w-100 p-3 text-start rounded-3 h-100 position-relative pay-method-label" for="pay_cartao">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="fw-bold d-flex align-items-center gap-1">
+                                    <i class="bi bi-credit-card text-primary fs-5"></i> Cartão
+                                </span>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size:0.7rem;">
+                                    Até 12x
+                                </span>
+                            </div>
+                            <small class="text-muted d-block" style="font-size:0.75rem;">Crédito à vista ou parcelado</small>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Detalhes Pix Box -->
+                <div id="box-pix-info" class="card bg-success-subtle border-0 rounded-3 p-3 mb-3">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="bi bi-shield-check text-success fs-4 mt-0"></i>
+                        <div>
+                            <div class="fw-bold text-success-emphasis small">Pagamento Rápido e Seguro</div>
+                            <p class="text-muted small mb-0" style="font-size:0.8rem;">
+                                Ao confirmar seu pedido, geraremos o <strong>QR Code</strong> e o código <strong>Pix Copia e Cola</strong> para pagamento no seu banco.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campos de Cartão de Crédito Box -->
+                <div id="box-cartao-campos" class="d-none card border-0 bg-light rounded-3 p-3 mb-3">
+                    <div class="row g-2">
+                        <!-- Número do Cartão -->
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-muted mb-1" for="cartao_numero">Número do Cartão</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0" id="card-brand-icon">
+                                    <i class="bi bi-credit-card text-muted"></i>
+                                </span>
+                                <input type="text" id="cartao_numero" name="cartao_numero" class="form-control border-start-0 font-monospace"
+                                    placeholder="0000 0000 0000 0000" maxlength="19">
+                            </div>
+                        </div>
+
+                        <!-- Nome Impresso -->
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-muted mb-1" for="cartao_nome">Nome no Cartão (como impresso)</label>
+                            <input type="text" id="cartao_nome" name="cartao_nome" class="form-control text-uppercase"
+                                placeholder="NOME COMPLETO">
+                        </div>
+
+                        <!-- Validade -->
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-muted mb-1" for="cartao_validade">Validade</label>
+                            <input type="text" id="cartao_validade" name="cartao_validade" class="form-control font-monospace"
+                                placeholder="MM/AA" maxlength="5">
+                        </div>
+
+                        <!-- CVV -->
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-muted mb-1" for="cartao_cvv">CVV</label>
+                            <input type="text" id="cartao_cvv" name="cartao_cvv" class="form-control font-monospace"
+                                placeholder="123" maxlength="4">
+                        </div>
+
+                        <!-- Parcelas -->
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-muted mb-1" for="cartao_parcelas">Parcelamento</label>
+                            <select id="cartao_parcelas" name="cartao_parcelas" class="form-select">
+                                <?php for ($p = 1; $p <= 12; $p++): ?>
+                                    <?php $valorParc = $totalFinal / $p; ?>
+                                    <option value="<?= $p ?>">
+                                        <?= $p ?>x de R$ <?= number_format($valorParc, 2, ',', '.') ?> <?= $p === 1 ? '(à vista)' : '(sem juros)' ?>
+                                    </option>
+                                <?php endfor; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
             <!-- Resumo Financeiro no Checkout -->
-            <div class="card bg-light border-0 rounded-3 p-3 mt-4">
+            <div class="card bg-light border-0 rounded-3 p-3 mt-3">
                 <div class="d-flex justify-content-between small text-muted mb-1">
                     <span>Subtotal</span>
                     <span>R$ <?= esc(number_format($subtotal, 2, ',', '.')) ?></span>
@@ -370,7 +539,7 @@
                 </div>
                 <div class="border-top pt-2 d-flex justify-content-between fw-bold fs-5 text-dark">
                     <span>Total do Pedido</span>
-                    <span class="text-success">R$ <?= esc(number_format($totalFinal, 2, ',', '.')) ?></span>
+                    <span class="text-success" id="checkout-total-val">R$ <?= esc(number_format($totalFinal, 2, ',', '.')) ?></span>
                 </div>
             </div>
 
@@ -443,6 +612,89 @@ document.addEventListener('DOMContentLoaded', function () {
         if (cepInput.value.replace(/\D/g, '').length === 8) {
             buscarEnderecoPorCep(cepInput.value);
         }
+    }
+
+    // ----------------------------------------------------------------
+    // Alternância de Forma de Pagamento (Pix / Cartão de Crédito)
+    // ----------------------------------------------------------------
+    const radioPix    = document.getElementById('pay_pix');
+    const radioCartao = document.getElementById('pay_cartao');
+    const boxPix      = document.getElementById('box-pix-info');
+    const boxCartao   = document.getElementById('box-cartao-campos');
+
+    const inputNumCard  = document.getElementById('cartao_numero');
+    const inputNomeCard = document.getElementById('cartao_nome');
+    const inputValCard  = document.getElementById('cartao_validade');
+    const inputCvvCard  = document.getElementById('cartao_cvv');
+    const brandIcon     = document.getElementById('card-brand-icon');
+
+    function alternarMetodoPagamento() {
+        if (radioCartao && radioCartao.checked) {
+            if (boxPix) boxPix.classList.add('d-none');
+            if (boxCartao) boxCartao.classList.remove('d-none');
+
+            if (inputNumCard) inputNumCard.setAttribute('required', 'required');
+            if (inputNomeCard) inputNomeCard.setAttribute('required', 'required');
+            if (inputValCard) inputValCard.setAttribute('required', 'required');
+            if (inputCvvCard) inputCvvCard.setAttribute('required', 'required');
+        } else {
+            if (boxPix) boxPix.classList.remove('d-none');
+            if (boxCartao) boxCartao.classList.add('d-none');
+
+            if (inputNumCard) inputNumCard.removeAttribute('required');
+            if (inputNomeCard) inputNomeCard.removeAttribute('required');
+            if (inputValCard) inputValCard.removeAttribute('required');
+            if (inputCvvCard) inputCvvCard.removeAttribute('required');
+        }
+    }
+
+    if (radioPix && radioCartao) {
+        radioPix.addEventListener('change', alternarMetodoPagamento);
+        radioCartao.addEventListener('change', alternarMetodoPagamento);
+    }
+
+    // Máscara e Detecção de Bandeira do Cartão
+    if (inputNumCard) {
+        inputNumCard.addEventListener('input', function () {
+            let v = this.value.replace(/\D/g, '').substring(0, 16);
+            v = v.replace(/(\d{4})(?=\d)/g, '$1 ');
+            this.value = v;
+
+            const clean = v.replace(/\D/g, '');
+            if (brandIcon) {
+                if (/^4/.test(clean)) {
+                    brandIcon.innerHTML = '<i class="bi bi-credit-card-2-front-fill text-primary" title="Visa"></i>';
+                } else if (/^(5[1-5]|222[1-9]|22[3-9]|2[3-6]|27[01]|2720)/.test(clean)) {
+                    brandIcon.innerHTML = '<i class="bi bi-credit-card-2-front-fill text-warning" title="Mastercard"></i>';
+                } else if (/^3[47]/.test(clean)) {
+                    brandIcon.innerHTML = '<i class="bi bi-credit-card-2-front-fill text-info" title="American Express"></i>';
+                } else if (/^((636368)|(438935)|(504175)|(451416)|(636297)|(5067)|(4576)|(4011))/.test(clean)) {
+                    brandIcon.innerHTML = '<i class="bi bi-credit-card-2-front-fill text-danger" title="Elo"></i>';
+                } else if (/^(606282|3841)/.test(clean)) {
+                    brandIcon.innerHTML = '<i class="bi bi-credit-card-2-front-fill text-danger" title="Hipercard"></i>';
+                } else {
+                    brandIcon.innerHTML = '<i class="bi bi-credit-card text-muted"></i>';
+                }
+            }
+        });
+    }
+
+    // Máscara de Validade do Cartão (MM/AA)
+    if (inputValCard) {
+        inputValCard.addEventListener('input', function () {
+            let v = this.value.replace(/\D/g, '').substring(0, 4);
+            if (v.length >= 2) {
+                v = v.substring(0, 2) + '/' + v.substring(2);
+            }
+            this.value = v;
+        });
+    }
+
+    // Máscara de CVV
+    if (inputCvvCard) {
+        inputCvvCard.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').substring(0, 4);
+        });
     }
 
     // ----------------------------------------------------------------

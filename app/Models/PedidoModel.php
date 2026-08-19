@@ -18,6 +18,8 @@ class PedidoModel extends Model
         'desconto_valor',
         'frete_modalidade',
         'frete_valor',
+        'forma_pagamento',
+        'status_pagamento',
         'status',
         'cep',
         'logradouro',
@@ -54,5 +56,15 @@ class PedidoModel extends Model
         $this->orderBy('pedidos.criado_em', 'DESC');
 
         return $this->paginate($perPage);
+    }
+
+    public function atualizarStatusPagamento(int $pedidoId, string $statusPagamento, ?string $novoStatusPedido = null): bool
+    {
+        $dados = ['status_pagamento' => $statusPagamento];
+        if ($novoStatusPedido !== null) {
+            $dados['status'] = $novoStatusPedido;
+        }
+
+        return $this->update($pedidoId, $dados);
     }
 }

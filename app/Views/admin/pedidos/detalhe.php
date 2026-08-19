@@ -104,6 +104,76 @@
 
                 <hr>
 
+                <!-- Informações de Pagamento -->
+                <div class="mb-3">
+                    <p class="fw-semibold mb-2" style="font-size:.875rem;">
+                        <i class="bi bi-credit-card text-primary me-1"></i>Informações de Pagamento
+                    </p>
+                    <div class="bg-light p-3 rounded-3 small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Método:</span>
+                            <span class="badge bg-white text-dark border">
+                                <?= esc(getMetodoPagamentoLabel($pedido['forma_pagamento'] ?? $pagamento['metodo'] ?? null)) ?>
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Status Pagamento:</span>
+                            <span class="badge <?= getPagamentoStatusColorClass($pagamento['status'] ?? $pedido['status_pagamento'] ?? 'pendente') ?>">
+                                <?= esc(ucfirst($pagamento['status'] ?? $pedido['status_pagamento'] ?? 'pendente')) ?>
+                            </span>
+                        </div>
+                        <?php if (!empty($pagamento['transacao_id'])): ?>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">ID Transação:</span>
+                                <span class="font-monospace text-truncate" style="max-width:140px;" title="<?= esc($pagamento['transacao_id']) ?>">
+                                    <?= esc($pagamento['transacao_id']) ?>
+                                </span>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($pagamento['cartao_ultimos_digitos'])): ?>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Cartão:</span>
+                                <span>Final <?= esc($pagamento['cartao_ultimos_digitos']) ?> (<?= esc(strtoupper($pagamento['cartao_bandeira'] ?? '')) ?>) - <?= esc($pagamento['cartao_parcelas'] ?? 1) ?>x</span>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($pagamento['pago_em'])): ?>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Data Pagamento:</span>
+                                <span><?= esc(date('d/m/Y H:i', strtotime($pagamento['pago_em']))) ?></span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if (($pagamento['status'] ?? $pedido['status_pagamento'] ?? '') === 'pendente'): ?>
+                        <div class="mt-2">
+                            <?= form_open('api/webhook/simular') ?>
+                                <input type="hidden" name="pedido_id" value="<?= esc($pedido['id']) ?>">
+                                <input type="hidden" name="evento" value="pago">
+                                <button type="submit" class="btn btn-sm btn-outline-success w-100 rounded-pill" id="btn-simular-aprovacao">
+                                    <i class="bi bi-play-circle me-1"></i>Simular Confirmação via Webhook
+                                </button>
+                            <?= form_close() ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <hr>
+
+                <!-- Endereço de Entrega -->
+                <div class="mb-3">
+                    <p class="fw-semibold mb-1" style="font-size:.875rem;">
+                        <i class="bi bi-geo-alt text-primary me-1"></i>Endereço de Entrega
+                    </p>
+                    <p class="text-muted small mb-0 lh-sm">
+                        <?= esc($pedido['logradouro'] ?? '') ?>, <?= esc($pedido['numero'] ?? '') ?><br>
+                        <?= !empty($pedido['complemento']) ? esc($pedido['complemento']) . '<br>' : '' ?>
+                        <?= esc($pedido['bairro'] ?? '') ?> — <?= esc($pedido['cidade'] ?? '') ?>/<?= esc($pedido['uf'] ?? '') ?><br>
+                        CEP: <?= esc($pedido['cep'] ?? '') ?>
+                    </p>
+                </div>
+
+                <hr>
+
                 <p class="fw-semibold mb-2" style="font-size:.875rem;">Atualizar Status</p>
                 <?= form_open('admin/pedidos/atualizar-status/' . $pedido['id']) ?>
                     <div class="d-flex gap-2">

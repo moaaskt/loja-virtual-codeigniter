@@ -19,9 +19,9 @@
 - [ ] **Aplicação de Cupons (Cliente)**: Campo para aplicar cupom no carrinho e checkout com validação em tempo real e recálculo do valor total.
 
 ### 2. Gateway de Pagamento (Phase 6)
-- [ ] **Pagamento via Pix**: Geração de QR Code e código Copia e Cola para pagamento instantâneo.
-- [ ] **Pagamento via Cartão de Crédito**: Formulário com validação de dados de cartão e parcelamento.
-- [ ] **Webhook / Callback de Pagamento**: Atualização automática do status do pedido (Pendente -> Pago -> Cancelado).
+- [x] **Pagamento via Pix**: Geração de QR Code e código Copia e Cola para pagamento instantâneo.
+- [x] **Pagamento via Cartão de Crédito**: Formulário com validação de dados de cartão e parcelamento.
+- [x] **Webhook / Callback de Pagamento**: Atualização automática do status do pedido (Pendente -> Pago -> Cancelado).
 
 ### 3. Notificações Transacionais por E-mail (Phase 7)
 - [ ] **Configuração de E-mail (SMTP)**: Serviço de envio de e-mails integrado ao CodeIgniter 4.
