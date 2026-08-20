@@ -52,8 +52,19 @@ class AvaliacaoController extends BaseController
             return redirect()->back()->with('erro', 'Produto não encontrado.');
         }
 
-        // Valida elegibilidade (compra verificada e avaliação prévia)
+        // Valida elegibilidade (restrito a comprador verificado ou admin)
         $statusPermissao = $this->avaliacaoModel->usuarioPodeAvaliar($usuarioId, $produtoId);
+        $isAdmin         = session()->get('role') === 'admin';
+
+        if (!$isAdmin && empty($statusPermissao['comprou'])) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setStatusCode(403)->setJSON([
+                    'ok'       => false,
+                    'mensagem' => 'Você precisa ter adquirido este produto para avaliá-lo.',
+                ]);
+            }
+            return redirect()->back()->with('erro', 'Você precisa ter adquirido este produto para avaliá-lo.');
+        }
 
         $dadosAvaliacao = [
             'produto_id'        => $produtoId,
@@ -63,7 +74,7 @@ class AvaliacaoController extends BaseController
             'titulo'            => !empty($titulo) ? $titulo : null,
             'comentario'        => $comentario,
             'status'            => 'pendente', // Enviada para moderação
-            'compra_verificada' => $statusPermissao['comprou'] ? 1 : 0,
+            'compra_verificada' => ($statusPermissao['comprou'] || $isAdmin) ? 1 : 0,
         ];
 
         // Se já avaliou anteriormente, atualiza a avaliação existente
