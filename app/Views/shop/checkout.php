@@ -534,8 +534,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnDevFill = document.getElementById('btn-dev-fill-card');
     if (btnDevFill) {
         const testCards = [
-            { num: '4532015012345678', nome: 'JOAO SILVA TESTE', val: '12/30', cvv: '123' },
-            { num: '5522015012345678', nome: 'MARIA SANTOS TESTE', val: '08/29', cvv: '456' },
+            { num: '4111111111111111', nome: 'JOAO SILVA TESTE', val: '12/30', cvv: '123' },
+            { num: '5555555555554444', nome: 'MARIA SANTOS TESTE', val: '08/29', cvv: '456' },
             { num: '4011785012345678', nome: 'PEDRO ALVES TESTE', val: '11/31', cvv: '789' }
         ];
         let testIdx = 0;
