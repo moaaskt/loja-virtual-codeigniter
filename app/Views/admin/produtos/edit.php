@@ -96,8 +96,38 @@
                                     <?php foreach ($variacoes as $index => $var): ?>
                                         <?php 
                                         $corValor = $var['cor'] ?? '';
-                                        $isHex = preg_match('/^#([a-f0-9]{3}){1,2}\b/i', $corValor);
-                                        $pickerColor = $isHex ? $corValor : '#000000';
+                                        $corHexDb = $var['cor_hex'] ?? '';
+                                        
+                                        // Determinar Hex válido para o input type="color"
+                                        $pickerColor = '#000000';
+                                        if (preg_match('/^#[0-9a-fA-F]{6}$/i', $corHexDb)) {
+                                            $pickerColor = $corHexDb;
+                                        } elseif (preg_match('/^#[0-9a-fA-F]{3}$/i', $corHexDb)) {
+                                            $pickerColor = '#' . $corHexDb[1].$corHexDb[1].$corHexDb[2].$corHexDb[2].$corHexDb[3].$corHexDb[3];
+                                        } elseif (preg_match('/^#[0-9a-fA-F]{6}$/i', $corValor)) {
+                                            $pickerColor = $corValor;
+                                        } elseif (preg_match('/^#[0-9a-fA-F]{3}$/i', $corValor)) {
+                                            $pickerColor = '#' . $corValor[1].$corValor[1].$corValor[2].$corValor[2].$corValor[3].$corValor[3];
+                                        } else {
+                                            // Fallback por nome de cor comum
+                                            $c = mb_strtolower(trim($corValor));
+                                            $map = [
+                                                'preto' => '#000000', 'black' => '#000000',
+                                                'branco' => '#ffffff', 'white' => '#ffffff',
+                                                'cinza' => '#6c757d', 'gray' => '#6c757d',
+                                                'vermelho' => '#ef4444', 'red' => '#ef4444',
+                                                'azul' => '#3b82f6', 'blue' => '#3b82f6',
+                                                'verde' => '#10b981', 'green' => '#10b981',
+                                                'amarelo' => '#eab308', 'yellow' => '#eab308',
+                                                'rosa' => '#ec4899', 'pink' => '#ec4899',
+                                                'dourado' => '#f59e0b', 'gold' => '#f59e0b',
+                                                'prata' => '#d1d5db', 'silver' => '#d1d5db',
+                                                'titanio' => '#878681', 'titânio' => '#878681',
+                                            ];
+                                            if (isset($map[$c])) {
+                                                $pickerColor = $map[$c];
+                                            }
+                                        }
                                         ?>
                                         <tr>
                                             <td>
@@ -106,8 +136,8 @@
                                             </td>
                                             <td>
                                                 <div class="input-group input-group-sm">
-                                                    <input type="color" class="form-control form-control-color p-1 color-picker-input" value="<?= esc($pickerColor) ?>" style="width: 38px; height: 31px; cursor: pointer;" title="Escolha a cor">
-                                                    <input type="text" name="variacoes[<?= $index ?>][cor]" class="form-control form-control-sm color-text-input" value="<?= esc($corValor) ?>" placeholder="Ex: #000000 ou Preto">
+                                                    <input type="color" name="variacoes[<?= $index ?>][cor_hex]" class="form-control form-control-color p-1 color-picker-input" value="<?= esc($pickerColor) ?>" style="width: 38px; height: 31px; cursor: pointer;" title="Escolha a cor">
+                                                    <input type="text" name="variacoes[<?= $index ?>][cor]" class="form-control form-control-sm color-text-input" value="<?= esc($corValor) ?>" placeholder="Ex: Branco, Preto, #FFFFFF">
                                                 </div>
                                             </td>
                                             <td>
@@ -317,8 +347,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </td>
             <td>
                 <div class="input-group input-group-sm">
-                    <input type="color" class="form-control form-control-color p-1 color-picker-input" value="#000000" style="width: 38px; height: 31px; cursor: pointer;" title="Escolha a cor">
-                    <input type="text" name="variacoes[${variacaoIndex}][cor]" class="form-control form-control-sm color-text-input" placeholder="Ex: #000000 ou Preto">
+                    <input type="color" name="variacoes[${variacaoIndex}][cor_hex]" class="form-control form-control-color p-1 color-picker-input" value="#000000" style="width: 38px; height: 31px; cursor: pointer;" title="Escolha a cor">
+                    <input type="text" name="variacoes[${variacaoIndex}][cor]" class="form-control form-control-sm color-text-input" placeholder="Ex: Branco, Preto, #FFFFFF">
                 </div>
             </td>
             <td>
@@ -361,19 +391,45 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Mapa de nomes de cores populares para Hexadecimal
+    const corNomesMap = {
+        'preto': '#000000', 'black': '#000000',
+        'branco': '#ffffff', 'white': '#ffffff',
+        'cinza': '#6c757d', 'cinza espacial': '#4a4d52', 'space gray': '#4a4d52', 'gray': '#6c757d',
+        'prata': '#d1d5db', 'silver': '#d1d5db',
+        'dourado': '#f59e0b', 'ouro': '#f59e0b', 'gold': '#f59e0b',
+        'vermelho': '#ef4444', 'red': '#ef4444',
+        'azul': '#3b82f6', 'blue': '#3b82f6', 'azul marinho': '#1e3a8a', 'navy': '#1e3a8a',
+        'verde': '#10b981', 'green': '#10b981',
+        'amarelo': '#eab308', 'yellow': '#eab308',
+        'laranja': '#f97316', 'orange': '#f97316',
+        'rosa': '#ec4899', 'pink': '#ec4899',
+        'roxo': '#8b5cf6', 'purple': '#8b5cf6',
+        'titanio': '#878681', 'titânio': '#878681', 'titanio natural': '#9a948d'
+    };
+
     // Sincronização inteligente entre o Color Picker e o Input Text de Cor
     tbodyVariacoes.addEventListener('input', function(e) {
         if (e.target.classList.contains('color-picker-input')) {
             const group = e.target.closest('.input-group');
             const textInput = group ? group.querySelector('.color-text-input') : null;
-            if (textInput) {
+            // Se o campo de texto estiver vazio ou já for um hex, atualiza o texto também
+            if (textInput && (!textInput.value || /^#[0-9a-fA-F]{3,6}$/i.test(textInput.value))) {
                 textInput.value = e.target.value;
             }
         } else if (e.target.classList.contains('color-text-input')) {
             const group = e.target.closest('.input-group');
             const pickerInput = group ? group.querySelector('.color-picker-input') : null;
-            if (pickerInput && /^#[0-9A-F]{6}$/i.test(e.target.value)) {
-                pickerInput.value = e.target.value;
+            const val = e.target.value.trim().toLowerCase();
+            
+            if (pickerInput) {
+                if (/^#[0-9a-fA-F]{6}$/i.test(val)) {
+                    pickerInput.value = val;
+                } else if (/^#[0-9a-fA-F]{3}$/i.test(val)) {
+                    pickerInput.value = '#' + val[1]+val[1]+val[2]+val[2]+val[3]+val[3];
+                } else if (corNomesMap[val]) {
+                    pickerInput.value = corNomesMap[val];
+                }
             }
         }
     });

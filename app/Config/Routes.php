@@ -15,11 +15,13 @@ $routes->get('categoria/(:num)', 'HomeController::produtosPorCategoria/$1');
 $routes->get('busca', 'HomeController::busca');
 $routes->get('api/produtos/busca', 'HomeController::buscaApi');
 
-// Frete & Pagamentos
+// Frete, Pagamentos & Avaliações
 $routes->post('api/frete/calcular', 'FreteController::calcular');
 $routes->post('api/webhook/pagamento', 'WebhookController::receber');
 $routes->post('api/webhook/simular', 'WebhookController::simular');
 $routes->get('api/pedidos/(:num)/status-pagamento', 'PagamentoController::status/$1');
+$routes->get('api/produtos/(:num)/avaliacoes', 'AvaliacaoController::listarApi/$1');
+$routes->post('avaliacao/enviar', 'AvaliacaoController::enviar', ['filter' => 'auth']);
 
 // Carrinho
 $routes->get('carrinho', 'CarrinhoController::index');
@@ -90,6 +92,12 @@ $routes->group('admin', ['filter' => ['auth', 'admin']], static function ($route
     $routes->post('cupons/update/(:num)', 'Admin\CuponsController::update/$1');
     $routes->post('cupons/delete/(:num)', 'Admin\CuponsController::delete/$1');
     $routes->post('cupons/toggle/(:num)', 'Admin\CuponsController::toggle/$1');
+
+    // Avaliações de Produtos (Moderação)
+    $routes->get('avaliacoes', 'Admin\AvaliacoesController::index');
+    $routes->post('avaliacoes/aprovar/(:num)', 'Admin\AvaliacoesController::aprovar/$1');
+    $routes->post('avaliacoes/rejeitar/(:num)', 'Admin\AvaliacoesController::rejeitar/$1');
+    $routes->post('avaliacoes/delete/(:num)', 'Admin\AvaliacoesController::delete/$1');
 
     // E-mails & Notificações
     $routes->get('emails', 'Admin\EmailPreviewController::index');

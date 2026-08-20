@@ -68,6 +68,13 @@
                 </a>
             </li>
             <li>
+                <a href="<?= site_url('admin/avaliacoes') ?>"
+                    class="nav-link <?= str_starts_with(uri_string(), 'admin/avaliacoes') ? 'active' : '' ?>">
+                    <i class="bi bi-star-half"></i>
+                    Avaliações
+                </a>
+            </li>
+            <li>
                 <a href="<?= site_url('admin/clientes') ?>"
                     class="nav-link <?= str_starts_with(uri_string(), 'admin/clientes') ? 'active' : '' ?>">
                     <i class="bi bi-people-fill"></i>

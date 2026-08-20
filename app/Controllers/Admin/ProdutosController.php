@@ -49,10 +49,10 @@ class ProdutosController extends BaseController
         foreach ($variacoes as $idx => $v) {
             $tamanho = isset($v['tamanho']) ? trim($v['tamanho']) : '';
             $cor     = isset($v['cor']) ? trim($v['cor']) : '';
+            $corHex  = isset($v['cor_hex']) ? trim($v['cor_hex']) : '';
             $estoque = $v['estoque'] ?? '';
 
-            // Se for uma linha vazia (sem tamanho, cor ou estoque), podemos ignorar ou validar se preencheu parcialmente
-            if ($tamanho === '' && $cor === '') {
+            if ($tamanho === '' && $cor === '' && $corHex === '') {
                 return redirect()->back()->withInput()->with('errors', [
                     'variacoes' => 'Cada variação adicionada precisa ter ao menos um atributo preenchido (tamanho/capacidade ou cor).'
                 ])->with('categorias', $this->categoriaModel->findAll());
@@ -107,14 +107,25 @@ class ProdutosController extends BaseController
         foreach ($variacoes as $v) {
             $tamanho = isset($v['tamanho']) ? trim($v['tamanho']) : '';
             $cor     = isset($v['cor']) && trim($v['cor']) !== '' ? trim($v['cor']) : null;
+            $corHex  = isset($v['cor_hex']) && trim($v['cor_hex']) !== '' ? trim($v['cor_hex']) : null;
+            
+            // Se cor for um hexadecimal e não tiver texto separado, ou vice-versa
+            if ($corHex !== null && !preg_match('/^#[0-9a-fA-F]{3,8}$/', $corHex)) {
+                $corHex = null;
+            }
+            if ($cor === null && $corHex !== null) {
+                $cor = $corHex;
+            }
+
             $preco   = isset($v['preco']) && trim($v['preco']) !== '' ? (float) str_replace(',', '.', $v['preco']) : null;
             $estoque = (int) ($v['estoque'] ?? 0);
 
-            if ($tamanho !== '' || $cor !== null) {
+            if ($tamanho !== '' || $cor !== null || $corHex !== null) {
                 $db->table('produto_variacoes')->insert([
                     'produto_id' => $produtoId,
                     'tamanho'    => $tamanho !== '' ? $tamanho : null,
                     'cor'        => $cor,
+                    'cor_hex'    => $corHex,
                     'preco'      => $preco,
                     'estoque'    => $estoque,
                 ]);
@@ -201,9 +212,10 @@ class ProdutosController extends BaseController
         foreach ($variacoes as $idx => $v) {
             $tamanho = isset($v['tamanho']) ? trim($v['tamanho']) : '';
             $cor     = isset($v['cor']) ? trim($v['cor']) : '';
+            $corHex  = isset($v['cor_hex']) ? trim($v['cor_hex']) : '';
             $estoque = $v['estoque'] ?? '';
 
-            if ($tamanho === '' && $cor === '') {
+            if ($tamanho === '' && $cor === '' && $corHex === '') {
                 return redirect()->back()->withInput()->with('errors', [
                     'variacoes' => 'Cada variação adicionada precisa ter ao menos um atributo preenchido (tamanho/capacidade ou cor).'
                 ])->with('categorias', $this->categoriaModel->findAll());
@@ -267,14 +279,24 @@ class ProdutosController extends BaseController
         foreach ($variacoes as $v) {
             $tamanho = isset($v['tamanho']) ? trim($v['tamanho']) : '';
             $cor     = isset($v['cor']) && trim($v['cor']) !== '' ? trim($v['cor']) : null;
+            $corHex  = isset($v['cor_hex']) && trim($v['cor_hex']) !== '' ? trim($v['cor_hex']) : null;
+
+            if ($corHex !== null && !preg_match('/^#[0-9a-fA-F]{3,8}$/', $corHex)) {
+                $corHex = null;
+            }
+            if ($cor === null && $corHex !== null) {
+                $cor = $corHex;
+            }
+
             $preco   = isset($v['preco']) && trim($v['preco']) !== '' ? (float) str_replace(',', '.', $v['preco']) : null;
             $estoque = (int) ($v['estoque'] ?? 0);
 
-            if ($tamanho !== '' || $cor !== null) {
+            if ($tamanho !== '' || $cor !== null || $corHex !== null) {
                 $db->table('produto_variacoes')->insert([
                     'produto_id' => $id,
                     'tamanho'    => $tamanho !== '' ? $tamanho : null,
                     'cor'        => $cor,
+                    'cor_hex'    => $corHex,
                     'preco'      => $preco,
                     'estoque'    => $estoque,
                 ]);

@@ -52,6 +52,11 @@
                                                         </small>
                                                     <?php endif; ?>
                                                     <small class="text-muted d-block">Quantidade: <?= esc($item['quantidade']) ?></small>
+                                                    <?php if (in_array(strtolower($pedido['status']), ['pago', 'enviado', 'entregue', 'processando']) || in_array(strtolower($pedido['status_pagamento'] ?? ''), ['pago', 'aprovado'])): ?>
+                                                        <a href="<?= site_url('produto/' . $item['produto_id'] . '#secao-avaliacoes') ?>" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3 py-0 mt-2 d-inline-flex align-items-center gap-1 shadow-sm" style="font-size:0.75rem;">
+                                                            <i class="bi bi-star-fill text-warning"></i> Avaliar Produto
+                                                        </a>
+                                                    <?php endif; ?>
                                                 </div>
                                             </div>
                                             <span class="badge bg-secondary rounded-pill">
