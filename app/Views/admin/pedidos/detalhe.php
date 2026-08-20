@@ -232,23 +232,34 @@
                 <p class="fw-semibold mb-2" style="font-size:.875rem;">
                     <i class="bi bi-envelope me-1 text-primary"></i>Reenviar Notificação
                 </p>
-                <div class="d-flex flex-column gap-1">
-                    <a href="<?= site_url('admin/pedidos/reenviar-email/' . $pedido['id'] . '/criado') ?>"
-                       class="btn btn-outline-secondary btn-sm" id="btn-reenviar-criado">
-                        🛒 Pedido Criado
-                    </a>
-                    <a href="<?= site_url('admin/pedidos/reenviar-email/' . $pedido['id'] . '/pago') ?>"
-                       class="btn btn-outline-success btn-sm" id="btn-reenviar-pago">
-                        ✅ Pagamento Aprovado
-                    </a>
-                    <a href="<?= site_url('admin/pedidos/reenviar-email/' . $pedido['id'] . '/enviado') ?>"
-                       class="btn btn-outline-info btn-sm" id="btn-reenviar-enviado">
-                        🚚 Pedido Enviado
-                    </a>
-                    <a href="<?= site_url('admin/pedidos/reenviar-email/' . $pedido['id'] . '/cancelado') ?>"
-                       class="btn btn-outline-danger btn-sm" id="btn-reenviar-cancelado">
-                        ❌ Cancelado
-                    </a>
+                <div class="d-flex flex-column gap-2">
+                    <form method="post" action="<?= site_url('admin/pedidos/reenviar-email/' . $pedido['id'] . '/criado') ?>" class="w-100">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100 text-start" id="btn-reenviar-criado">
+                            <i class="bi bi-cart-check me-2 text-secondary"></i>🛒 Pedido Criado
+                        </button>
+                    </form>
+
+                    <form method="post" action="<?= site_url('admin/pedidos/reenviar-email/' . $pedido['id'] . '/pago') ?>" class="w-100">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-outline-success btn-sm w-100 text-start" id="btn-reenviar-pago">
+                            <i class="bi bi-credit-card me-2 text-success"></i>✅ Pagamento Aprovado
+                        </button>
+                    </form>
+
+                    <form method="post" action="<?= site_url('admin/pedidos/reenviar-email/' . $pedido['id'] . '/enviado') ?>" class="w-100">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-outline-info btn-sm w-100 text-start" id="btn-reenviar-enviado">
+                            <i class="bi bi-truck me-2 text-info"></i>🚚 Pedido Enviado
+                        </button>
+                    </form>
+
+                    <form method="post" action="<?= site_url('admin/pedidos/reenviar-email/' . $pedido['id'] . '/cancelado') ?>" class="w-100">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 text-start" id="btn-reenviar-cancelado">
+                            <i class="bi bi-x-circle me-2 text-danger"></i>❌ Cancelado
+                        </button>
+                    </form>
                 </div>
 
             </div>

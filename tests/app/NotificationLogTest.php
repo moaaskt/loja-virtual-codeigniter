@@ -70,9 +70,11 @@ class NotificationLogTest extends CIUnitTestCase
         $this->assertIsArray($resultado);
         $this->assertArrayHasKey('ok', $resultado);
 
-        // Verifica incremento ou atualização no log
+        // Verifica incremento no número de tentativas (1 -> 2)
         $logAtualizado = $this->notificationModel->find($logId);
         $this->assertNotNull($logAtualizado);
+        $this->assertGreaterThanOrEqual(2, (int) $logAtualizado['tentativas']);
+        $this->assertContains($logAtualizado['status'], ['enviado', 'falhou']);
     }
 
     public function testEstatisticasNotificacoes(): void

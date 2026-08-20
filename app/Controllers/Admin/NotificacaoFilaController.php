@@ -4,6 +4,7 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\NotificationLogModel;
+use App\Services\AuditService;
 use App\Services\EmailService;
 
 class NotificacaoFilaController extends BaseController
@@ -41,16 +42,38 @@ class NotificacaoFilaController extends BaseController
 
     public function reprocessar(int $id)
     {
-        $res = $this->emailService->reprocessarNotificacao($id);
+        $logAntes = $this->notificationModel->find($id);
+        $res      = $this->emailService->reprocessarNotificacao($id);
+        $logDepois= $this->notificationModel->find($id);
+
+        // Registro de Auditoria no Reenvio
+        AuditService::log(
+            'notification_resend',
+            'notification_logs',
+            $id,
+            [
+                'status'         => $logDepois['status'] ?? ($res['ok'] ? 'enviado' : 'falhou'),
+                'tentativas'     => $logDepois['tentativas'] ?? null,
+                'resultado'      => $res['ok'] ? 'sucesso' : 'falha',
+                'mensagem'       => $res['mensagem'] ?? '',
+                'destinatario'   => $logAntes['destinatario'] ?? '',
+                'evento'         => $logAntes['evento'] ?? '',
+            ],
+            [
+                'status'         => $logAntes['status'] ?? 'desconhecido',
+                'tentativas'     => $logAntes['tentativas'] ?? null,
+                'mensagem_erro'  => $logAntes['mensagem_erro'] ?? null,
+            ]
+        );
 
         if ($this->request->isAJAX()) {
             return $this->response->setJSON($res);
         }
 
         if ($res['ok']) {
-            return redirect()->back()->with('sucesso', 'Notificação reprocessada com sucesso!');
+            return redirect()->back()->with('sucesso', "Notificação #{$id} reprocessada e enviada com sucesso para " . esc($logAntes['destinatario'] ?? '') . "!");
         }
 
-        return redirect()->back()->with('erro', 'Falha ao reprocessar: ' . ($res['mensagem'] ?? 'Erro desconhecido.'));
+        return redirect()->back()->with('erro', "Falha ao reprocessar notificação #{$id}: " . ($res['mensagem'] ?? 'Erro desconhecido no envio.'));
     }
 }

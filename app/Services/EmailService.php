@@ -146,14 +146,23 @@ class EmailService
     }
 
     /**
-     * Reprocessa um disparo de notificação que falhou.
+     * Reprocessa um disparo de notificação que falhou ou precisa de reenvio.
+     *
+     * @param int $logId ID do registro na tabela notification_logs
+     * @return array ['ok' => bool, 'mensagem' => string, 'log_id' => int]
      */
     public function reprocessarNotificacao(int $logId): array
     {
         $log = $this->notificationLogModel->find($logId);
         if (!$log) {
-            return ['ok' => false, 'mensagem' => 'Registro de notificação não encontrado.'];
+            return ['ok' => false, 'mensagem' => 'Registro de notificação não encontrado.', 'log_id' => $logId];
         }
+
+        // Incrementa o contador de tentativas antes do reenvio
+        $tentativas = ((int) ($log['tentativas'] ?? 0)) + 1;
+        $this->notificationLogModel->update($logId, [
+            'tentativas' => $tentativas,
+        ]);
 
         $payload = json_decode($log['payload'] ?? '{}', true);
         $para    = $log['destinatario'];

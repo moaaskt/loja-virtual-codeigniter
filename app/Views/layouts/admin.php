@@ -191,6 +191,23 @@
         </span>
     </div>
 
+    <!-- Flash Messages Globais -->
+    <?php if (session()->getFlashdata('sucesso') || session()->getFlashdata('success')): ?>
+        <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <?= session()->getFlashdata('sucesso') ?? session()->getFlashdata('success') ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('erro') || session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <?= session()->getFlashdata('erro') ?? session()->getFlashdata('error') ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+    <?php endif; ?>
+
     <?= $this->renderSection('content') ?>
 </div>
 

@@ -105,6 +105,15 @@ class PedidoController extends BaseController
     {
         $emailService = new EmailService();
 
+        $eventosLabels = [
+            'criado'    => 'Pedido Criado',
+            'pago'      => 'Pagamento Aprovado',
+            'enviado'   => 'Pedido Enviado',
+            'cancelado' => 'Pedido Cancelado',
+        ];
+
+        $eventoLabel = $eventosLabels[$tipo] ?? ucfirst($tipo);
+
         $resultado = match ($tipo) {
             'criado'   => $emailService->notificarPedidoCriado((int) $id),
             'pago'     => $emailService->notificarPagamentoAprovado((int) $id),
@@ -113,14 +122,26 @@ class PedidoController extends BaseController
             default    => ['ok' => false, 'mensagem' => 'Tipo de notificação inválido.'],
         };
 
+        // Registro de Auditoria no Reenvio Manual do Pedido
+        AuditService::log(
+            'notification_resend',
+            'pedidos',
+            (int) $id,
+            [
+                'evento'    => $tipo,
+                'resultado' => $resultado['ok'] ? 'sucesso' : 'falha',
+                'mensagem'  => $resultado['mensagem'] ?? '',
+            ],
+            null
+        );
+
         if ($resultado['ok']) {
-            return redirect()
-                ->to(site_url('admin/pedidos/detalhe/' . $id))
-                ->with('success', 'E-mail reenviado com sucesso!');
+            session()->setFlashdata('sucesso', "Notificação de {$eventoLabel} enviada com sucesso para o cliente!");
+            return redirect()->to(site_url('admin/pedidos/detalhe/' . $id));
         }
 
-        return redirect()
-            ->to(site_url('admin/pedidos/detalhe/' . $id))
-            ->with('error', 'Falha ao reenviar e-mail: ' . ($resultado['mensagem'] ?? 'Erro desconhecido.'));
+        $msgErro = $resultado['mensagem'] ?? 'Erro desconhecido ao disparar e-mail.';
+        session()->setFlashdata('erro', "Falha ao enviar notificação: {$msgErro}");
+        return redirect()->to(site_url('admin/pedidos/detalhe/' . $id));
     }
 }

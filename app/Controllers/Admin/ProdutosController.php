@@ -43,10 +43,27 @@ class ProdutosController extends BaseController
     {
         $data = $this->request->getPost();
         
-        // Calcular estoque total com base nas variações
+        // Validar e calcular estoque total com base nas variações
         $variacoes = $this->request->getPost('variacoes') ?? [];
         $totalEstoque = 0;
-        foreach ($variacoes as $v) {
+        foreach ($variacoes as $idx => $v) {
+            $tamanho = isset($v['tamanho']) ? trim($v['tamanho']) : '';
+            $cor     = isset($v['cor']) ? trim($v['cor']) : '';
+            $estoque = $v['estoque'] ?? '';
+
+            // Se for uma linha vazia (sem tamanho, cor ou estoque), podemos ignorar ou validar se preencheu parcialmente
+            if ($tamanho === '' && $cor === '') {
+                return redirect()->back()->withInput()->with('errors', [
+                    'variacoes' => 'Cada variação adicionada precisa ter ao menos um atributo preenchido (tamanho/capacidade ou cor).'
+                ])->with('categorias', $this->categoriaModel->findAll());
+            }
+
+            if ($estoque === '' || !is_numeric($estoque) || (int)$estoque < 0) {
+                return redirect()->back()->withInput()->with('errors', [
+                    'variacoes' => 'O campo de estoque de cada variação é obrigatório e deve ser um número maior ou igual a zero.'
+                ])->with('categorias', $this->categoriaModel->findAll());
+            }
+
             $totalEstoque += (int) $v['estoque'];
         }
         $data['estoque'] = $totalEstoque;
@@ -178,10 +195,26 @@ class ProdutosController extends BaseController
         $data   = $this->request->getPost();
         $produtoAntigo = $this->produtoModel->find($id);
         
-        // Calcular estoque total com base nas variações
+        // Validar e calcular estoque total com base nas variações
         $variacoes = $this->request->getPost('variacoes') ?? [];
         $totalEstoque = 0;
-        foreach ($variacoes as $v) {
+        foreach ($variacoes as $idx => $v) {
+            $tamanho = isset($v['tamanho']) ? trim($v['tamanho']) : '';
+            $cor     = isset($v['cor']) ? trim($v['cor']) : '';
+            $estoque = $v['estoque'] ?? '';
+
+            if ($tamanho === '' && $cor === '') {
+                return redirect()->back()->withInput()->with('errors', [
+                    'variacoes' => 'Cada variação adicionada precisa ter ao menos um atributo preenchido (tamanho/capacidade ou cor).'
+                ])->with('categorias', $this->categoriaModel->findAll());
+            }
+
+            if ($estoque === '' || !is_numeric($estoque) || (int)$estoque < 0) {
+                return redirect()->back()->withInput()->with('errors', [
+                    'variacoes' => 'O campo de estoque de cada variação é obrigatório e deve ser um número maior ou igual a zero.'
+                ])->with('categorias', $this->categoriaModel->findAll());
+            }
+
             $totalEstoque += (int) $v['estoque'];
         }
         $data['estoque'] = $totalEstoque;

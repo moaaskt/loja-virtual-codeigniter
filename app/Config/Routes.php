@@ -104,5 +104,5 @@ $routes->group('admin', ['filter' => ['auth', 'admin']], static function ($route
     $routes->get('auditoria', 'Admin\AuditoriaController::index');
 
     // Reenvio de e-mails de pedidos
-    $routes->get('pedidos/reenviar-email/(:num)/(:segment)', 'Admin\PedidoController::reenviarEmail/$1/$2');
+    $routes->match(['get', 'post'], 'pedidos/reenviar-email/(:num)/(:segment)', 'Admin\PedidoController::reenviarEmail/$1/$2');
 });
