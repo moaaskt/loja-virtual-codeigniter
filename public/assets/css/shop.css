@@ -536,33 +536,35 @@ body {
 .pdp-gallery-main {
     position: relative;
     overflow: hidden;
-    border-radius: var(--radius-lg);
-    background: #f8fafc;
+    border-radius: 12px;
+    background: #ffffff;
     border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-card);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 .pdp-main-img {
     width: 100%;
     height: 480px;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
     transition: opacity .2s ease;
+    background: #ffffff;
 }
 .pdp-thumbnails {
     display: flex;
     gap: .625rem;
     overflow-x: auto;
     scrollbar-width: none;
+    padding-bottom: 4px;
 }
 .pdp-thumbnails::-webkit-scrollbar { display: none; }
 
 .pdp-thumb-btn {
     flex-shrink: 0;
-    width: 80px;
-    height: 80px;
+    width: 76px;
+    height: 76px;
     padding: 0;
     border: 2px solid var(--border-color);
-    border-radius: var(--radius-sm);
+    border-radius: 10px;
     overflow: hidden;
     cursor: pointer;
     background: #fff;
@@ -588,7 +590,13 @@ body {
     display: flex;
     flex-direction: column;
     gap: .25rem;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.75rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
+
 .pdp-category-tag {
     display: inline-flex;
     align-items: center;
@@ -1250,10 +1258,11 @@ body {
 }
 
 .review-summary-card {
-    background: #f8fafc;
+    background: #ffffff;
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
+    border-radius: 12px;
     padding: 1.75rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
 .review-score-big {
@@ -1324,14 +1333,15 @@ body {
 .review-card {
     background: #fff;
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    border-radius: 12px;
     padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     transition: var(--transition);
 }
 
 .review-card:hover {
     border-color: #cbd5e1;
-    box-shadow: 0 4px 16px rgba(0,0,0,.04);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 
 .review-avatar {
@@ -1348,6 +1358,26 @@ body {
     text-transform: uppercase;
     flex-shrink: 0;
 }
+
+/* ---------- Desktop Layout Enhancements (min-width: 992px) ---------- */
+@media (min-width: 992px) {
+    .pdp-gallery-main {
+        height: 520px;
+    }
+    .pdp-main-img {
+        height: 520px;
+    }
+    .review-summary-card.sticky-lg-top {
+        position: sticky;
+        top: 90px;
+        z-index: 10;
+    }
+    .pdp-related-section .product-card {
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+}
+
 
 
 
