@@ -20,6 +20,44 @@ class FreteCuponsTest extends CIUnitTestCase
         $this->freteService = new FreteService();
     }
 
+    private function garantirCuponsTeste(): void
+    {
+        $db = \Config\Database::connect('default');
+        $cupons = [
+            [
+                'codigo'              => 'PRIMEIRACOMPRA',
+                'tipo'                => 'porcentagem',
+                'valor'               => 10.00,
+                'valor_minimo_pedido' => 0.00,
+                'limite_uso'          => 100,
+                'vezes_usado'         => 0,
+                'data_validade'       => date('Y-m-d', strtotime('+60 days')),
+                'ativo'               => 1,
+                'criado_em'           => date('Y-m-d H:i:s'),
+                'atualizado_em'       => date('Y-m-d H:i:s'),
+            ],
+            [
+                'codigo'              => 'OFF20',
+                'tipo'                => 'fixo',
+                'valor'               => 20.00,
+                'valor_minimo_pedido' => 100.00,
+                'limite_uso'          => 50,
+                'vezes_usado'         => 0,
+                'data_validade'       => date('Y-m-d', strtotime('+30 days')),
+                'ativo'               => 1,
+                'criado_em'           => date('Y-m-d H:i:s'),
+                'atualizado_em'       => date('Y-m-d H:i:s'),
+            ],
+        ];
+
+        foreach ($cupons as $cupom) {
+            $existe = $db->table('cupons')->where('codigo', $cupom['codigo'])->countAllResults();
+            if ($existe === 0) {
+                $db->table('cupons')->insert($cupom);
+            }
+        }
+    }
+
     public function testCalculoFreteRegiaoSP(): void
     {
         $res = $this->freteService->calcular('01310-100', 100.00, false);
@@ -71,6 +109,7 @@ class FreteCuponsTest extends CIUnitTestCase
 
     public function testValidacaoCuponsComMySQL(): void
     {
+        $this->garantirCuponsTeste();
         $db = \Config\Database::connect('default');
         $cupomModel = new CupomModel($db);
 
@@ -95,6 +134,7 @@ class FreteCuponsTest extends CIUnitTestCase
 
     public function testTotaisCarrinhoComCupomEFrete(): void
     {
+        $this->garantirCuponsTeste();
         $db = \Config\Database::connect('default');
         $cupomModel = new CupomModel($db);
 
