@@ -31,12 +31,14 @@
         foreach ($variacoes as $var) {
             $t = trim($var['tamanho'] ?? '');
             $c = trim($var['cor'] ?? '');
+            $hex = trim($var['cor_hex'] ?? '');
             $p = (!empty($var['preco']) && (float)$var['preco'] > 0) ? (float)$var['preco'] : (float)$produto['preco'];
             
             $variacoesData[] = [
                 'id'      => (int)$var['id'],
                 'tamanho' => $t,
                 'cor'     => $c,
+                'cor_hex' => $hex,
                 'preco'   => $p,
                 'estoque' => (int)$var['estoque']
             ];
@@ -44,8 +46,20 @@
             if ($t !== '' && !in_array($t, $tamanhosDisponiveis)) {
                 $tamanhosDisponiveis[] = $t;
             }
-            if ($c !== '' && !in_array($c, $coresDisponiveis)) {
-                $coresDisponiveis[] = $c;
+            if ($c !== '') {
+                $found = false;
+                foreach ($coresDisponiveis as $cd) {
+                    if ($cd['nome'] === $c) {
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) {
+                    $coresDisponiveis[] = [
+                        'nome' => $c,
+                        'hex'  => $hex
+                    ];
+                }
             }
         }
     }
@@ -80,13 +94,17 @@
     }
 
     if (!function_exists('resolverCorCss')) {
-        function resolverCorCss(string $cor): string {
+        function resolverCorCss(string $cor, string $corHex = ''): string {
+            if (!empty($corHex) && preg_match('/^#[0-9a-fA-F]{3,6}$/i', $corHex)) {
+                return $corHex;
+            }
             $c = mb_strtolower(trim($cor), 'UTF-8');
             $map = [
-                'preto'            => '#111111',
-                'black'            => '#111111',
+                'preto'            => '#000000',
+                'black'            => '#000000',
                 'branco'           => '#ffffff',
                 'white'            => '#ffffff',
+                'off-white'        => '#faf0e6',
                 'cinza'            => '#6c757d',
                 'cinza espacial'   => '#4a4d52',
                 'space gray'       => '#4a4d52',
@@ -234,11 +252,15 @@
             <div class="pdp-variant-section">
                 <p class="pdp-variant-label">Cor: <span id="selected-color-name" class="fw-semibold text-primary ms-1"></span></p>
                 <div class="pdp-variant-options d-flex flex-wrap gap-2 align-items-center" id="color-options">
-                    <?php foreach ($coresDisponiveis as $index => $cor): ?>
-                        <?php $cssColor = resolverCorCss($cor); ?>
-                        <label class="pdp-color-chip variant-color-label" data-color="<?= esc($cor) ?>" title="<?= esc($cor) ?>">
-                            <input type="radio" name="cor" value="<?= esc($cor) ?>" class="variant-color-selector">
-                            <span class="pdp-color-swatch border shadow-sm" style="background-color: <?= esc($cssColor) ?>;" title="<?= esc($cor) ?>">
+                    <?php foreach ($coresDisponiveis as $index => $corItem): ?>
+                        <?php 
+                        $corNome = is_array($corItem) ? ($corItem['nome'] ?? '') : (string)$corItem;
+                        $corHex  = is_array($corItem) ? ($corItem['hex'] ?? '') : '';
+                        $cssColor = resolverCorCss($corNome, $corHex); 
+                        ?>
+                        <label class="pdp-color-chip variant-color-label" data-color="<?= esc($corNome) ?>" title="<?= esc($corNome) ?>">
+                            <input type="radio" name="cor" value="<?= esc($corNome) ?>" class="variant-color-selector">
+                            <span class="pdp-color-swatch border shadow-sm" style="background-color: <?= esc($cssColor) ?>;" title="<?= esc($corNome) ?>">
                                 <i class="bi bi-check2"></i>
                             </span>
                         </label>
