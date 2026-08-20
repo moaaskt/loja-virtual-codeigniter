@@ -1,4 +1,4 @@
-# 🛒 G'Store — Loja Virtual em CodeIgniter 4
+# 🛒 G'Store 
 
 ![PHP](https://img.shields.io/badge/PHP-8.1-777BB4?logo=php&logoColor=white)
 ![CodeIgniter](https://img.shields.io/badge/CodeIgniter-4-EF4223?logo=codeigniter&logoColor=white)
