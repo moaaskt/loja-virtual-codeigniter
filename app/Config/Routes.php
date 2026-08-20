@@ -96,6 +96,13 @@ $routes->group('admin', ['filter' => ['auth', 'admin']], static function ($route
     $routes->get('emails/preview/(:segment)', 'Admin\EmailPreviewController::preview/$1');
     $routes->post('emails/testar', 'Admin\EmailPreviewController::testar');
 
+    // Fila e Logs de Notificações
+    $routes->get('notificacoes/fila', 'Admin\NotificacaoFilaController::index');
+    $routes->post('notificacoes/reprocessar/(:num)', 'Admin\NotificacaoFilaController::reprocessar/$1');
+
+    // Trilha de Auditoria
+    $routes->get('auditoria', 'Admin\AuditoriaController::index');
+
     // Reenvio de e-mails de pedidos
     $routes->get('pedidos/reenviar-email/(:num)/(:segment)', 'Admin\PedidoController::reenviarEmail/$1/$2');
 });

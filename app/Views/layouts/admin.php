@@ -74,12 +74,72 @@
                     Clientes
                 </a>
             </li>
+        </ul>
+    </nav>
+
+    <?php
+    $isNotificacoesActive = str_starts_with(uri_string(), 'admin/emails') || str_starts_with(uri_string(), 'admin/notificacoes');
+    $isAuditoriaActive    = str_starts_with(uri_string(), 'admin/auditoria');
+    ?>
+
+    <span class="sidebar-section-label">Sistema</span>
+    <nav>
+        <ul class="nav flex-column">
+            <!-- Submenu Notificações -->
             <li>
-                <a href="<?= site_url('admin/emails') ?>"
-                    class="nav-link <?= str_starts_with(uri_string(), 'admin/emails') ? 'active' : '' ?>">
-                    <i class="bi bi-envelope-fill"></i>
-                    E-mails
+                <a class="nav-link sidebar-toggle <?= $isNotificacoesActive ? 'active' : 'collapsed' ?>"
+                   data-bs-toggle="collapse"
+                   href="#submenuNotificacoes"
+                   role="button"
+                   aria-expanded="<?= $isNotificacoesActive ? 'true' : 'false' ?>"
+                   aria-controls="submenuNotificacoes">
+                    <i class="bi bi-bell-fill"></i>
+                    <span>Notificações</span>
+                    <i class="bi bi-chevron-right submenu-arrow"></i>
                 </a>
+                <div class="collapse <?= $isNotificacoesActive ? 'show' : '' ?>" id="submenuNotificacoes">
+                    <ul class="nav flex-column sidebar-submenu">
+                        <li>
+                            <a href="<?= site_url('admin/emails') ?>"
+                               class="nav-link <?= (uri_string() === 'admin/emails' || str_starts_with(uri_string(), 'admin/emails/')) ? 'active' : '' ?>">
+                                <i class="bi bi-envelope"></i>
+                                Templates E-mail
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= site_url('admin/notificacoes/fila') ?>"
+                               class="nav-link <?= str_starts_with(uri_string(), 'admin/notificacoes') ? 'active' : '' ?>">
+                                <i class="bi bi-send-check"></i>
+                                Fila & Histórico
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            <!-- Submenu Auditoria & Segurança -->
+            <li>
+                <a class="nav-link sidebar-toggle <?= $isAuditoriaActive ? 'active' : 'collapsed' ?>"
+                   data-bs-toggle="collapse"
+                   href="#submenuAuditoria"
+                   role="button"
+                   aria-expanded="<?= $isAuditoriaActive ? 'true' : 'false' ?>"
+                   aria-controls="submenuAuditoria">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <span>Auditoria & Seg.</span>
+                    <i class="bi bi-chevron-right submenu-arrow"></i>
+                </a>
+                <div class="collapse <?= $isAuditoriaActive ? 'show' : '' ?>" id="submenuAuditoria">
+                    <ul class="nav flex-column sidebar-submenu">
+                        <li>
+                            <a href="<?= site_url('admin/auditoria') ?>"
+                               class="nav-link <?= str_starts_with(uri_string(), 'admin/auditoria') ? 'active' : '' ?>">
+                                <i class="bi bi-journal-text"></i>
+                                Trilha de Logs
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
         </ul>
     </nav>

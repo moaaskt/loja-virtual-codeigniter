@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\NotificationLogModel;
 use App\Models\PedidoModel;
 use App\Models\PedidoProdutoModel;
 use App\Models\UsuarioModel;
@@ -10,20 +11,22 @@ use CodeIgniter\Email\Email;
 /**
  * EmailService — Serviço centralizado de envio de e-mails transacionais.
  *
- * Todos os métodos são resilientes: capturam exceções de SMTP e registram
- * em log sem lançar exceções fatais que quebrariam o fluxo HTTP do usuário.
+ * Todos os métodos são resilientes: capturam exceções de SMTP, registram
+ * na fila/histórico (notification_logs) e nunca lançam exceções fatais.
  */
 class EmailService
 {
     protected Email $mailer;
     protected PedidoModel $pedidoModel;
     protected PedidoProdutoModel $pedidoProdutoModel;
+    protected NotificationLogModel $notificationLogModel;
 
     public function __construct()
     {
-        $this->mailer             = \Config\Services::email();
-        $this->pedidoModel        = new PedidoModel();
-        $this->pedidoProdutoModel = new PedidoProdutoModel();
+        $this->mailer               = \Config\Services::email();
+        $this->pedidoModel          = new PedidoModel();
+        $this->pedidoProdutoModel   = new PedidoProdutoModel();
+        $this->notificationLogModel = new NotificationLogModel();
     }
 
     // -------------------------------------------------------------------------
@@ -31,16 +34,50 @@ class EmailService
     // -------------------------------------------------------------------------
 
     /**
-     * Envia um e-mail HTML a partir de uma view renderizada.
+     * Envia um e-mail HTML a partir de uma view renderizada e registra no notification_logs.
      *
-     * @param string $para    Endereço de destino
-     * @param string $assunto Assunto do e-mail
-     * @param string $view    View path (ex: 'emails/pedido_criado')
-     * @param array  $dados   Variáveis passadas à view
-     * @return array ['ok' => bool, 'mensagem' => string]
+     * @param string      $para     Endereço de destino
+     * @param string      $assunto  Assunto do e-mail
+     * @param string      $view     View path (ex: 'emails/pedido_criado')
+     * @param array       $dados    Variáveis passadas à view
+     * @param string|null $evento   Identificador do evento (ex: pedido_criado)
+     * @param int|null    $logId    Se for reprocessamento, passa o logId existente
+     * @return array ['ok' => bool, 'mensagem' => string, 'log_id' => int|null]
      */
-    public function enviar(string $para, string $assunto, string $view, array $dados = []): array
-    {
+    public function enviar(
+        string $para,
+        string $assunto,
+        string $view,
+        array $dados = [],
+        ?string $evento = null,
+        ?int $logId = null
+    ): array {
+        $eventoNome = $evento ?? basename($view);
+        $payloadArray = [
+            'assunto' => $assunto,
+            'view'    => $view,
+            'dados'   => $dados,
+        ];
+        $payloadJson = json_encode($payloadArray, JSON_UNESCAPED_UNICODE);
+
+        // Se não for reprocessamento com ID existente, cria o registro inicial como pendente
+        if (!$logId) {
+            try {
+                $logId = $this->notificationLogModel->insert([
+                    'canal'         => 'email',
+                    'destinatario'  => $para,
+                    'evento'        => $eventoNome,
+                    'payload'       => $payloadJson,
+                    'status'        => 'pendente',
+                    'tentativas'    => 1,
+                    'mensagem_erro' => null,
+                    'enviado_em'    => null,
+                ]);
+            } catch (\Throwable $e) {
+                log_message('error', "[EmailService] Falha ao registrar log de notificação: {$e->getMessage()}");
+            }
+        }
+
         try {
             $htmlBody = view($view, $dados);
 
@@ -51,16 +88,80 @@ class EmailService
 
             if ($this->mailer->send(false)) {
                 log_message('info', "[EmailService] E-mail enviado para {$para} | Assunto: {$assunto}");
-                return ['ok' => true, 'mensagem' => 'E-mail enviado com sucesso.'];
+
+                if ($logId) {
+                    $this->notificationLogModel->update($logId, [
+                        'status'        => 'enviado',
+                        'mensagem_erro' => null,
+                        'enviado_em'    => date('Y-m-d H:i:s'),
+                    ]);
+                }
+
+                return [
+                    'ok'       => true,
+                    'mensagem' => 'E-mail enviado com sucesso.',
+                    'log_id'   => $logId,
+                ];
             }
 
             $debugInfo = $this->mailer->printDebugger(['headers']);
-            log_message('error', "[EmailService] Falha ao enviar para {$para}: {$debugInfo}");
-            return ['ok' => false, 'mensagem' => 'Falha ao enviar o e-mail. Verifique as configurações SMTP.'];
+            $erroMsg   = !empty($debugInfo) ? strip_tags($debugInfo) : 'Falha no envio SMTP.';
+            log_message('error', "[EmailService] Falha ao enviar para {$para}: {$erroMsg}");
+
+            if ($logId) {
+                $logAtual = $this->notificationLogModel->find($logId);
+                $tentativas = $logAtual ? ((int) $logAtual['tentativas'] + 1) : 1;
+                $this->notificationLogModel->update($logId, [
+                    'status'        => 'falhou',
+                    'tentativas'    => $tentativas,
+                    'mensagem_erro' => mb_substr($erroMsg, 0, 500),
+                ]);
+            }
+
+            return [
+                'ok'       => false,
+                'mensagem' => 'Falha ao enviar o e-mail. Verifique as configurações SMTP.',
+                'log_id'   => $logId,
+            ];
         } catch (\Throwable $e) {
-            log_message('error', "[EmailService] Exceção ao enviar para {$para}: {$e->getMessage()}");
-            return ['ok' => false, 'mensagem' => 'Erro interno no serviço de e-mail: ' . $e->getMessage()];
+            $erroMsg = $e->getMessage();
+            log_message('error', "[EmailService] Exceção ao enviar para {$para}: {$erroMsg}");
+
+            if ($logId) {
+                $logAtual = $this->notificationLogModel->find($logId);
+                $tentativas = $logAtual ? ((int) $logAtual['tentativas'] + 1) : 1;
+                $this->notificationLogModel->update($logId, [
+                    'status'        => 'falhou',
+                    'tentativas'    => $tentativas,
+                    'mensagem_erro' => mb_substr($erroMsg, 0, 500),
+                ]);
+            }
+
+            return [
+                'ok'       => false,
+                'mensagem' => 'Erro interno no serviço de e-mail: ' . $erroMsg,
+                'log_id'   => $logId,
+            ];
         }
+    }
+
+    /**
+     * Reprocessa um disparo de notificação que falhou.
+     */
+    public function reprocessarNotificacao(int $logId): array
+    {
+        $log = $this->notificationLogModel->find($logId);
+        if (!$log) {
+            return ['ok' => false, 'mensagem' => 'Registro de notificação não encontrado.'];
+        }
+
+        $payload = json_decode($log['payload'] ?? '{}', true);
+        $para    = $log['destinatario'];
+        $assunto = $payload['assunto'] ?? "Notificação — G'Store";
+        $view    = $payload['view'] ?? ('emails/' . ($log['evento'] ?? 'teste_smtp'));
+        $dados   = $payload['dados'] ?? [];
+
+        return $this->enviar($para, $assunto, $view, $dados, $log['evento'], $logId);
     }
 
     // -------------------------------------------------------------------------

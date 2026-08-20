@@ -113,6 +113,7 @@ body {
     border-left: 3px solid transparent;
     transition: var(--transition);
     text-decoration: none;
+    position: relative;
 }
 
 .sidebar .nav-link i {
@@ -131,6 +132,52 @@ body {
     color: var(--sidebar-active-text);
     background-color: var(--sidebar-active-bg);
     border-left-color: var(--sidebar-active-border);
+}
+
+/* Submenus na Sidebar */
+.sidebar .sidebar-toggle {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sidebar .sidebar-toggle .submenu-arrow {
+    margin-left: auto;
+    font-size: .75rem;
+    transition: transform .25s ease;
+    opacity: .6;
+}
+
+.sidebar .sidebar-toggle:not(.collapsed) .submenu-arrow {
+    transform: rotate(90deg);
+    opacity: 1;
+}
+
+.sidebar-submenu {
+    background: rgba(0, 0, 0, .22);
+    border-left: 2px solid rgba(255, 255, 255, .08);
+    margin-left: 1.5rem;
+    margin-right: .75rem;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: .25rem 0;
+}
+
+.sidebar-submenu .nav-link {
+    padding: .45rem 1rem .45rem 1rem;
+    font-size: .8125rem;
+    border-left: none;
+    gap: .5rem;
+    color: rgba(255, 255, 255, .55);
+}
+
+.sidebar-submenu .nav-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, .05);
+}
+
+.sidebar-submenu .nav-link.active {
+    color: var(--sidebar-active-text);
+    font-weight: 600;
+    background: rgba(99, 102, 241, .15);
 }
 
 .sidebar-footer {
