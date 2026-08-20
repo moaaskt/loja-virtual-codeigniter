@@ -78,19 +78,44 @@ class CarrinhoService
             return ['ok' => false, 'erro' => "Estoque insuficiente. Você pode adicionar no máximo {$disponivelParaAdicionar} unidade(s) deste item."];
         }
 
+        $imagemItem = $produto['imagem'];
+        if ($variacao && !empty($variacao['imagem_url'])) {
+            $imagemItem = $variacao['imagem_url'];
+        }
+
+        $atributos = [];
+        if ($variacao && !empty($variacao['atributos_json'])) {
+            $decoded = json_decode($variacao['atributos_json'], true);
+            if (is_array($decoded)) {
+                $atributos = $decoded;
+            }
+        }
+
+        $nomeVariacao = $variacao ? ($variacao['nome_variacao'] ?? '') : '';
+        if (empty($nomeVariacao) && $variacao) {
+            $parts = array_filter([$variacao['tamanho'] ?? '', $variacao['cor'] ?? '']);
+            $nomeVariacao = implode(' / ', $parts);
+        }
+
         if (isset($carrinho[$cartKey])) {
             $carrinho[$cartKey]['quantidade'] = $quantidadeTotal;
             $carrinho[$cartKey]['preco']      = $precoItem;
+            if ($variacao && !empty($variacao['imagem_url'])) {
+                $carrinho[$cartKey]['imagem'] = $variacao['imagem_url'];
+            }
         } else {
             $carrinho[$cartKey] = [
-                'id'          => $produto['id'],
-                'variacao_id' => $variacaoId,
-                'nome'        => $produto['nome'],
-                'preco'       => $precoItem,
-                'imagem'      => $produto['imagem'],
-                'quantidade'  => $quantidade,
-                'tamanho'     => $variacao ? ($variacao['tamanho'] ?? '') : '',
-                'cor'         => $variacao ? ($variacao['cor'] ?? '') : '',
+                'id'            => $produto['id'],
+                'variacao_id'   => $variacaoId,
+                'sku'           => $variacao ? ($variacao['sku'] ?? '') : '',
+                'nome'          => $produto['nome'],
+                'nome_variacao' => $nomeVariacao,
+                'atributos'     => $atributos,
+                'preco'         => $precoItem,
+                'imagem'        => $imagemItem,
+                'quantidade'    => $quantidade,
+                'tamanho'       => $variacao ? ($variacao['tamanho'] ?? '') : '',
+                'cor'           => $variacao ? ($variacao['cor'] ?? '') : '',
             ];
         }
 

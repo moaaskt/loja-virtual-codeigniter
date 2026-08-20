@@ -47,14 +47,17 @@ class ProdutosController extends BaseController
         $variacoes = $this->request->getPost('variacoes') ?? [];
         $totalEstoque = 0;
         foreach ($variacoes as $idx => $v) {
-            $tamanho = isset($v['tamanho']) ? trim($v['tamanho']) : '';
-            $cor     = isset($v['cor']) ? trim($v['cor']) : '';
-            $corHex  = isset($v['cor_hex']) ? trim($v['cor_hex']) : '';
-            $estoque = $v['estoque'] ?? '';
+            $tamanho      = isset($v['tamanho']) ? trim((string)$v['tamanho']) : '';
+            $cor          = isset($v['cor']) ? trim((string)$v['cor']) : '';
+            $corHex       = isset($v['cor_hex']) ? trim((string)$v['cor_hex']) : '';
+            $nomeVariacao = isset($v['nome_variacao']) ? trim((string)$v['nome_variacao']) : '';
+            $temAtributos = !empty($v['atributos_json']) || !empty($v['atributos']);
+            $sku          = isset($v['sku']) ? trim((string)$v['sku']) : '';
+            $estoque      = $v['estoque'] ?? '';
 
-            if ($tamanho === '' && $cor === '' && $corHex === '') {
+            if ($tamanho === '' && $cor === '' && $corHex === '' && $nomeVariacao === '' && !$temAtributos && $sku === '') {
                 return redirect()->back()->withInput()->with('errors', [
-                    'variacoes' => 'Cada variação adicionada precisa ter ao menos um atributo preenchido (tamanho/capacidade ou cor).'
+                    'variacoes' => 'Cada variação adicionada precisa ter ao menos um atributo preenchido (nome, atributos ou SKU).'
                 ])->with('categorias', $this->categoriaModel->findAll());
             }
 
@@ -103,34 +106,8 @@ class ProdutosController extends BaseController
                 ->with('categorias', $this->categoriaModel->findAll());
         }
 
-        // --- Variações ---
-        foreach ($variacoes as $v) {
-            $tamanho = isset($v['tamanho']) ? trim($v['tamanho']) : '';
-            $cor     = isset($v['cor']) && trim($v['cor']) !== '' ? trim($v['cor']) : null;
-            $corHex  = isset($v['cor_hex']) && trim($v['cor_hex']) !== '' ? trim($v['cor_hex']) : null;
-            
-            // Se cor for um hexadecimal e não tiver texto separado, ou vice-versa
-            if ($corHex !== null && !preg_match('/^#[0-9a-fA-F]{3,8}$/', $corHex)) {
-                $corHex = null;
-            }
-            if ($cor === null && $corHex !== null) {
-                $cor = $corHex;
-            }
-
-            $preco   = isset($v['preco']) && trim($v['preco']) !== '' ? (float) str_replace(',', '.', $v['preco']) : null;
-            $estoque = (int) ($v['estoque'] ?? 0);
-
-            if ($tamanho !== '' || $cor !== null || $corHex !== null) {
-                $db->table('produto_variacoes')->insert([
-                    'produto_id' => $produtoId,
-                    'tamanho'    => $tamanho !== '' ? $tamanho : null,
-                    'cor'        => $cor,
-                    'cor_hex'    => $corHex,
-                    'preco'      => $preco,
-                    'estoque'    => $estoque,
-                ]);
-            }
-        }
+        // --- Variações Multi-Atributos e SKUs ---
+        $this->processarSalvarVariacoes($produtoId, $variacoes, $db);
 
         // --- Galeria de Imagens ---
         $galeriaFiles = $this->request->getFileMultiple('imagens');
@@ -194,10 +171,16 @@ class ProdutosController extends BaseController
             throw new \CodeIgniter\Exceptions\PageNotFoundException('Produto não encontrado.');
         }
 
+        $variacaoModel = new \App\Models\ProdutoVariacaoModel();
+        $variacoes = $variacaoModel->getVariacoesFormatadas((int)$id, $produto['imagem']);
+        $imagens = $this->produtoModel->getImagens((int)$id);
+
         return view('admin/produtos/edit', [
             'title'      => 'Editar Produto: ' . esc($produto['nome']),
             'produto'    => $produto,
             'categorias' => $this->categoriaModel->findAll(),
+            'variacoes'  => $variacoes,
+            'imagens'    => $imagens,
         ]);
     }
 
@@ -210,14 +193,17 @@ class ProdutosController extends BaseController
         $variacoes = $this->request->getPost('variacoes') ?? [];
         $totalEstoque = 0;
         foreach ($variacoes as $idx => $v) {
-            $tamanho = isset($v['tamanho']) ? trim($v['tamanho']) : '';
-            $cor     = isset($v['cor']) ? trim($v['cor']) : '';
-            $corHex  = isset($v['cor_hex']) ? trim($v['cor_hex']) : '';
-            $estoque = $v['estoque'] ?? '';
+            $tamanho      = isset($v['tamanho']) ? trim((string)$v['tamanho']) : '';
+            $cor          = isset($v['cor']) ? trim((string)$v['cor']) : '';
+            $corHex       = isset($v['cor_hex']) ? trim((string)$v['cor_hex']) : '';
+            $nomeVariacao = isset($v['nome_variacao']) ? trim((string)$v['nome_variacao']) : '';
+            $temAtributos = !empty($v['atributos_json']) || !empty($v['atributos']);
+            $sku          = isset($v['sku']) ? trim((string)$v['sku']) : '';
+            $estoque      = $v['estoque'] ?? '';
 
-            if ($tamanho === '' && $cor === '' && $corHex === '') {
+            if ($tamanho === '' && $cor === '' && $corHex === '' && $nomeVariacao === '' && !$temAtributos && $sku === '') {
                 return redirect()->back()->withInput()->with('errors', [
-                    'variacoes' => 'Cada variação adicionada precisa ter ao menos um atributo preenchido (tamanho/capacidade ou cor).'
+                    'variacoes' => 'Cada variação adicionada precisa ter ao menos um atributo preenchido (nome, atributos ou SKU).'
                 ])->with('categorias', $this->categoriaModel->findAll());
             }
 
@@ -274,34 +260,9 @@ class ProdutosController extends BaseController
                 ->with('categorias', $this->categoriaModel->findAll());
         }
 
-        // --- Variações (Abordagem simples: deletar antigas e inserir novas) ---
+        // --- Variações Multi-Atributos e SKUs ---
         $db->table('produto_variacoes')->where('produto_id', $id)->delete();
-        foreach ($variacoes as $v) {
-            $tamanho = isset($v['tamanho']) ? trim($v['tamanho']) : '';
-            $cor     = isset($v['cor']) && trim($v['cor']) !== '' ? trim($v['cor']) : null;
-            $corHex  = isset($v['cor_hex']) && trim($v['cor_hex']) !== '' ? trim($v['cor_hex']) : null;
-
-            if ($corHex !== null && !preg_match('/^#[0-9a-fA-F]{3,8}$/', $corHex)) {
-                $corHex = null;
-            }
-            if ($cor === null && $corHex !== null) {
-                $cor = $corHex;
-            }
-
-            $preco   = isset($v['preco']) && trim($v['preco']) !== '' ? (float) str_replace(',', '.', $v['preco']) : null;
-            $estoque = (int) ($v['estoque'] ?? 0);
-
-            if ($tamanho !== '' || $cor !== null || $corHex !== null) {
-                $db->table('produto_variacoes')->insert([
-                    'produto_id' => $id,
-                    'tamanho'    => $tamanho !== '' ? $tamanho : null,
-                    'cor'        => $cor,
-                    'cor_hex'    => $corHex,
-                    'preco'      => $preco,
-                    'estoque'    => $estoque,
-                ]);
-            }
-        }
+        $this->processarSalvarVariacoes($id, $variacoes, $db);
 
         // --- Galeria de Imagens (Upload) ---
         $galeriaFiles = $this->request->getFileMultiple('imagens');
@@ -434,5 +395,80 @@ class ProdutosController extends BaseController
         }
 
         return true;
+    }
+
+    /**
+     * Processa e insere variações multi-atributos (SKUs) para um produto.
+     */
+    protected function processarSalvarVariacoes(int $produtoId, array $variacoes, $db): void
+    {
+        foreach ($variacoes as $idx => $v) {
+            $tamanho      = isset($v['tamanho']) ? trim((string)$v['tamanho']) : '';
+            $cor          = isset($v['cor']) && trim((string)$v['cor']) !== '' ? trim((string)$v['cor']) : null;
+            $corHex       = isset($v['cor_hex']) && trim((string)$v['cor_hex']) !== '' ? trim((string)$v['cor_hex']) : null;
+            $sku          = isset($v['sku']) && trim((string)$v['sku']) !== '' ? trim((string)$v['sku']) : null;
+            $nomeVariacao = isset($v['nome_variacao']) && trim((string)$v['nome_variacao']) !== '' ? trim((string)$v['nome_variacao']) : null;
+            $imagemUrl    = isset($v['imagem_url']) && trim((string)$v['imagem_url']) !== '' ? trim((string)$v['imagem_url']) : null;
+            $codigoBarras = isset($v['codigo_barras']) && trim((string)$v['codigo_barras']) !== '' ? trim((string)$v['codigo_barras']) : null;
+
+            // Atributos estruturados em JSON
+            $atributosJson = null;
+            if (!empty($v['atributos_json'])) {
+                if (is_array($v['atributos_json'])) {
+                    $atributosJson = json_encode($v['atributos_json'], JSON_UNESCAPED_UNICODE);
+                } else {
+                    $atributosJson = trim((string)$v['atributos_json']);
+                }
+            } elseif (!empty($v['atributos']) && is_array($v['atributos'])) {
+                $atributosJson = json_encode($v['atributos'], JSON_UNESCAPED_UNICODE);
+            }
+
+            // Normalização de cor hexadecimal
+            if ($corHex !== null && !preg_match('/^#[0-9a-fA-F]{3,8}$/', $corHex)) {
+                $corHex = null;
+            }
+            if ($cor === null && $corHex !== null) {
+                $cor = $corHex;
+            }
+
+            // Fallback de nome_variacao caso vazio
+            if (empty($nomeVariacao)) {
+                if (!empty($atributosJson)) {
+                    $decoded = json_decode($atributosJson, true);
+                    if (is_array($decoded) && !empty($decoded)) {
+                        $nomeVariacao = implode(' / ', array_values($decoded));
+                    }
+                }
+                if (empty($nomeVariacao)) {
+                    $parts = array_filter([$cor, $tamanho]);
+                    $nomeVariacao = !empty($parts) ? implode(' / ', $parts) : null;
+                }
+            }
+
+            // Fallback de SKU caso vazio
+            if (empty($sku) && !empty($nomeVariacao)) {
+                $sku = 'SKU-' . $produtoId . '-' . strtoupper(url_title($nomeVariacao, '-', true));
+            }
+
+            $preco   = isset($v['preco']) && trim((string)$v['preco']) !== '' ? (float) str_replace(',', '.', (string)$v['preco']) : null;
+            $estoque = (int) ($v['estoque'] ?? 0);
+
+            // Se a linha tiver dados válidos para uma variação
+            if ($tamanho !== '' || $cor !== null || $corHex !== null || $nomeVariacao !== null || $sku !== null || $atributosJson !== null) {
+                $db->table('produto_variacoes')->insert([
+                    'produto_id'     => $produtoId,
+                    'sku'            => $sku,
+                    'nome_variacao'  => $nomeVariacao,
+                    'atributos_json' => $atributosJson,
+                    'tamanho'        => $tamanho !== '' ? $tamanho : null,
+                    'cor'            => $cor,
+                    'cor_hex'        => $corHex,
+                    'preco'          => $preco,
+                    'imagem_url'     => $imagemUrl,
+                    'codigo_barras'  => $codigoBarras,
+                    'estoque'        => $estoque,
+                ]);
+            }
+        }
     }
 }

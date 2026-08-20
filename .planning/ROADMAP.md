@@ -16,16 +16,18 @@
 ### Fases do Milestone 3
 
 #### Phase 10: Arquitetura & Gerador de Variações Multi-Atributos (Admin + Database)
-- **Status:** Ready to Plan
+- **Status:** Completed ✓
 - **Objetivo:** Reformular o modelo de variações para suportar múltiplos atributos dinâmicos (Cor, Armazenamento, RAM, Voltagem, Tamanho), gerador automático de grade de SKUs no Painel Admin e foto por SKU.
-- **Entregas Principais:**
-  - Migrations e Models para atributos/SKUs multi-dimensionais.
-  - Gerador de combinações em lote no formulário de produtos do Admin.
-  - Vínculo de fotos específicas por variação.
-  - Atualização dos Services de Carrinho e Pedido para consumo de SKUs multi-atributos.
+- **Entregas Realizadas:**
+  - Migration `2026-08-20-170000_UpdateProdutoVariacoesMultiAtributos.php` adicionando `sku`, `nome_variacao`, `atributos_json`, `imagem_url` e `codigo_barras`.
+  - Model `ProdutoVariacaoModel` com decodificação de JSON e extração dinâmica de atributos.
+  - Gerador de grade cartesiana de SKUs com presets rápidos (Smartphones, Moda, Calçados, Eletro) nos formulários `new.php` e `edit.php`.
+  - Suporte a fotos por variação/cor, preços individuais e estoque por SKU.
+  - Integração no `CarrinhoService` e `PedidoService` para rastreamento de SKUs multi-atributos.
+  - Suíte de testes `VariacoesMultiAtributosTest.php` com 100% de aprovação (73 testes, 460 asserções).
 
 #### Phase 11: Experiência Interativa de Compra na PDP (Storefront UX)
-- **Status:** Pending (Depende da Phase 10)
+- **Status:** Ready to Plan
 - **Objetivo:** Implementar seletores modernos em swatches e chips na PDP com validação cruzada de estoque, troca de fotos por cor/SKU e recálculo em tempo real de preços e parcelas.
 - **Entregas Principais:**
   - Seletores interativos (Swatches visuais para cores e Chips/Pills para outros atributos).
