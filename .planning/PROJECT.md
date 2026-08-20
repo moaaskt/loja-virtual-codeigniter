@@ -19,9 +19,11 @@ O projeto utiliza o padrão MVC nativo do CodeIgniter 4. O banco de dados é o M
 - Fluxo de vitrine interativa com busca textual e filtros instantâneos (categorias, marcas, gênero, preço).
 - Carrinho de compras e fluxo inicial de checkout.
 
-### Milestone 2: E-Commerce Avançado — Pagamentos, Frete, Cupons, Avaliações e Métricas (Ativo 🚀)
+### Milestone 2: E-Commerce Avançado — Pagamentos, Frete, Cupons, Avaliações e Métricas (Concluído ✓)
 - **Cálculo de Frete e Cupons de Desconto**: Simulação de frete na vitrine/carrinho e sistema de cupons com regras de desconto.
 - **Gateway de Pagamento**: Processamento de pagamentos via Pix (QR Code/Copia e Cola) e Cartão de Crédito com sincronização de status de pedidos.
-- **Notificações Transacionais**: Disparo de e-mails de confirmação de pedido, pagamento e atualizações de entrega via SMTP.
-- **Avaliações e Reviews de Produtos**: Sistema de classificação com estrelas, comentários de clientes e moderação no painel admin.
-- **Dashboard Analítico e Relatórios**: Métricas de faturamento, ticket médio, produtos mais vendidos e exportação de relatórios no painel administrativo.
+- **Notificações Transacionais**: Disparo de e-mails de confirmação de pedido, pagamento e atualizações de entrega via SMTP com fila resiliente.
+- **Trilha de Auditoria**: Registro completo de alterações e histórico de operações administrativas.
+- **Avaliações e Reviews de Produtos**: Sistema de classificação com estrelas, comentários de clientes, restrição de comprador verificado e moderação no admin.
+- **Dashboard Analítico e Relatórios**: Métricas de faturamento, ticket médio, produtos mais vendidos, gráficos no Chart.js, paginação nativa e exportação CSV universal.
+
