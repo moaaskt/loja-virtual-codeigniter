@@ -434,94 +434,94 @@
 
             <!-- Coluna da Direita (col-12 col-lg-8): Formulário de Avaliação + Feed de Reviews -->
             <div class="col-12 col-lg-8">
-                <!-- Topo: Card "Deixar sua Avaliação" / Form -->
-                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
-                    <?php if (!session()->get('isLoggedIn')): ?>
-                        <!-- Usuário Deslogado -->
-                        <div class="text-center py-4 my-auto">
-                            <div class="mb-3">
-                                <i class="bi bi-shield-lock-fill text-primary" style="font-size: 2.5rem;"></i>
-                            </div>
-                            <h4 class="fs-5 fw-bold mb-2">Já comprou ou conhece este produto?</h4>
-                            <p class="text-muted small mb-4 mx-auto" style="max-width: 420px;">
-                                Faça login em sua conta para avaliar com estrelas e deixar seu comentário para a comunidade.
-                            </p>
-                            <a href="<?= site_url('login') ?>" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
-                                <i class="bi bi-box-arrow-in-right me-1"></i>Entrar para Avaliar
-                            </a>
-                        </div>
-                    <?php else: ?>
-                        <!-- Usuário Logado: Formulário de Envio -->
-                        <div>
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <h3 class="fs-6 fw-bold mb-0">
-                                    <?= !empty($statusPermissaoAvaliacao['ja_avaliou']) ? 'Atualizar sua Avaliação' : 'Deixar sua Avaliação' ?>
-                                </h3>
-                                <?php if (!empty($statusPermissaoAvaliacao['comprou'])): ?>
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle small">
-                                        <i class="bi bi-patch-check-fill me-1"></i>Compra Confirmada
-                                    </span>
-                                <?php endif; ?>
-                            </div>
+                <?php
+                    $isLoggedIn  = (bool) session()->get('isLoggedIn');
+                    $isAdmin     = session()->get('role') === 'admin';
+                    $comprou     = !empty($statusPermissaoAvaliacao['comprou']);
+                    $podeAvaliar = $isLoggedIn && ($comprou || $isAdmin);
+                ?>
 
-                            <?php if (!empty($statusPermissaoAvaliacao['ja_avaliou'])): ?>
-                                <div class="alert alert-info py-2 px-3 small rounded-3 mb-3">
-                                    <i class="bi bi-info-circle me-1"></i>Você já enviou uma avaliação para este produto. Ao enviar novamente, ela será atualizada e passará pela moderação.
-                                </div>
+                <?php if ($podeAvaliar): ?>
+                    <!-- Formulário de Avaliação para Comprador Verificado ou Admin -->
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white" id="card-formulario-avaliacao">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h3 class="fs-6 fw-bold mb-0">
+                                <?= !empty($statusPermissaoAvaliacao['ja_avaliou']) ? 'Atualizar sua Avaliação' : 'Deixar sua Avaliação' ?>
+                            </h3>
+                            <?php if ($comprou): ?>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle small">
+                                    <i class="bi bi-patch-check-fill me-1"></i>Compra Confirmada
+                                </span>
+                            <?php elseif ($isAdmin): ?>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">
+                                    <i class="bi bi-shield-check me-1"></i>Administrador
+                                </span>
                             <?php endif; ?>
-
-                            <?= form_open('avaliacao/enviar', ['id' => 'form-avaliacao-produto']) ?>
-                                <input type="hidden" name="produto_id" value="<?= esc($produto['id']) ?>">
-                                
-                                <!-- Seletor de Estrelas Interativo -->
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted d-block mb-1">
-                                        Sua Nota (1 a 5 estrelas) <span class="text-danger">*</span>
-                                    </label>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="star-rating-picker" id="star-picker">
-                                            <?php 
-                                                $notaAtual = (int)($statusPermissaoAvaliacao['avaliacao_existente']['nota'] ?? old('nota') ?? 5);
-                                            ?>
-                                            <?php for ($i = 5; $i >= 1; $i--): ?>
-                                                <input type="radio" name="nota" value="<?= $i ?>" id="star-<?= $i ?>" <?= ($notaAtual === $i) ? 'checked' : '' ?> required>
-                                                <label for="star-<?= $i ?>" title="<?= $i ?> estrelas" data-rating="<?= $i ?>">
-                                                    <i class="bi bi-star-fill"></i>
-                                                </label>
-                                            <?php endfor; ?>
-                                        </div>
-                                        <span class="star-rating-text" id="star-rating-label">Excelente!</span>
-                                    </div>
-                                </div>
-
-                                <!-- Título Opcional -->
-                                <div class="mb-3">
-                                    <label for="avaliacao-titulo" class="form-label small fw-bold text-muted mb-1">
-                                        Título da Avaliação <small class="fw-normal text-muted">(opcional)</small>
-                                    </label>
-                                    <input type="text" name="titulo" id="avaliacao-titulo" class="form-control rounded-3"
-                                           placeholder="Ex: Excelente qualidade, superou expectativas!"
-                                           maxlength="150"
-                                           value="<?= esc($statusPermissaoAvaliacao['avaliacao_existente']['titulo'] ?? old('titulo')) ?>">
-                                </div>
-
-                                <!-- Comentário Obrigatório -->
-                                <div class="mb-3">
-                                    <label for="avaliacao-comentario" class="form-label small fw-bold text-muted mb-1">
-                                        Seu Comentário <span class="text-danger">*</span>
-                                    </label>
-                                    <textarea name="comentario" id="avaliacao-comentario" class="form-control rounded-3" rows="3"
-                                              placeholder="Conte o que achou do produto, acabamento, entrega..."
-                                              required minlength="5" maxlength="2000"><?= esc($statusPermissaoAvaliacao['avaliacao_existente']['comentario'] ?? old('comentario')) ?></textarea>
-                                </div>
-
-                                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold" id="btn-enviar-avaliacao">
-                                    <i class="bi bi-send-fill me-1"></i><?= !empty($statusPermissaoAvaliacao['ja_avaliou']) ? 'Atualizar Avaliação' : 'Enviar Avaliação' ?>
-                                </button>
-                            <?= form_close() ?>
                         </div>
-                    <?php endif; ?>
-                </div>
+
+                        <?php if (!empty($statusPermissaoAvaliacao['ja_avaliou'])): ?>
+                            <div class="alert alert-info py-2 px-3 small rounded-3 mb-3">
+                                <i class="bi bi-info-circle me-1"></i>Você já enviou uma avaliação para este produto. Ao enviar novamente, ela será atualizada e passará pela moderação.
+                            </div>
+                        <?php endif; ?>
+
+                        <?= form_open('avaliacao/enviar', ['id' => 'form-avaliacao-produto']) ?>
+                            <input type="hidden" name="produto_id" value="<?= esc($produto['id']) ?>">
+                            
+                            <!-- Seletor de Estrelas Interativo -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted d-block mb-1">
+                                    Sua Nota (1 a 5 estrelas) <span class="text-danger">*</span>
+                                </label>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="star-rating-picker" id="star-picker">
+                                        <?php 
+                                            $notaAtual = (int)($statusPermissaoAvaliacao['avaliacao_existente']['nota'] ?? old('nota') ?? 5);
+                                        ?>
+                                        <?php for ($i = 5; $i >= 1; $i--): ?>
+                                            <input type="radio" name="nota" value="<?= $i ?>" id="star-<?= $i ?>" <?= ($notaAtual === $i) ? 'checked' : '' ?> required>
+                                            <label for="star-<?= $i ?>" title="<?= $i ?> estrelas" data-rating="<?= $i ?>">
+                                                <i class="bi bi-star-fill"></i>
+                                            </label>
+                                        <?php endfor; ?>
+                                    </div>
+                                    <span class="star-rating-text" id="star-rating-label">Excelente!</span>
+                                </div>
+                            </div>
+
+                            <!-- Título Opcional -->
+                            <div class="mb-3">
+                                <label for="avaliacao-titulo" class="form-label small fw-bold text-muted mb-1">
+                                    Título da Avaliação <small class="fw-normal text-muted">(opcional)</small>
+                                </label>
+                                <input type="text" name="titulo" id="avaliacao-titulo" class="form-control rounded-3"
+                                       placeholder="Ex: Excelente qualidade, superou expectativas!"
+                                       maxlength="150"
+                                       value="<?= esc($statusPermissaoAvaliacao['avaliacao_existente']['titulo'] ?? old('titulo')) ?>">
+                            </div>
+
+                            <!-- Comentário Obrigatório -->
+                            <div class="mb-3">
+                                <label for="avaliacao-comentario" class="form-label small fw-bold text-muted mb-1">
+                                    Seu Comentário <span class="text-danger">*</span>
+                                </label>
+                                <textarea name="comentario" id="avaliacao-comentario" class="form-control rounded-3" rows="3"
+                                          placeholder="Conte o que achou do produto, acabamento, entrega..."
+                                          required minlength="5" maxlength="2000"><?= esc($statusPermissaoAvaliacao['avaliacao_existente']['comentario'] ?? old('comentario')) ?></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold" id="btn-enviar-avaliacao">
+                                <i class="bi bi-send-fill me-1"></i><?= !empty($statusPermissaoAvaliacao['ja_avaliou']) ? 'Atualizar Avaliação' : 'Enviar Avaliação' ?>
+                            </button>
+                        <?= form_close() ?>
+                    </div>
+                <?php elseif ($isLoggedIn): ?>
+                    <!-- Usuário Logado mas sem compra confirmada -->
+                    <div class="alert alert-light border text-muted small py-3 px-3 mb-4 rounded-3 d-flex align-items-center gap-2" id="alerta-apenas-compradores">
+                        <i class="bi bi-info-circle text-primary fs-5 flex-shrink-0"></i>
+                        <span>Apenas clientes que adquiriram este produto podem enviar uma avaliação.</span>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Abaixo: Lista "Comentários e Experiências" -->
                 <div class="reviews-feed">

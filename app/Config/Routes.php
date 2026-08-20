@@ -111,6 +111,14 @@ $routes->group('admin', ['filter' => ['auth', 'admin']], static function ($route
     // Trilha de Auditoria
     $routes->get('auditoria', 'Admin\AuditoriaController::index');
 
+    // Relatórios e Métricas Avançadas
+    $routes->get('relatorios', 'Admin\RelatoriosController::index');
+    $routes->get('relatorios/vendas', 'Admin\RelatoriosController::vendas');
+    $routes->get('relatorios/produtos', 'Admin\RelatoriosController::produtos');
+    $routes->get('relatorios/clientes', 'Admin\RelatoriosController::clientes');
+    $routes->get('relatorios/cupons', 'Admin\RelatoriosController::cupons');
+    $routes->get('relatorios/exportar/(:segment)', 'Admin\RelatoriosController::exportar/$1');
+
     // Reenvio de e-mails de pedidos
     $routes->match(['get', 'post'], 'pedidos/reenviar-email/(:num)/(:segment)', 'Admin\PedidoController::reenviarEmail/$1/$2');
 });

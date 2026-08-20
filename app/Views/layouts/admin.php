@@ -81,10 +81,63 @@
                     Clientes
                 </a>
             </li>
+            <!-- Submenu Relatórios & BI -->
+            <li>
+                <a class="nav-link sidebar-toggle <?= str_starts_with(uri_string(), 'admin/relatorios') ? 'active' : 'collapsed' ?>"
+                   data-bs-toggle="collapse"
+                   href="#submenuRelatorios"
+                   role="button"
+                   aria-expanded="<?= str_starts_with(uri_string(), 'admin/relatorios') ? 'true' : 'false' ?>"
+                   aria-controls="submenuRelatorios">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <span>Relatórios & BI</span>
+                    <i class="bi bi-chevron-right submenu-arrow"></i>
+                </a>
+                <div class="collapse <?= str_starts_with(uri_string(), 'admin/relatorios') ? 'show' : '' ?>" id="submenuRelatorios">
+                    <ul class="nav flex-column sidebar-submenu">
+                        <li>
+                            <a href="<?= site_url('admin/relatorios') ?>"
+                               class="nav-link <?= (uri_string() === 'admin/relatorios') ? 'active' : '' ?>">
+                                <i class="bi bi-speedometer2"></i>
+                                Visão Geral
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= site_url('admin/relatorios/vendas') ?>"
+                               class="nav-link <?= str_starts_with(uri_string(), 'admin/relatorios/vendas') ? 'active' : '' ?>">
+                                <i class="bi bi-cash-stack"></i>
+                                Vendas
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= site_url('admin/relatorios/produtos') ?>"
+                               class="nav-link <?= str_starts_with(uri_string(), 'admin/relatorios/produtos') ? 'active' : '' ?>">
+                                <i class="bi bi-box-seam"></i>
+                                Produtos
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= site_url('admin/relatorios/clientes') ?>"
+                               class="nav-link <?= str_starts_with(uri_string(), 'admin/relatorios/clientes') ? 'active' : '' ?>">
+                                <i class="bi bi-people"></i>
+                                Clientes
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= site_url('admin/relatorios/cupons') ?>"
+                               class="nav-link <?= str_starts_with(uri_string(), 'admin/relatorios/cupons') ? 'active' : '' ?>">
+                                <i class="bi bi-ticket-perforated"></i>
+                                Cupons
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
         </ul>
     </nav>
 
     <?php
+    $isRelatoriosActive   = str_starts_with(uri_string(), 'admin/relatorios');
     $isNotificacoesActive = str_starts_with(uri_string(), 'admin/emails') || str_starts_with(uri_string(), 'admin/notificacoes');
     $isAuditoriaActive    = str_starts_with(uri_string(), 'admin/auditoria');
     ?>

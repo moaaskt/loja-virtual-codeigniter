@@ -39,7 +39,7 @@
 - [x] **Moderação no Painel Admin**: Aprovação, rejeição e exclusão de comentários com registro na trilha de auditoria.
 
 ### 5. Relatórios e Métricas no Painel Admin (Phase 9)
-- [ ] **Dashboard Analítico**: Gráficos e cards com faturamento total, faturamento no mês/semana, total de pedidos e ticket médio.
-- [ ] **Rankings de Performance**: Produtos mais vendidos, categorias mais lucrativas e clientes com maior volume de compras.
-- [ ] **Exportação de Relatórios**: Exportação de listagem de vendas e faturamento em formato CSV/Excel.
+- [x] **Dashboard Analítico**: Gráficos e cards com faturamento total, faturamento no mês/semana, total de pedidos e ticket médio.
+- [x] **Rankings de Performance**: Produtos mais vendidos, categorias mais lucrativas e clientes com maior volume de compras.
+- [x] **Exportação de Relatórios**: Exportação de listagem de vendas e faturamento em formato CSV/Excel.
 

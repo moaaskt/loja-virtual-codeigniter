@@ -66,9 +66,10 @@
   - Criar tela de moderação de avaliações no Painel Admin com trilha de auditoria.
 
 ### Phase 9: Relatórios e Métricas Avançadas no Painel Admin
-- **Status:** Pending
+- **Status:** Completed ✓
 - **Objetivo:** Fornecer aos administradores visão analítica de vendas, faturamento, produtos mais vendidos e exportação de relatórios.
 - **Tarefas principais:**
-  - Desenvolver Dashboard analítico com cards de KPIs e gráficos de vendas.
-  - Criar relatórios de produtos mais vendidos e clientes com maior volume de pedidos.
-  - Implementar exportação de relatórios em CSV.
+  - Desenvolver Dashboard analítico com cards de KPIs e gráficos interativos no Chart.js.
+  - Criar relatórios detalhados de vendas, produtos mais vendidos, clientes com maior volume e cupons.
+  - Implementar exportação universal de relatórios em CSV com encoding UTF-8 BOM.
+  - Desenvolver suíte de testes unitários e de integração em `tests/app/RelatorioTest.php`.
