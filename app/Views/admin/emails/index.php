@@ -88,31 +88,7 @@
       </div>
     </div>
 
-    <!-- Config SMTP Info -->
-    <div class="card border-0 shadow-sm mt-3">
-      <div class="card-header bg-white border-0 py-3">
-        <h5 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2 text-info"></i>Configuração SMTP</h5>
-      </div>
-      <div class="card-body">
-        <p class="text-muted small mb-3">
-          Configure as credenciais SMTP no arquivo <code>.env</code> do projeto:
-        </p>
-        <div class="bg-dark text-success rounded p-3" style="font-size:12px;font-family:monospace;">
-          email.protocol = smtp<br>
-          email.SMTPHost = smtp.gmail.com<br>
-          email.SMTPUser = seu@email.com<br>
-          email.SMTPPass = sua_senha_app<br>
-          email.SMTPPort = 587<br>
-          email.SMTPCrypto = tls<br>
-          email.fromEmail = noreply@gstore.com.br<br>
-          email.fromName = G'Store
-        </div>
-        <div class="alert alert-info border-0 mt-3 py-2 px-3 small" role="alert">
-          <i class="bi bi-lightbulb-fill me-1"></i>
-          Para Gmail, use uma <strong>Senha de App</strong> em vez da senha principal.
-        </div>
-      </div>
-    </div>
+
   </div>
 
 </div>
