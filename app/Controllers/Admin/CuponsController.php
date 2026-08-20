@@ -4,6 +4,7 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\CupomModel;
+use App\Services\AuditService;
 
 class CuponsController extends BaseController
 {
@@ -51,7 +52,14 @@ class CuponsController extends BaseController
         }
         $data['ativo'] = isset($data['ativo']) ? 1 : 0;
 
-        if ($this->cupomModel->insert($data)) {
+        $cupomId = $this->cupomModel->insert($data);
+        if ($cupomId) {
+            AuditService::log('create', 'cupons', (int) $cupomId, [
+                'codigo'    => $data['codigo'],
+                'tipo'      => $data['tipo'] ?? 'porcentagem',
+                'valor'     => $data['valor'] ?? 0,
+                'ativo'     => $data['ativo'] ?? 1,
+            ]);
             return redirect()->to(site_url('admin/cupons'))->with('success', 'Cupom criado com sucesso!');
         }
 
@@ -73,8 +81,8 @@ class CuponsController extends BaseController
 
     public function update($id = null)
     {
-        $cupom = $this->cupomModel->find($id);
-        if (!$cupom) {
+        $cupomAntigo = $this->cupomModel->find($id);
+        if (!$cupomAntigo) {
             throw new \CodeIgniter\Exceptions\PageNotFoundException('Cupom não encontrado.');
         }
 
@@ -94,6 +102,17 @@ class CuponsController extends BaseController
         $data['ativo'] = isset($data['ativo']) ? 1 : 0;
 
         if ($this->cupomModel->save($data)) {
+            AuditService::log('update', 'cupons', (int) $id, [
+                'codigo'    => $data['codigo'],
+                'tipo'      => $data['tipo'] ?? ($cupomAntigo['tipo'] ?? 'porcentagem'),
+                'valor'     => $data['valor'] ?? ($cupomAntigo['valor'] ?? 0),
+                'ativo'     => $data['ativo'],
+            ], [
+                'codigo'    => $cupomAntigo['codigo'],
+                'tipo'      => $cupomAntigo['tipo'],
+                'valor'     => $cupomAntigo['valor'],
+                'ativo'     => $cupomAntigo['ativo'],
+            ]);
             return redirect()->to(site_url('admin/cupons'))->with('success', 'Cupom atualizado com sucesso!');
         }
 
@@ -108,6 +127,11 @@ class CuponsController extends BaseController
         }
 
         if ($this->cupomModel->delete($id)) {
+            AuditService::log('delete', 'cupons', (int) $id, null, [
+                'codigo' => $cupom['codigo'],
+                'tipo'   => $cupom['tipo'],
+                'valor'  => $cupom['valor'],
+            ]);
             return redirect()->to(site_url('admin/cupons'))->with('success', 'Cupom excluído com sucesso!');
         }
 
@@ -123,6 +147,12 @@ class CuponsController extends BaseController
 
         $novoStatus = (int) $cupom['ativo'] === 1 ? 0 : 1;
         $this->cupomModel->update($id, ['ativo' => $novoStatus]);
+
+        AuditService::log('status_change', 'cupons', (int) $id, [
+            'ativo' => $novoStatus,
+        ], [
+            'ativo' => $cupom['ativo'],
+        ]);
 
         $msg = $novoStatus === 1 ? 'Cupom ativado com sucesso!' : 'Cupom desativado com sucesso!';
         return redirect()->to(site_url('admin/cupons'))->with('success', $msg);

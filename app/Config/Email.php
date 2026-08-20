@@ -6,8 +6,16 @@ use CodeIgniter\Config\BaseConfig;
 
 class Email extends BaseConfig
 {
-    public string $fromEmail  = '';
-    public string $fromName   = '';
+    /**
+     * Sender email address (loaded from .env: email.fromEmail)
+     */
+    public string $fromEmail = '';
+
+    /**
+     * Sender display name (loaded from .env: email.fromName)
+     */
+    public string $fromName = '';
+
     public string $recipients = '';
 
     /**
@@ -18,7 +26,7 @@ class Email extends BaseConfig
     /**
      * The mail sending protocol: mail, sendmail, smtp
      */
-    public string $protocol = 'mail';
+    public string $protocol = 'smtp';
 
     /**
      * The server path to Sendmail.
@@ -43,7 +51,7 @@ class Email extends BaseConfig
     /**
      * SMTP Port
      */
-    public int $SMTPPort = 25;
+    public int $SMTPPort = 587;
 
     /**
      * SMTP Timeout (in seconds)
@@ -72,12 +80,12 @@ class Email extends BaseConfig
     /**
      * Character count to wrap at
      */
-    public int $wrapChars = 76;
+    public int $wrapChars = 998;
 
     /**
-     * Type of mail, either 'text' or 'html'
+     * Type of mail — 'html' for rich transactional e-mails
      */
-    public string $mailType = 'text';
+    public string $mailType = 'html';
 
     /**
      * Character set (utf-8, iso-8859-1, etc.)
@@ -95,12 +103,12 @@ class Email extends BaseConfig
     public int $priority = 3;
 
     /**
-     * Newline character. (Use “\r\n” to comply with RFC 822)
+     * Newline character. (Use "\r\n" to comply with RFC 822)
      */
     public string $CRLF = "\r\n";
 
     /**
-     * Newline character. (Use “\r\n” to comply with RFC 822)
+     * Newline character. (Use "\r\n" to comply with RFC 822)
      */
     public string $newline = "\r\n";
 
@@ -118,4 +126,18 @@ class Email extends BaseConfig
      * Enable notify message from server
      */
     public bool $DSN = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        // Load SMTP settings from .env / environment variables
+        $this->fromEmail  = env('email.fromEmail', 'noreply@gstore.com.br');
+        $this->fromName   = env('email.fromName', "G'Store");
+        $this->SMTPHost   = env('email.SMTPHost', '');
+        $this->SMTPUser   = env('email.SMTPUser', '');
+        $this->SMTPPass   = env('email.SMTPPass', '');
+        $this->SMTPPort   = (int) env('email.SMTPPort', 587);
+        $this->SMTPCrypto = env('email.SMTPCrypto', 'tls');
+    }
 }

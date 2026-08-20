@@ -247,6 +247,16 @@
 
             <!-- Campos de Cartão de Crédito Box -->
             <div id="box-cartao-campos" class="d-none card border bg-light rounded-3 p-3 mb-0">
+                <?php if (ENVIRONMENT === 'development'): ?>
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <span class="badge bg-warning text-dark font-monospace" style="font-size:11px;">
+                            <i class="bi bi-tools me-1"></i>Modo Dev
+                        </span>
+                        <button type="button" class="btn btn-sm btn-warning text-dark fw-bold shadow-sm py-1 px-2" id="btn-dev-fill-card" style="font-size:12px;">
+                            <i class="bi bi-magic me-1"></i>Preencher Cartão de Teste
+                        </button>
+                    </div>
+                <?php endif; ?>
                 <div class="row g-3">
                     <!-- Número do Cartão -->
                     <div class="col-12">
@@ -520,10 +530,33 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Máscara de CVV
-    if (inputCvvCard) {
-        inputCvvCard.addEventListener('input', function () {
-            this.value = this.value.replace(/\D/g, '').substring(0, 4);
+    // Preenchimento Rápido em Ambiente de Desenvolvimento
+    const btnDevFill = document.getElementById('btn-dev-fill-card');
+    if (btnDevFill) {
+        const testCards = [
+            { num: '4111111111111111', nome: 'JOAO SILVA TESTE', val: '12/30', cvv: '123' },
+            { num: '5555555555554444', nome: 'MARIA SANTOS TESTE', val: '08/29', cvv: '456' },
+            { num: '4011785012345678', nome: 'PEDRO ALVES TESTE', val: '11/31', cvv: '789' }
+        ];
+        let testIdx = 0;
+
+        btnDevFill.addEventListener('click', function () {
+            const card = testCards[testIdx % testCards.length];
+            testIdx++;
+
+            if (inputNumCard) {
+                inputNumCard.value = card.num;
+                inputNumCard.dispatchEvent(new Event('input'));
+            }
+            if (inputNomeCard) {
+                inputNomeCard.value = card.nome;
+            }
+            if (inputValCard) {
+                inputValCard.value = card.val;
+            }
+            if (inputCvvCard) {
+                inputCvvCard.value = card.cvv;
+            }
         });
     }
 });

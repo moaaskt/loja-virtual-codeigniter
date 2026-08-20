@@ -39,12 +39,22 @@
   - Implementar endpoint de Webhook para recepção de status de pagamento e atualização de pedidos.
 
 ### Phase 7: Notificações Transacionais por E-mail
-- **Status:** Pending
+- **Status:** Completed ✓
 - **Objetivo:** Configurar serviço de e-mail (SMTP) e disparar notificações automáticas no ciclo de vida dos pedidos.
 - **Tarefas principais:**
   - Configurar serviço de envio de e-mails no CodeIgniter 4.
   - Criar templates HTML responsivos para Pedido Realizado, Pagamento Aprovado e Pedido Enviado.
   - Integrar disparos automáticos nos controllers de checkout, webhook e painel admin.
+
+### Phase 7.5: Auditoria do Sistema & Fila de Notificações
+- **Status:** Pending
+- **Objetivo:** Implementar infraestrutura desacoplada de auditoria de alterações (audit trail) e fila resiliente para registro, monitoramento e reprocessamento de notificações (e-mail/WhatsApp).
+- **Tarefas principais:**
+  - Criar migrations e models para `audit_logs` e `notification_logs`.
+  - Criar `AuditService` global e refatorar `EmailService` para integrar persistência na fila/histórico de notificações.
+  - Criar interfaces no Painel Admin para Trilha de Auditoria (`/admin/auditoria`) e Monitor da Fila de Notificações com reprocessamento (`/admin/notificacoes/fila`).
+  - Atualizar navegação do Admin (`app/Views/layouts/admin.php`) com links de Auditoria e Fila.
+  - Desenvolver suíte de testes unitários e de integração em `tests/app/AuditServiceTest.php` e `NotificationLogTest.php`.
 
 ### Phase 8: Avaliações e Reviews de Produtos
 - **Status:** Pending

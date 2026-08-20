@@ -305,6 +305,7 @@
             </div>
 
             <!-- ===== SIMULADOR DE FRETE ===== -->
+            <?php if (empty($produto['frete_gratis'])): ?>
             <div class="pdp-frete-card card border-0 shadow-sm mt-4 p-3 rounded-4 bg-light">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="fw-bold fs-6">
@@ -323,6 +324,7 @@
                 </div>
                 <div id="resultado-frete-pdp" class="mt-2"></div>
             </div>
+            <?php endif; ?>
 
         </div>
     </div>

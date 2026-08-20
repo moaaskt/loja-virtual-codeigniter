@@ -172,39 +172,53 @@
 
                 <!-- Box Cálculo de Frete -->
                 <div class="col-md-6">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <h6 class="fw-bold mb-0">
-                                <i class="bi bi-truck text-primary me-2"></i>Calcular Frete
-                            </h6>
-                            <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" class="text-muted small text-decoration-none">
-                                Não sei meu CEP
-                            </a>
-                        </div>
-                        <div class="input-group mb-2">
-                            <input type="text" id="input-frete-cep" class="form-control rounded-start-pill font-monospace"
-                                placeholder="00000-000" maxlength="9" value="<?= esc($freteAtivo['cep'] ?? '') ?>">
-                            <button class="btn btn-outline-primary rounded-end-pill px-3 fw-semibold" type="button" id="btn-calcular-frete-cart">
-                                Calcular
-                            </button>
-                        </div>
-                        <div id="frete-opcoes-cart" class="mt-2">
-                            <?php if ($freteAtivo): ?>
-                                <div class="alert alert-light border d-flex align-items-center justify-content-between p-2 mb-0 rounded-3">
-                                    <div>
-                                        <i class="bi bi-check-circle-fill text-success me-1"></i>
-                                        <span class="fw-semibold small"><?= esc($freteAtivo['modalidade']) ?></span>
-                                        <small class="text-muted d-block" style="font-size:0.75rem;">Prazo: <?= esc($freteAtivo['prazo']) ?></small>
-                                    </div>
-                                    <div class="text-end">
-                                        <strong class="text-success small">
-                                            <?= (float)$freteAtivo['valor'] === 0.0 ? 'GRÁTIS' : 'R$ ' . number_format($freteAtivo['valor'], 2, ',', '.') ?>
-                                        </strong>
-                                    </div>
+                    <?php if (!empty($totais['tem_frete_gratis'])): ?>
+                        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-success-subtle border border-success-subtle d-flex justify-content-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="p-2 bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:42px;height:42px;">
+                                    <i class="bi bi-truck fs-5"></i>
                                 </div>
-                            <?php endif; ?>
+                                <div>
+                                    <h6 class="fw-bold text-success-emphasis mb-1">Frete Grátis</h6>
+                                    <p class="text-success-emphasis small mb-0">Seus produtos possuem <strong>Frete Grátis</strong> para todo o Brasil!</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    <?php else: ?>
+                        <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="fw-bold mb-0">
+                                    <i class="bi bi-truck text-primary me-2"></i>Calcular Frete
+                                </h6>
+                                <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" class="text-muted small text-decoration-none">
+                                    Não sei meu CEP
+                                </a>
+                            </div>
+                            <div class="input-group mb-2">
+                                <input type="text" id="input-frete-cep" class="form-control rounded-start-pill font-monospace"
+                                    placeholder="00000-000" maxlength="9" value="<?= esc($freteAtivo['cep'] ?? '') ?>">
+                                <button class="btn btn-outline-primary rounded-end-pill px-3 fw-semibold" type="button" id="btn-calcular-frete-cart">
+                                    Calcular
+                                </button>
+                            </div>
+                            <div id="frete-opcoes-cart" class="mt-2">
+                                <?php if ($freteAtivo): ?>
+                                    <div class="alert alert-light border d-flex align-items-center justify-content-between p-2 mb-0 rounded-3">
+                                        <div>
+                                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                            <span class="fw-semibold small"><?= esc($freteAtivo['modalidade']) ?></span>
+                                            <small class="text-muted d-block" style="font-size:0.75rem;">Prazo: <?= esc($freteAtivo['prazo']) ?></small>
+                                        </div>
+                                        <div class="text-end">
+                                            <strong class="text-success small">
+                                                <?= (float)$freteAtivo['valor'] === 0.0 ? 'GRÁTIS' : 'R$ ' . number_format($freteAtivo['valor'], 2, ',', '.') ?>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
             </div>

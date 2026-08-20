@@ -80,7 +80,7 @@
                         <table class="table table-hover align-middle mb-0" id="tabela-variacoes">
                             <thead class="table-light">
                                 <tr>
-                                    <th id="th-variacao-titulo">Variação / Atributo <span class="text-danger">*</span></th>
+                                    <th id="th-variacao-titulo">Variação / Atributo</th>
                                     <th style="min-width: 190px;">Cor <span class="text-muted small fw-normal">(Opcional)</span></th>
                                     <th style="min-width: 160px;">Preço Individual <span class="text-muted small fw-normal">(Opcional)</span></th>
                                     <th style="min-width: 120px;">Estoque <span class="text-danger">*</span></th>
@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 1. Atualiza cabeçalho da tabela
         if (thVariacaoTitulo) {
-            thVariacaoTitulo.innerHTML = `${currentCategoryConfig.titulo} <span class="text-danger">*</span>`;
+            thVariacaoTitulo.innerHTML = currentCategoryConfig.titulo;
         }
 
         // 2. Atualiza datalist de sugestões
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>
-                <input type="text" name="variacoes[${variacaoIndex}][tamanho]" class="form-control form-control-sm" placeholder="${currentCategoryConfig.placeholder}" list="variacao-sugestoes" required>
+                <input type="text" name="variacoes[${variacaoIndex}][tamanho]" class="form-control form-control-sm" placeholder="${currentCategoryConfig.placeholder}" list="variacao-sugestoes">
             </td>
             <td>
                 <div class="input-group input-group-sm">

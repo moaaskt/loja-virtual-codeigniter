@@ -77,6 +77,73 @@
         </ul>
     </nav>
 
+    <?php
+    $isNotificacoesActive = str_starts_with(uri_string(), 'admin/emails') || str_starts_with(uri_string(), 'admin/notificacoes');
+    $isAuditoriaActive    = str_starts_with(uri_string(), 'admin/auditoria');
+    ?>
+
+    <span class="sidebar-section-label">Sistema</span>
+    <nav>
+        <ul class="nav flex-column">
+            <!-- Submenu Notificações -->
+            <li>
+                <a class="nav-link sidebar-toggle <?= $isNotificacoesActive ? 'active' : 'collapsed' ?>"
+                   data-bs-toggle="collapse"
+                   href="#submenuNotificacoes"
+                   role="button"
+                   aria-expanded="<?= $isNotificacoesActive ? 'true' : 'false' ?>"
+                   aria-controls="submenuNotificacoes">
+                    <i class="bi bi-bell-fill"></i>
+                    <span>Notificações</span>
+                    <i class="bi bi-chevron-right submenu-arrow"></i>
+                </a>
+                <div class="collapse <?= $isNotificacoesActive ? 'show' : '' ?>" id="submenuNotificacoes">
+                    <ul class="nav flex-column sidebar-submenu">
+                        <li>
+                            <a href="<?= site_url('admin/emails') ?>"
+                               class="nav-link <?= (uri_string() === 'admin/emails' || str_starts_with(uri_string(), 'admin/emails/')) ? 'active' : '' ?>">
+                                <i class="bi bi-envelope"></i>
+                                Templates E-mail
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?= site_url('admin/notificacoes/fila') ?>"
+                               class="nav-link <?= str_starts_with(uri_string(), 'admin/notificacoes') ? 'active' : '' ?>">
+                                <i class="bi bi-send-check"></i>
+                                Fila & Histórico
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            <!-- Submenu Auditoria & Segurança -->
+            <li>
+                <a class="nav-link sidebar-toggle <?= $isAuditoriaActive ? 'active' : 'collapsed' ?>"
+                   data-bs-toggle="collapse"
+                   href="#submenuAuditoria"
+                   role="button"
+                   aria-expanded="<?= $isAuditoriaActive ? 'true' : 'false' ?>"
+                   aria-controls="submenuAuditoria">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <span>Auditoria & Seg.</span>
+                    <i class="bi bi-chevron-right submenu-arrow"></i>
+                </a>
+                <div class="collapse <?= $isAuditoriaActive ? 'show' : '' ?>" id="submenuAuditoria">
+                    <ul class="nav flex-column sidebar-submenu">
+                        <li>
+                            <a href="<?= site_url('admin/auditoria') ?>"
+                               class="nav-link <?= str_starts_with(uri_string(), 'admin/auditoria') ? 'active' : '' ?>">
+                                <i class="bi bi-journal-text"></i>
+                                Trilha de Logs
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </nav>
+
     <div class="sidebar-footer">
         <div class="dropdown">
             <a class="sidebar-user dropdown-toggle" href="#" data-bs-toggle="dropdown"
@@ -123,6 +190,23 @@
             <?= mb_strtoupper(mb_substr(session()->get('nome') ?? 'A', 0, 1)) ?>
         </span>
     </div>
+
+    <!-- Flash Messages Globais -->
+    <?php if (session()->getFlashdata('sucesso') || session()->getFlashdata('success')): ?>
+        <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <?= session()->getFlashdata('sucesso') ?? session()->getFlashdata('success') ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('erro') || session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <?= session()->getFlashdata('erro') ?? session()->getFlashdata('error') ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+    <?php endif; ?>
 
     <?= $this->renderSection('content') ?>
 </div>

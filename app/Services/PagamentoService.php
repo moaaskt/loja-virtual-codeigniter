@@ -9,11 +9,13 @@ class PagamentoService
 {
     protected PagamentoModel $pagamentoModel;
     protected PedidoModel $pedidoModel;
+    protected EmailService $emailService;
 
     public function __construct()
     {
         $this->pagamentoModel = new PagamentoModel();
         $this->pedidoModel    = new PedidoModel();
+        $this->emailService   = new EmailService();
     }
 
     /**
@@ -86,43 +88,61 @@ class PagamentoService
      */
     public function validarDadosCartao(array $dados): array
     {
+        $isDev    = (defined('ENVIRONMENT') && ENVIRONMENT === 'development');
         $numero   = preg_replace('/\D/', '', $dados['cartao_numero'] ?? '');
         $nome     = trim($dados['cartao_nome'] ?? '');
         $validade = trim($dados['cartao_validade'] ?? ''); // MM/AA ou MM/AAAA
         $cvv      = preg_replace('/\D/', '', $dados['cartao_cvv'] ?? '');
         $parcelas = (int) ($dados['cartao_parcelas'] ?? 1);
 
-        // Validação do Número (Luhn)
-        if (empty($numero) || strlen($numero) < 13 || strlen($numero) > 19 || !$this->validarLuhn($numero)) {
+        // Validação do Número (Luhn apenas em produção)
+        if (empty($numero) || strlen($numero) < 12 || strlen($numero) > 19) {
+            return ['valido' => false, 'erro' => 'Número de cartão de crédito inválido.'];
+        }
+
+        if (!$isDev && !$this->validarLuhn($numero)) {
             return ['valido' => false, 'erro' => 'Número de cartão de crédito inválido.'];
         }
 
         // Validação do Nome
-        if (empty($nome) || strlen($nome) < 3) {
+        if (empty($nome)) {
+            if ($isDev) {
+                $nome = 'CLIENTE TESTE DEV';
+            } else {
+                return ['valido' => false, 'erro' => 'Informe o nome impresso no cartão de crédito.'];
+            }
+        } elseif (strlen($nome) < 3) {
             return ['valido' => false, 'erro' => 'Informe o nome impresso no cartão de crédito.'];
         }
 
         // Validação da Validade
         if (!preg_match('/^(0[1-9]|1[0-2])\/([0-9]{2}|[0-9]{4})$/', $validade, $matches)) {
-            return ['valido' => false, 'erro' => 'Validade do cartão deve estar no formato MM/AA.'];
-        }
+            if ($isDev) {
+                $mes = 12;
+                $ano = 2030;
+            } else {
+                return ['valido' => false, 'erro' => 'Validade do cartão deve estar no formato MM/AA.'];
+            }
+        } else {
+            $mes = (int) $matches[1];
+            $ano = (int) $matches[2];
+            if ($ano < 100) {
+                $ano += 2000;
+            }
 
-        $mes = (int) $matches[1];
-        $ano = (int) $matches[2];
-        if ($ano < 100) {
-            $ano += 2000;
-        }
+            $anoAtual = (int) date('Y');
+            $mesAtual = (int) date('m');
 
-        $anoAtual = (int) date('Y');
-        $mesAtual = (int) date('m');
-
-        if ($ano < $anoAtual || ($ano === $anoAtual && $mes < $mesAtual)) {
-            return ['valido' => false, 'erro' => 'O cartão informado está vencido.'];
+            if (!$isDev && ($ano < $anoAtual || ($ano === $anoAtual && $mes < $mesAtual))) {
+                return ['valido' => false, 'erro' => 'O cartão informado está vencido.'];
+            }
         }
 
         // Validação do CVV
         $bandeira = $this->identificarBandeira($numero);
-        $tamanhoCvvEsperado = ($bandeira === 'amex') ? 4 : 3;
+        if ($isDev && empty($cvv)) {
+            $cvv = '123';
+        }
         if (strlen($cvv) < 3 || strlen($cvv) > 4) {
             return ['valido' => false, 'erro' => 'Código de segurança (CVV) inválido.'];
         }
@@ -298,6 +318,9 @@ class PagamentoService
             $this->pagamentoModel->marcarComoPago((int) $pagamento['id'], $pagoEm);
             $this->pedidoModel->atualizarStatusPagamento($pedidoIdAlvo, 'pago', 'pago');
 
+            // Dispara notificação de pagamento aprovado
+            $this->emailService->notificarPagamentoAprovado($pedidoIdAlvo);
+
             return [
                 'ok'           => true,
                 'mensagem'     => 'Pagamento aprovado com sucesso via Webhook.',
@@ -312,6 +335,9 @@ class PagamentoService
             $motivo = $payload['motivo'] ?? 'Pagamento cancelado ou não autorizado pelo gateway.';
             $this->pagamentoModel->marcarComoFalho((int) $pagamento['id'], $motivo);
             $this->pedidoModel->atualizarStatusPagamento($pedidoIdAlvo, 'falhou', 'cancelado');
+
+            // Dispara notificação de pedido cancelado
+            $this->emailService->notificarPedidoCancelado($pedidoIdAlvo, $motivo);
 
             return [
                 'ok'           => true,

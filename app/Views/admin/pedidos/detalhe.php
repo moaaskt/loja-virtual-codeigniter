@@ -170,9 +170,28 @@
 
                 <hr>
 
+                <!-- Código de Rastreio -->
+                <?php if (!empty($pedido['codigo_rastreio'])): ?>
+                <div class="mb-3">
+                    <p class="fw-semibold mb-1" style="font-size:.875rem;">
+                        <i class="bi bi-geo-alt-fill text-info me-1"></i>Código de Rastreamento
+                    </p>
+                    <div class="bg-info bg-opacity-10 border border-info-subtle rounded-3 px-3 py-2 d-flex align-items-center justify-content-between">
+                        <span class="font-monospace fw-bold text-info" style="letter-spacing:2px;">
+                            <?= esc($pedido['codigo_rastreio']) ?>
+                        </span>
+                        <a href="https://www.correios.com.br/rastreamento" target="_blank"
+                           class="btn btn-xs btn-outline-info btn-sm py-0 px-2" style="font-size:11px;">
+                            <i class="bi bi-box-arrow-up-right"></i> Rastrear
+                        </a>
+                    </div>
+                </div>
+                <hr>
+                <?php endif; ?>
+
                 <p class="fw-semibold mb-2" style="font-size:.875rem;">Atualizar Status</p>
                 <?= form_open('admin/pedidos/atualizar-status/' . $pedido['id']) ?>
-                    <div class="d-flex gap-2">
+                    <div class="mb-2">
                         <select name="status" class="form-select form-select-sm" id="select-status-pedido">
                             <?php foreach ($status_options as $status): ?>
                                 <option value="<?= $status ?>"
@@ -181,11 +200,68 @@
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 flex-shrink-0" id="btn-salvar-status">
-                            Salvar
-                        </button>
                     </div>
+
+                    <!-- Campo Código de Rastreio (visível ao selecionar "enviado") -->
+                    <div class="mb-2 d-none" id="campo-rastreio">
+                        <input type="text"
+                               name="codigo_rastreio"
+                               class="form-control form-control-sm"
+                               placeholder="Código de rastreio (ex: BR1234567SP)"
+                               value="<?= esc($pedido['codigo_rastreio'] ?? '') ?>">
+                        <div class="form-text">O código será enviado por e-mail ao cliente.</div>
+                    </div>
+
+                    <!-- Campo Motivo de Cancelamento (visível ao selecionar "cancelado") -->
+                    <div class="mb-2 d-none" id="campo-cancelamento">
+                        <textarea name="motivo_cancelamento"
+                                  class="form-control form-control-sm"
+                                  rows="2"
+                                  placeholder="Motivo do cancelamento (opcional)"></textarea>
+                        <div class="form-text">Será incluído no e-mail de cancelamento.</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 w-100" id="btn-salvar-status">
+                        <i class="bi bi-check-lg me-1"></i>Salvar
+                    </button>
                 <?= form_close() ?>
+
+                <hr>
+
+                <!-- Reenvio de E-mails -->
+                <p class="fw-semibold mb-2" style="font-size:.875rem;">
+                    <i class="bi bi-envelope me-1 text-primary"></i>Reenviar Notificação
+                </p>
+                <div class="d-flex flex-column gap-2">
+                    <form method="post" action="<?= site_url('admin/pedidos/reenviar-email/' . $pedido['id'] . '/criado') ?>" class="w-100">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100 text-start" id="btn-reenviar-criado">
+                            <i class="bi bi-cart-check me-2 text-secondary"></i>🛒 Pedido Criado
+                        </button>
+                    </form>
+
+                    <form method="post" action="<?= site_url('admin/pedidos/reenviar-email/' . $pedido['id'] . '/pago') ?>" class="w-100">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-outline-success btn-sm w-100 text-start" id="btn-reenviar-pago">
+                            <i class="bi bi-credit-card me-2 text-success"></i>✅ Pagamento Aprovado
+                        </button>
+                    </form>
+
+                    <form method="post" action="<?= site_url('admin/pedidos/reenviar-email/' . $pedido['id'] . '/enviado') ?>" class="w-100">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-outline-info btn-sm w-100 text-start" id="btn-reenviar-enviado">
+                            <i class="bi bi-truck me-2 text-info"></i>🚚 Pedido Enviado
+                        </button>
+                    </form>
+
+                    <form method="post" action="<?= site_url('admin/pedidos/reenviar-email/' . $pedido['id'] . '/cancelado') ?>" class="w-100">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 text-start" id="btn-reenviar-cancelado">
+                            <i class="bi bi-x-circle me-2 text-danger"></i>❌ Cancelado
+                        </button>
+                    </form>
+                </div>
+
             </div>
         </div>
     </div>
@@ -196,6 +272,23 @@
 <?= $this->section('scripts') ?>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+    // ── Campos dinâmicos no formulário de status ─────────────────────────
+    const selectStatus      = document.getElementById('select-status-pedido');
+    const campoRastreio     = document.getElementById('campo-rastreio');
+    const campoCancelamento = document.getElementById('campo-cancelamento');
+
+    function toggleCamposStatus() {
+        if (!selectStatus) return;
+        const val = selectStatus.value;
+        campoRastreio?.classList.toggle('d-none', val !== 'enviado');
+        campoCancelamento?.classList.toggle('d-none', val !== 'cancelado');
+    }
+
+    selectStatus?.addEventListener('change', toggleCamposStatus);
+    toggleCamposStatus(); // run on load in case status is already "enviado"
+
+    // ── Simulação de Webhook ──────────────────────────────────────────────
     const btnSimular = document.getElementById('btn-simular-aprovacao');
     const feedback   = document.getElementById('simular-feedback');
 
