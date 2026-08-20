@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\PagamentoModel;
 use App\Models\PedidoModel;
 use App\Models\PedidoProdutoModel;
+use App\Services\AuditService;
 use App\Services\EmailService;
 
 class PedidoController extends BaseController
@@ -68,7 +69,17 @@ class PedidoController extends BaseController
             $camposUpdate['codigo_rastreio'] = $codigoRastreio;
         }
 
+        $pedidoAntigo = $model->find($id);
+
         if ($model->update($id, $camposUpdate)) {
+            AuditService::log('status_change', 'pedidos', (int) $id, [
+                'status'          => $novoStatus,
+                'codigo_rastreio' => $codigoRastreio ?: ($pedidoAntigo['codigo_rastreio'] ?? null),
+            ], [
+                'status'          => $pedidoAntigo['status'] ?? 'desconhecido',
+                'codigo_rastreio' => $pedidoAntigo['codigo_rastreio'] ?? null,
+            ]);
+
             // Disparos de e-mail conforme novo status
             match ($novoStatus) {
                 'pago'     => $emailService->notificarPagamentoAprovado((int) $id),

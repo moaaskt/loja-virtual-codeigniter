@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\CategoriaModel;
 use App\Models\PedidoProdutoModel;
 use App\Models\ProdutoModel;
+use App\Services\AuditService;
 
 class ProdutosController extends BaseController
 {
@@ -144,6 +145,14 @@ class ProdutosController extends BaseController
         if ($db->transStatus() === false) {
             return redirect()->back()->withInput()->with('errors', ['db' => 'Erro ao salvar o produto no banco de dados.']);
         }
+
+        AuditService::log('create', 'produtos', (int) $produtoId, [
+            'nome'         => $data['nome'] ?? '',
+            'preco'        => $data['preco'] ?? 0,
+            'categoria_id' => $data['categoria_id'] ?? null,
+            'estoque'      => $data['estoque'] ?? 0,
+            'frete_gratis' => $data['frete_gratis'] ?? 0,
+        ]);
 
         return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto criado com sucesso!');
     }
@@ -294,13 +303,35 @@ class ProdutosController extends BaseController
             return redirect()->back()->withInput()->with('errors', ['db' => 'Erro ao atualizar o produto no banco de dados.']);
         }
 
+        AuditService::log('update', 'produtos', (int) $id, [
+            'nome'         => $data['nome'] ?? '',
+            'preco'        => $data['preco'] ?? 0,
+            'categoria_id' => $data['categoria_id'] ?? null,
+            'estoque'      => $data['estoque'] ?? 0,
+            'frete_gratis' => $data['frete_gratis'] ?? 0,
+        ], [
+            'nome'         => $produtoAntigo['nome'] ?? '',
+            'preco'        => $produtoAntigo['preco'] ?? 0,
+            'categoria_id' => $produtoAntigo['categoria_id'] ?? null,
+            'estoque'      => $produtoAntigo['estoque'] ?? 0,
+            'frete_gratis' => $produtoAntigo['frete_gratis'] ?? 0,
+        ]);
+
         return redirect()->to(site_url('admin/produtos/edit/' . $id))->with('success', 'Produto atualizado com sucesso!');
     }
 
     public function delete($id = null)
     {
         try {
+            $produto = $this->produtoModel->find($id);
             $this->produtoModel->delete($id);
+            if ($produto) {
+                AuditService::log('delete', 'produtos', (int) $id, null, [
+                    'nome'         => $produto['nome'] ?? '',
+                    'preco'        => $produto['preco'] ?? 0,
+                    'categoria_id' => $produto['categoria_id'] ?? null,
+                ]);
+            }
             return redirect()->to(site_url('admin/produtos'))->with('success', 'Produto movido para a lixeira.');
         } catch (\Exception $e) {
             return redirect()->to(site_url('admin/produtos'))->with('error', 'Erro ao excluir o produto: ' . $e->getMessage());

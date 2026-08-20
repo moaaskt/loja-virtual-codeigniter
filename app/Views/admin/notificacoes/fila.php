@@ -204,6 +204,7 @@
                                 </td>
                                 <td class="text-center">
                                     <form method="post" action="<?= site_url('admin/notificacoes/reprocessar/' . $log['id']) ?>" class="d-inline">
+                                        <?= csrf_field() ?>
                                         <button type="submit" class="btn btn-sm btn-outline-primary" title="Reprocessar Disparo Agora">
                                             <i class="bi bi-arrow-repeat me-1"></i>Reenviar
                                         </button>

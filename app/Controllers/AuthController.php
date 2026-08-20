@@ -2,7 +2,8 @@
 
 namespace App\Controllers;
 
-use App\Models\UsuarioModel; // Precisaremos do UsuarioModel em breve
+use App\Models\UsuarioModel;
+use App\Services\AuditService;
 
 class AuthController extends BaseController
 {
@@ -35,7 +36,8 @@ class AuthController extends BaseController
 
         if ($model->save($data)) {
             // Loga o usuário automaticamente após o registro
-            $usuario = $model->find($model->getInsertID());
+            $usuarioId = $model->getInsertID();
+            $usuario = $model->find($usuarioId);
             $session = session();
             $sessionData = [
                 'usuario_id' => $usuario['id'],
@@ -44,6 +46,8 @@ class AuthController extends BaseController
                 'isLoggedIn' => TRUE,
             ];
             $session->set($sessionData);
+
+            AuditService::log('register', 'usuarios', (int) $usuario['id'], ['nome' => $usuario['nome'], 'email' => $usuario['email']], null, (int) $usuario['id']);
 
             $redirectUrl = $session->get('redirect_url');
             if ($redirectUrl) {
@@ -84,6 +88,8 @@ class AuthController extends BaseController
             ];
             $session->set($sessionData);
 
+            AuditService::log('login', 'usuarios', (int) $usuario['id'], ['status' => 'LOGIN_SUCCESS', 'email' => $email], null, (int) $usuario['id']);
+
             // REDIRECIONAMENTO INTELIGENTE
             $redirectUrl = $session->get('redirect_url');
             if ($redirectUrl) {
@@ -97,6 +103,7 @@ class AuthController extends BaseController
                 return redirect()->to(site_url('/'));
             }
         } else {
+            AuditService::log('login_failed', 'usuarios', null, ['status' => 'LOGIN_FAILED', 'email' => $email], null, null);
             return redirect()->back()->with('error', 'Email ou senha inválidos.');
         }
     }
@@ -104,6 +111,10 @@ class AuthController extends BaseController
     // Faz o logout
     public function logout()
     {
+        $usuarioId = session()->get('usuario_id');
+        if ($usuarioId) {
+            AuditService::log('logout', 'usuarios', (int) $usuarioId, ['status' => 'LOGOUT'], null, (int) $usuarioId);
+        }
         session()->destroy();
         return redirect()->to(site_url('/'));
     }
