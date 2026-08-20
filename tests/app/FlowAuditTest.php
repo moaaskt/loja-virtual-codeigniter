@@ -12,12 +12,30 @@ class FlowAuditTest extends CIUnitTestCase
     {
         // Conecta diretamente ao banco padrão MySQL do Docker
         $db = \Config\Database::connect('default');
+
+        // Garante categoria e produto com estoque suficiente
+        $categoria = $db->table('categorias')->get()->getRowArray();
+        if (!$categoria) {
+            $db->table('categorias')->insert([
+                'nome'      => 'Categoria Teste Flow',
+                'descricao' => 'Descrição Teste',
+            ]);
+            $categoriaId = (int) $db->insertID();
+        } else {
+            $categoriaId = (int) $categoria['id'];
+        }
         
-        // Pega um produto com estoque suficiente
         $produto = $db->table('produtos')->where('estoque >=', 10)->get()->getRowArray();
         if (!$produto) {
-            $db->table('produtos')->where('id >', 0)->update(['estoque' => 50]);
-            $produto = $db->table('produtos')->get()->getRowArray();
+            $db->table('produtos')->insert([
+                'categoria_id' => $categoriaId,
+                'nome'         => 'Produto Teste Flow',
+                'descricao'    => 'Descrição Teste Flow',
+                'preco'        => 100.00,
+                'estoque'      => 50,
+            ]);
+            $produtoId = (int) $db->insertID();
+            $produto = $db->table('produtos')->where('id', $produtoId)->get()->getRowArray();
         }
         $this->assertNotEmpty($produto, 'Deve haver produtos semeados com estoque');
 
@@ -41,6 +59,17 @@ class FlowAuditTest extends CIUnitTestCase
         // 3. Teste de checkout (PedidoService)
         $pedidoService = new PedidoService();
         $usuario = $db->table('usuarios')->where('role', 'cliente')->get()->getRowArray();
+        if (!$usuario) {
+            $db->table('usuarios')->insert([
+                'nome'       => 'Cliente Flow Teste',
+                'email'      => 'cliente_flow@teste.com',
+                'senha_hash' => password_hash('123456', PASSWORD_DEFAULT),
+                'role'       => 'cliente',
+                'ativo'      => 1,
+                'criado_em'  => date('Y-m-d H:i:s'),
+            ]);
+            $usuario = $db->table('usuarios')->where('role', 'cliente')->get()->getRowArray();
+        }
         $this->assertNotEmpty($usuario);
 
         $endereco = [

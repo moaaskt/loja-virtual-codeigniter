@@ -83,6 +83,17 @@ class CheckoutPageTest extends CIUnitTestCase
     {
         $db = \Config\Database::connect('default');
         $usuario = $db->table('usuarios')->where('role', 'cliente')->get()->getRowArray();
+        if (!$usuario) {
+            $db->table('usuarios')->insert([
+                'nome'       => 'Cliente Teste Checkout',
+                'email'      => 'cliente_checkout@teste.com',
+                'senha_hash' => password_hash('123456', PASSWORD_DEFAULT),
+                'role'       => 'cliente',
+                'ativo'      => 1,
+                'criado_em'  => date('Y-m-d H:i:s'),
+            ]);
+            $usuario = $db->table('usuarios')->where('role', 'cliente')->get()->getRowArray();
+        }
         $this->assertNotEmpty($usuario);
 
         // Define redirect_url na sessão

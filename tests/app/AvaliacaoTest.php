@@ -52,6 +52,23 @@ class AvaliacaoTest extends CIUnitTestCase
     }
 
     /**
+     * Cria ou obtém uma categoria de teste no banco.
+     */
+    private function getCategoriaTeste(): int
+    {
+        $categoria = $this->db->table('categorias')->get()->getRowArray();
+        if ($categoria) {
+            return (int) $categoria['id'];
+        }
+
+        $this->db->table('categorias')->insert([
+            'nome'      => 'Categoria Avaliação Teste',
+            'descricao' => 'Descrição Teste',
+        ]);
+        return (int) $this->db->insertID();
+    }
+
+    /**
      * Cria ou obtém um produto de teste no banco.
      */
     private function getProdutoTeste(): int
@@ -61,12 +78,14 @@ class AvaliacaoTest extends CIUnitTestCase
             return (int) $produto['id'];
         }
 
+        $categoriaId = $this->getCategoriaTeste();
+
         return (int) $this->produtoModel->insert([
             'nome'         => 'Camiseta Review Teste',
             'descricao'    => 'Camiseta de alta qualidade para testes.',
             'preco'        => 89.90,
             'estoque'      => 50,
-            'categoria_id' => 1,
+            'categoria_id' => $categoriaId,
         ]);
     }
 

@@ -15,11 +15,8 @@ class VariacoesGenericasTest extends CIUnitTestCase
         parent::setUp();
     }
 
-    public function testCadastroEEdicaoDeProdutoComVariacoesFlexiveisEPrecoIndividual(): void
+    private function getCategoriaId($db): int
     {
-        $db = \Config\Database::connect('default');
-        
-        // Garante uma categoria para o teste
         $categoria = $db->table('categorias')->get()->getRowArray();
         if (!$categoria) {
             $db->table('categorias')->insert([
@@ -27,10 +24,32 @@ class VariacoesGenericasTest extends CIUnitTestCase
                 'descricao' => 'Categoria de tecnologia',
                 'ativo'     => 1,
             ]);
-            $categoriaId = (int) $db->insertID();
-        } else {
-            $categoriaId = (int) $categoria['id'];
+            return (int) $db->insertID();
         }
+        return (int) $categoria['id'];
+    }
+
+    private function getClienteId($db): int
+    {
+        $usuario = $db->table('usuarios')->where('role', 'cliente')->get()->getRowArray();
+        if (!$usuario) {
+            $db->table('usuarios')->insert([
+                'nome'       => 'Cliente Variação Teste',
+                'email'      => 'cliente_var@teste.com',
+                'senha_hash' => password_hash('123456', PASSWORD_DEFAULT),
+                'role'       => 'cliente',
+                'ativo'      => 1,
+                'criado_em'  => date('Y-m-d H:i:s'),
+            ]);
+            return (int) $db->insertID();
+        }
+        return (int) $usuario['id'];
+    }
+
+    public function testCadastroEEdicaoDeProdutoComVariacoesFlexiveisEPrecoIndividual(): void
+    {
+        $db = \Config\Database::connect('default');
+        $categoriaId = $this->getCategoriaId($db);
 
         $produtoModel = new ProdutoModel();
 
@@ -90,11 +109,11 @@ class VariacoesGenericasTest extends CIUnitTestCase
     public function testCarrinhoCalculaPrecoCustomizadoDaVariacao(): void
     {
         $db = \Config\Database::connect('default');
+        $categoriaId = $this->getCategoriaId($db);
 
         // Cria produto de teste com variação de preço
-        $categoria = $db->table('categorias')->get()->getRowArray();
         $produtoId = (int) $db->table('produtos')->insert([
-            'categoria_id' => $categoria['id'],
+            'categoria_id' => $categoriaId,
             'nome'         => 'Notebook Gamer X',
             'descricao'    => 'Notebook potente',
             'preco'        => 5000.00, // Preço base
@@ -143,10 +162,11 @@ class VariacoesGenericasTest extends CIUnitTestCase
     public function testCriacaoDePedidoComPrecoDiferenciadoEBaixaEstoqueVariacao(): void
     {
         $db = \Config\Database::connect('default');
+        $categoriaId = $this->getCategoriaId($db);
+        $clienteId   = $this->getClienteId($db);
 
-        $categoria = $db->table('categorias')->get()->getRowArray();
         $produtoId = (int) $db->table('produtos')->insert([
-            'categoria_id' => $categoria['id'],
+            'categoria_id' => $categoriaId,
             'nome'         => 'Monitor 4K Teste',
             'descricao'    => 'Monitor para trabalho e jogos',
             'preco'        => 2000.00,
@@ -169,8 +189,6 @@ class VariacoesGenericasTest extends CIUnitTestCase
         $carrinhoService->limpar();
         $carrinhoService->adicionar($produtoId, 3, $varId);
 
-        $usuario = $db->table('usuarios')->where('role', 'cliente')->get()->getRowArray();
-
         $pedidoService = new PedidoService();
         $endereco = [
             'cep'        => '01001-000',
@@ -181,7 +199,7 @@ class VariacoesGenericasTest extends CIUnitTestCase
             'uf'         => 'SP'
         ];
 
-        $resPedido = $pedidoService->criarPedido($carrinhoService->getCarrinho(), (int)$usuario['id'], $endereco);
+        $resPedido = $pedidoService->criarPedido($carrinhoService->getCarrinho(), $clienteId, $endereco);
         $this->assertTrue($resPedido['ok']);
         $this->assertArrayHasKey('pedido_id', $resPedido);
 
