@@ -1,11 +1,11 @@
-version: '3.8'
+version: "3.8"
 
 services:
   web:
     build: .
     container_name: loja_web
     ports:
-      - "127.0.0.1:8080:80"
+      - "80:80"
     volumes:
       - .:/var/www/html
     depends_on:
