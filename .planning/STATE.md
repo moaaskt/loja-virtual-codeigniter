@@ -1,19 +1,19 @@
 # Project State
 
 ## Current Status
-- **Current Milestone:** Milestone 2 (E-Commerce Avançado — Pagamentos, Frete, Cupons, Avaliações e Métricas)
-- **Current Phase:** Phase 9 (Relatórios e Métricas Avançadas no Painel Admin) — Próxima
-- **Last Action:** Executada a Phase 8 — Avaliações e Reviews de Produtos — 55 testes, 282 asserções passando ✓
+- **Current Milestone:** Milestone 2 (E-Commerce Avançado — Pagamentos, Frete, Cupons, Avaliações e Métricas) — 100% Concluído ✓
+- **Current Phase:** Phase 9 (Relatórios e Métricas Avançadas no Painel Admin) — Concluída ✓
+- **Last Action:** Executada a Phase 9 — Relatórios e Métricas Avançadas no Painel Admin — 66 testes, 581 asserções passando ✓
 
 ## Progress Summary
 - **Milestone 1:** 100% Concluído (Fases 1 a 4) ✓
-- **Milestone 2:**
+- **Milestone 2:** 100% Concluído (Fases 5 a 9) ✓
   - [x] Phase 5: Cálculo de Frete e Cupons de Desconto ✓
   - [x] Phase 6: Gateway de Pagamento (Pix / Cartão de Crédito) ✓
   - [x] Phase 7: Notificações Transacionais por E-mail (SMTP) ✓
   - [x] Phase 7.5: Auditoria do Sistema & Fila de Notificações ✓
   - [x] Phase 8: Avaliações e Reviews de Produtos ✓
-  - [ ] Phase 9: Relatórios e Métricas Avançadas no Painel Admin
+  - [x] Phase 9: Relatórios e Métricas Avançadas no Painel Admin ✓
 
 ## Quick Tasks Completed
 | Slug | Date | Status | Description |
@@ -25,6 +25,8 @@
 | `restricao-compradores-avaliacoes` | 2026-08-20 | complete ✓ | Restrição estrita de formulário e envio de avaliações na PDP e backend para compradores verificados ou administradores |
 
 ## Next Steps
-Avançar para a **Phase 9: Relatórios e Métricas Avançadas no Painel Admin**.
+Auditar e completar o **Milestone 2** (`/gsd-audit-milestone` ou `/gsd-complete-milestone`).
+
+
 
 
