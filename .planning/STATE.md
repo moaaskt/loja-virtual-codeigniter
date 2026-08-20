@@ -2,8 +2,8 @@
 
 ## Current Status
 - **Current Milestone:** Milestone 2 (E-Commerce Avançado — Pagamentos, Frete, Cupons, Avaliações e Métricas)
-- **Current Phase:** Phase 8 (Avaliações e Reviews de Produtos) — Próxima
-- **Last Action:** Executada a Phase 7 — Notificações Transacionais por E-mail (SMTP) — 41 testes, 188 asserções passando ✓
+- **Current Phase:** Phase 9 (Relatórios e Métricas Avançadas no Painel Admin) — Próxima
+- **Last Action:** Executada a Phase 8 — Avaliações e Reviews de Produtos — 55 testes, 282 asserções passando ✓
 
 ## Progress Summary
 - **Milestone 1:** 100% Concluído (Fases 1 a 4) ✓
@@ -11,7 +11,8 @@
   - [x] Phase 5: Cálculo de Frete e Cupons de Desconto ✓
   - [x] Phase 6: Gateway de Pagamento (Pix / Cartão de Crédito) ✓
   - [x] Phase 7: Notificações Transacionais por E-mail (SMTP) ✓
-  - [ ] Phase 8: Avaliações e Reviews de Produtos
+  - [x] Phase 7.5: Auditoria do Sistema & Fila de Notificações ✓
+  - [x] Phase 8: Avaliações e Reviews de Produtos ✓
   - [ ] Phase 9: Relatórios e Métricas Avançadas no Painel Admin
 
 ## Quick Tasks Completed
@@ -22,4 +23,5 @@
 | `variacoes-dinamicas-categoria` | 2026-08-19 | complete ✓ | Adaptação dinâmica da interface de variações/SKUs nos formulários admin (new.php e edit.php) com base na categoria selecionada |
 
 ## Next Steps
-Avançar para a **Phase 8: Avaliações e Reviews de Produtos**.
+Avançar para a **Phase 9: Relatórios e Métricas Avançadas no Painel Admin**.
+

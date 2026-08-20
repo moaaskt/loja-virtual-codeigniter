@@ -47,7 +47,7 @@
   - Integrar disparos automáticos nos controllers de checkout, webhook e painel admin.
 
 ### Phase 7.5: Auditoria do Sistema & Fila de Notificações
-- **Status:** Pending
+- **Status:** Completed ✓
 - **Objetivo:** Implementar infraestrutura desacoplada de auditoria de alterações (audit trail) e fila resiliente para registro, monitoramento e reprocessamento de notificações (e-mail/WhatsApp).
 - **Tarefas principais:**
   - Criar migrations e models para `audit_logs` e `notification_logs`.
@@ -57,13 +57,13 @@
   - Desenvolver suíte de testes unitários e de integração em `tests/app/AuditServiceTest.php` e `NotificationLogTest.php`.
 
 ### Phase 8: Avaliações e Reviews de Produtos
-- **Status:** Pending
+- **Status:** Completed ✓
 - **Objetivo:** Permitir que clientes avaliem produtos com notas e comentários, exibindo a reputação na vitrine e detalhes do produto.
 - **Tarefas principais:**
   - Criar migration, model e controller para avaliações de produtos (1 a 5 estrelas + comentário).
-  - Adicionar formulário de avaliação na área do cliente / página do produto.
+  - Adicionar formulário de avaliação na área do cliente / página do produto com verificação de compra.
   - Exibir estrelas e reviews aprovadas no catálogo e página de detalhes.
-  - Criar tela de moderação de avaliações no Painel Admin.
+  - Criar tela de moderação de avaliações no Painel Admin com trilha de auditoria.
 
 ### Phase 9: Relatórios e Métricas Avançadas no Painel Admin
 - **Status:** Pending

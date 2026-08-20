@@ -10,7 +10,7 @@ class HomeController extends BaseController
     public function __construct()
     {
         // Carrega os helpers para todos os métodos deste controller
-        helper(['form', 'url']);
+        helper(['form', 'url', 'status']);
     }
 
 
@@ -84,6 +84,7 @@ class HomeController extends BaseController
     public function produto($id = null)
     {
         $model = new ProdutoModel();
+        $avaliacaoModel = new \App\Models\AvaliacaoModel();
 
         // Usa nosso novo método para buscar um produto específico com sua categoria
         $produto = $model->findProdutoComCategoria($id);
@@ -98,19 +99,29 @@ class HomeController extends BaseController
         );
 
         // Busca as imagens extras e as variações garantindo que retornem um array (vazio caso não existam)
-        $imagens = $model->getImagens((int) $produto['id']);
+        $imagens   = $model->getImagens((int) $produto['id']);
         $variacoes = $model->getVariacoes((int) $produto['id']);
 
+        // Carrega avaliações e estatísticas do produto
+        $estatisticasAvaliacao    = $avaliacaoModel->getEstatisticasProduto((int) $produto['id']);
+        $avaliacoes               = $avaliacaoModel->getAvaliacoesPorProduto((int) $produto['id'], 20, true);
+        $usuarioId                = (int) session()->get('usuario_id');
+        $statusPermissaoAvaliacao = $avaliacaoModel->usuarioPodeAvaliar($usuarioId, (int) $produto['id']);
+
         $data = [
-            'title'        => esc($produto['nome']),
-            'produto'      => $produto,
-            'relacionados' => $relacionados,
-            'imagens'      => is_array($imagens) ? $imagens : [],
-            'variacoes'    => is_array($variacoes) ? $variacoes : [],
+            'title'                    => esc($produto['nome']),
+            'produto'                  => $produto,
+            'relacionados'             => $relacionados,
+            'imagens'                  => is_array($imagens) ? $imagens : [],
+            'variacoes'                => is_array($variacoes) ? $variacoes : [],
+            'avaliacoes'               => $avaliacoes,
+            'estatisticasAvaliacao'    => $estatisticasAvaliacao,
+            'statusPermissaoAvaliacao' => $statusPermissaoAvaliacao,
         ];
 
         return view('shop/produto_detalhe', $data);
     }
+
 
 
 

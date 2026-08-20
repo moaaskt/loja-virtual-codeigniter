@@ -1240,4 +1240,114 @@ body {
     }
 }
 
+/* ============================================================
+   REVIEWS & RATINGS SYSTEM (Phase 8)
+   ============================================================ */
+
+.pdp-reviews-section {
+    margin-top: 3.5rem;
+    padding-top: 2.5rem;
+}
+
+.review-summary-card {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+}
+
+.review-score-big {
+    font-size: 3.25rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text-heading);
+    letter-spacing: -0.03em;
+}
+
+.review-progress-row {
+    display: flex;
+    align-items: center;
+    gap: .625rem;
+    font-size: .8125rem;
+    margin-bottom: .4rem;
+}
+
+.review-progress-row .progress {
+    flex: 1;
+    height: 8px;
+    background-color: #e2e8f0;
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.review-progress-row .progress-bar {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    border-radius: 99px;
+}
+
+/* ---------- Interactive Star Rating Picker ---------- */
+.star-rating-picker {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    gap: .25rem;
+}
+
+.star-rating-picker input {
+    display: none;
+}
+
+.star-rating-picker label {
+    cursor: pointer;
+    font-size: 1.75rem;
+    color: #cbd5e1;
+    transition: transform .15s ease, color .15s ease;
+}
+
+.star-rating-picker label:hover,
+.star-rating-picker label:hover ~ label,
+.star-rating-picker input:checked ~ label {
+    color: #f59e0b;
+}
+
+.star-rating-picker label:hover {
+    transform: scale(1.2);
+}
+
+.star-rating-text {
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    min-height: 1.25rem;
+}
+
+/* ---------- Review Card Feed ---------- */
+.review-card {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    transition: var(--transition);
+}
+
+.review-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 16px rgba(0,0,0,.04);
+}
+
+.review-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+    color: #fff;
+    font-weight: 700;
+    font-size: .9375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+
 
