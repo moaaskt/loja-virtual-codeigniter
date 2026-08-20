@@ -181,6 +181,11 @@
             </tbody>
         </table>
     </div>
+    <?php if (!empty($pager) && !empty($vendas)): ?>
+        <div class="card-footer bg-white border-top py-3 d-flex justify-content-center">
+            <?= $pager->links('default', 'bootstrap_pagination') ?>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?= $this->endSection() ?>

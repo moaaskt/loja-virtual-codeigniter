@@ -338,9 +338,9 @@ class RelatorioService
     /**
      * Retorna o ranking dos produtos mais vendidos no período.
      */
-    public function getTopProdutos(string $dataInicio, string $dataFim, int $limit = 10): array
+    public function getTopProdutos(string $dataInicio, string $dataFim, int $limit = 20, int $offset = 0): array
     {
-        return $this->db->table('pedido_produtos')
+        $builder = $this->db->table('pedido_produtos')
             ->select("
                 produtos.id,
                 produtos.nome,
@@ -357,18 +357,39 @@ class RelatorioService
             ->where('pedidos.criado_em <=', $dataFim)
             ->whereIn('pedidos.status', ['pago', 'enviado', 'entregue'])
             ->groupBy('produtos.id')
-            ->orderBy('total_vendido', 'DESC')
-            ->limit($limit)
-            ->get()
-            ->getResultArray();
+            ->orderBy('total_vendido', 'DESC');
+
+        if ($limit > 0) {
+            $builder->limit($limit, $offset);
+        }
+
+        return $builder->get()->getResultArray();
+    }
+
+    /**
+     * Retorna o total de produtos distintos vendidos no período (para paginação).
+     */
+    public function getTotalTopProdutos(string $dataInicio, string $dataFim): int
+    {
+        $subquery = $this->db->table('pedido_produtos')
+            ->select('produtos.id')
+            ->join('pedidos', 'pedidos.id = pedido_produtos.pedido_id')
+            ->join('produtos', 'produtos.id = pedido_produtos.produto_id')
+            ->where('pedidos.criado_em >=', $dataInicio)
+            ->where('pedidos.criado_em <=', $dataFim)
+            ->whereIn('pedidos.status', ['pago', 'enviado', 'entregue'])
+            ->groupBy('produtos.id')
+            ->getCompiledSelect();
+
+        return (int) $this->db->table("({$subquery}) as t")->countAllResults();
     }
 
     /**
      * Retorna o ranking de clientes com maior faturamento/compras no período.
      */
-    public function getTopClientes(string $dataInicio, string $dataFim, int $limit = 10): array
+    public function getTopClientes(string $dataInicio, string $dataFim, int $limit = 20, int $offset = 0): array
     {
-        return $this->db->table('pedidos')
+        $builder = $this->db->table('pedidos')
             ->select("
                 usuarios.id,
                 usuarios.nome,
@@ -383,18 +404,38 @@ class RelatorioService
             ->where('pedidos.criado_em <=', $dataFim)
             ->whereIn('pedidos.status', ['pago', 'enviado', 'entregue'])
             ->groupBy('usuarios.id')
-            ->orderBy('total_gasto', 'DESC')
-            ->limit($limit)
-            ->get()
-            ->getResultArray();
+            ->orderBy('total_gasto', 'DESC');
+
+        if ($limit > 0) {
+            $builder->limit($limit, $offset);
+        }
+
+        return $builder->get()->getResultArray();
+    }
+
+    /**
+     * Retorna o total de clientes com compras pagas no período (para paginação).
+     */
+    public function getTotalTopClientes(string $dataInicio, string $dataFim): int
+    {
+        $subquery = $this->db->table('pedidos')
+            ->select('usuarios.id')
+            ->join('usuarios', 'usuarios.id = pedidos.usuario_id')
+            ->where('pedidos.criado_em >=', $dataInicio)
+            ->where('pedidos.criado_em <=', $dataFim)
+            ->whereIn('pedidos.status', ['pago', 'enviado', 'entregue'])
+            ->groupBy('usuarios.id')
+            ->getCompiledSelect();
+
+        return (int) $this->db->table("({$subquery}) as t")->countAllResults();
     }
 
     /**
      * Retorna o relatório de desempenho de cupons de desconto no período.
      */
-    public function getRelatorioCupons(string $dataInicio, string $dataFim): array
+    public function getRelatorioCupons(string $dataInicio, string $dataFim, int $limit = 20, int $offset = 0): array
     {
-        return $this->db->table('pedidos')
+        $builder = $this->db->table('pedidos')
             ->select("
                 pedidos.cupom_codigo as codigo,
                 COUNT(pedidos.id) as total_usos,
@@ -406,9 +447,30 @@ class RelatorioService
             ->where('pedidos.cupom_codigo IS NOT NULL')
             ->where("pedidos.cupom_codigo != ''")
             ->groupBy('pedidos.cupom_codigo')
-            ->orderBy('total_desconto', 'DESC')
-            ->get()
-            ->getResultArray();
+            ->orderBy('total_desconto', 'DESC');
+
+        if ($limit > 0) {
+            $builder->limit($limit, $offset);
+        }
+
+        return $builder->get()->getResultArray();
+    }
+
+    /**
+     * Retorna o total de cupons distintos utilizados no período (para paginação).
+     */
+    public function getTotalRelatorioCupons(string $dataInicio, string $dataFim): int
+    {
+        $subquery = $this->db->table('pedidos')
+            ->select('pedidos.cupom_codigo')
+            ->where('pedidos.criado_em >=', $dataInicio)
+            ->where('pedidos.criado_em <=', $dataFim)
+            ->where('pedidos.cupom_codigo IS NOT NULL')
+            ->where("pedidos.cupom_codigo != ''")
+            ->groupBy('pedidos.cupom_codigo')
+            ->getCompiledSelect();
+
+        return (int) $this->db->table("({$subquery}) as t")->countAllResults();
     }
 
     /**
@@ -495,7 +557,7 @@ class RelatorioService
                     'Receita Gerada (R$)'
                 ], $delimitador);
 
-                $produtos = $this->getTopProdutos($dataInicio, $dataFim, 200);
+                $produtos = $this->getTopProdutos($dataInicio, $dataFim, 0);
                 foreach ($produtos as $p) {
                     fputcsv($handle, [
                         $p['id'],
@@ -519,7 +581,7 @@ class RelatorioService
                     'Último Pedido'
                 ], $delimitador);
 
-                $clientes = $this->getTopClientes($dataInicio, $dataFim, 200);
+                $clientes = $this->getTopClientes($dataInicio, $dataFim, 0);
                 foreach ($clientes as $c) {
                     fputcsv($handle, [
                         $c['id'],
@@ -541,7 +603,7 @@ class RelatorioService
                     'Faturamento com o Cupom (R$)'
                 ], $delimitador);
 
-                $cupons = $this->getRelatorioCupons($dataInicio, $dataFim);
+                $cupons = $this->getRelatorioCupons($dataInicio, $dataFim, 0);
                 foreach ($cupons as $cp) {
                     fputcsv($handle, [
                         $cp['codigo'],

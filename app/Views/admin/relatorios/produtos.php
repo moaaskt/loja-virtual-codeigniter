@@ -72,17 +72,22 @@
                         </td>
                     </tr>
                 <?php else: ?>
-                    <?php foreach ($produtos as $index => $p): ?>
+                    <?php 
+                    $curPage = $page ?? 1;
+                    $perP = $perPage ?? 20;
+                    foreach ($produtos as $index => $p): 
+                        $globalIndex = (($curPage - 1) * $perP) + $index + 1;
+                    ?>
                         <tr>
                             <td class="text-center">
-                                <?php if ($index === 0): ?>
+                                <?php if ($globalIndex === 1): ?>
                                     <span class="badge bg-warning text-dark rounded-circle p-2 fs-6"><i class="bi bi-trophy-fill"></i></span>
-                                <?php elseif ($index === 1): ?>
+                                <?php elseif ($globalIndex === 2): ?>
                                     <span class="badge bg-secondary text-white rounded-circle p-2 fs-6"><i class="bi bi-award-fill"></i></span>
-                                <?php elseif ($index === 2): ?>
+                                <?php elseif ($globalIndex === 3): ?>
                                     <span class="badge bg-bronze rounded-circle p-2 fs-6" style="background:#b45309; color:#fff;"><i class="bi bi-award"></i></span>
                                 <?php else: ?>
-                                    <span class="badge bg-light text-muted rounded-circle px-2 py-1">#<?= $index + 1 ?></span>
+                                    <span class="badge bg-light text-muted rounded-circle px-2 py-1">#<?= $globalIndex ?></span>
                                 <?php endif; ?>
                             </td>
                             <td>
@@ -128,6 +133,11 @@
             </tbody>
         </table>
     </div>
+    <?php if (!empty($pagerLinks) && !empty($produtos)): ?>
+        <div class="card-footer bg-white border-top py-3 d-flex justify-content-center">
+            <?= $pagerLinks ?>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?= $this->endSection() ?>

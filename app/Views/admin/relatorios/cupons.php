@@ -121,6 +121,11 @@
             </tbody>
         </table>
     </div>
+    <?php if (!empty($pagerLinks) && !empty($cupons)): ?>
+        <div class="card-footer bg-white border-top py-3 d-flex justify-content-center">
+            <?= $pagerLinks ?>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?= $this->endSection() ?>
