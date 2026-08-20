@@ -229,6 +229,35 @@ class CarrinhoService
     }
 
     // ----------------------------------------------------------------
+    // Verificação de Frete Grátis
+    // ----------------------------------------------------------------
+    public function temFreteGratis(): bool
+    {
+        $carrinho = $this->getCarrinho();
+        if (empty($carrinho)) {
+            return false;
+        }
+
+        $produtoIds = array_unique(array_column($carrinho, 'id'));
+        if (empty($produtoIds)) {
+            return false;
+        }
+
+        $produtos = $this->produtoModel->whereIn('id', $produtoIds)->findAll();
+        if (empty($produtos)) {
+            return false;
+        }
+
+        foreach ($produtos as $p) {
+            if (empty($p['frete_gratis']) || (int) $p['frete_gratis'] !== 1) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // ----------------------------------------------------------------
     // Consolidação de Totais (Subtotal - Desconto + Frete)
     // ----------------------------------------------------------------
     public function calcularTotais(): array
@@ -250,18 +279,31 @@ class CarrinhoService
             }
         }
 
-        $frete     = $this->getFrete();
-        $freteValor = $frete ? (float) $frete['valor'] : 0.0;
+        $temFreteGratis = $this->temFreteGratis();
+        $frete          = $this->getFrete();
+
+        if ($temFreteGratis) {
+            $freteValor = 0.0;
+            $frete      = [
+                'modalidade' => 'Frete Grátis',
+                'valor'      => 0.0,
+                'prazo'      => 'Entrega Padrão',
+                'cep'        => $frete['cep'] ?? '',
+            ];
+        } else {
+            $freteValor = $frete ? (float) $frete['valor'] : 0.0;
+        }
 
         $totalFinal = max(0.0, $subtotal - $desconto) + $freteValor;
 
         return [
-            'subtotal'   => $subtotal,
-            'desconto'   => $desconto,
-            'frete'      => $freteValor,
-            'total'      => $totalFinal,
-            'cupom'      => $cupom,
-            'frete_info' => $frete,
+            'subtotal'         => $subtotal,
+            'desconto'         => $desconto,
+            'frete'            => $freteValor,
+            'total'            => $totalFinal,
+            'cupom'            => $cupom,
+            'frete_info'       => $frete,
+            'tem_frete_gratis' => $temFreteGratis,
         ];
     }
 }

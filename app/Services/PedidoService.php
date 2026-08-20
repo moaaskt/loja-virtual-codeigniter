@@ -106,11 +106,22 @@ class PedidoService
         }
 
         // Processamento de Frete
+        $todosItensComFreteGratis = !empty($itensPedido);
+        foreach ($itensPedido as $d) {
+            if (empty($d['produto']['frete_gratis']) || (int) $d['produto']['frete_gratis'] !== 1) {
+                $todosItensComFreteGratis = false;
+                break;
+            }
+        }
+
         $freteSessao     = $freteData ?? session()->get('frete');
         $freteValor      = 0.0;
         $freteModalidade = null;
 
-        if (!empty($freteSessao)) {
+        if ($todosItensComFreteGratis) {
+            $freteValor      = 0.0;
+            $freteModalidade = 'Frete Grátis';
+        } elseif (!empty($freteSessao)) {
             $freteValor      = max(0.0, (float) ($freteSessao['valor'] ?? 0));
             $freteModalidade = $freteSessao['modalidade'] ?? 'Padrão';
         }
