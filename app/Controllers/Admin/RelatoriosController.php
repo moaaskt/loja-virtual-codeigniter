@@ -45,6 +45,8 @@ class RelatoriosController extends BaseController
      */
     public function vendas()
     {
+        $pedidoModel = new \App\Models\PedidoModel();
+
         $periodo        = $this->request->getGet('periodo') ?? '30d';
         $dataInicio     = $this->request->getGet('data_inicio');
         $dataFim        = $this->request->getGet('data_fim');
@@ -60,12 +62,15 @@ class RelatoriosController extends BaseController
             'cupom'           => $cupom,
         ];
 
+        $vendas = $pedidoModel->getVendasRelatorio($periodoInfo['inicio'], $periodoInfo['fim'], $filtros, 20);
+
         $data = [
             'title'       => 'Relatório de Vendas',
             'periodoInfo' => $periodoInfo,
             'filtros'     => $filtros,
             'kpis'        => $this->relatorioService->getKpis($periodoInfo['inicio'], $periodoInfo['fim']),
-            'vendas'      => $this->relatorioService->getVendasDetalhadas($periodoInfo['inicio'], $periodoInfo['fim'], $filtros),
+            'vendas'      => $vendas,
+            'pager'       => $pedidoModel->pager,
         ];
 
         return view('admin/relatorios/vendas', $data);
@@ -79,14 +84,27 @@ class RelatoriosController extends BaseController
         $periodo    = $this->request->getGet('periodo') ?? '30d';
         $dataInicio = $this->request->getGet('data_inicio');
         $dataFim    = $this->request->getGet('data_fim');
+        $page       = (int) ($this->request->getGet('page') ?? 1);
+        $page       = max(1, $page);
+        $perPage    = 20;
+        $offset     = ($page - 1) * $perPage;
 
-        $periodoInfo = $this->relatorioService->getPeriodoDatas($periodo, $dataInicio, $dataFim);
+        $periodoInfo   = $this->relatorioService->getPeriodoDatas($periodo, $dataInicio, $dataFim);
+        $totalProdutos = $this->relatorioService->getTotalTopProdutos($periodoInfo['inicio'], $periodoInfo['fim']);
+        $produtos      = $this->relatorioService->getTopProdutos($periodoInfo['inicio'], $periodoInfo['fim'], $perPage, $offset);
+
+        $pager = service('pager');
+        $pagerLinks = $pager->makeLinks($page, $perPage, $totalProdutos, 'bootstrap_pagination');
 
         $data = [
-            'title'       => 'Relatório de Produtos Mais Vendidos',
-            'periodoInfo' => $periodoInfo,
-            'produtos'    => $this->relatorioService->getTopProdutos($periodoInfo['inicio'], $periodoInfo['fim'], 100),
-            'kpis'        => $this->relatorioService->getKpis($periodoInfo['inicio'], $periodoInfo['fim']),
+            'title'         => 'Relatório de Produtos Mais Vendidos',
+            'periodoInfo'   => $periodoInfo,
+            'produtos'      => $produtos,
+            'kpis'          => $this->relatorioService->getKpis($periodoInfo['inicio'], $periodoInfo['fim']),
+            'totalProdutos' => $totalProdutos,
+            'page'          => $page,
+            'perPage'       => $perPage,
+            'pagerLinks'    => $pagerLinks,
         ];
 
         return view('admin/relatorios/produtos', $data);
@@ -100,14 +118,27 @@ class RelatoriosController extends BaseController
         $periodo    = $this->request->getGet('periodo') ?? '30d';
         $dataInicio = $this->request->getGet('data_inicio');
         $dataFim    = $this->request->getGet('data_fim');
+        $page       = (int) ($this->request->getGet('page') ?? 1);
+        $page       = max(1, $page);
+        $perPage    = 20;
+        $offset     = ($page - 1) * $perPage;
 
-        $periodoInfo = $this->relatorioService->getPeriodoDatas($periodo, $dataInicio, $dataFim);
+        $periodoInfo   = $this->relatorioService->getPeriodoDatas($periodo, $dataInicio, $dataFim);
+        $totalClientes = $this->relatorioService->getTotalTopClientes($periodoInfo['inicio'], $periodoInfo['fim']);
+        $clientes      = $this->relatorioService->getTopClientes($periodoInfo['inicio'], $periodoInfo['fim'], $perPage, $offset);
+
+        $pager = service('pager');
+        $pagerLinks = $pager->makeLinks($page, $perPage, $totalClientes, 'bootstrap_pagination');
 
         $data = [
-            'title'       => 'Relatório de Clientes & Compras',
-            'periodoInfo' => $periodoInfo,
-            'clientes'    => $this->relatorioService->getTopClientes($periodoInfo['inicio'], $periodoInfo['fim'], 100),
-            'kpis'        => $this->relatorioService->getKpis($periodoInfo['inicio'], $periodoInfo['fim']),
+            'title'         => 'Relatório de Clientes & Compras',
+            'periodoInfo'   => $periodoInfo,
+            'clientes'      => $clientes,
+            'kpis'          => $this->relatorioService->getKpis($periodoInfo['inicio'], $periodoInfo['fim']),
+            'totalClientes' => $totalClientes,
+            'page'          => $page,
+            'perPage'       => $perPage,
+            'pagerLinks'    => $pagerLinks,
         ];
 
         return view('admin/relatorios/clientes', $data);
@@ -121,14 +152,27 @@ class RelatoriosController extends BaseController
         $periodo    = $this->request->getGet('periodo') ?? '30d';
         $dataInicio = $this->request->getGet('data_inicio');
         $dataFim    = $this->request->getGet('data_fim');
+        $page       = (int) ($this->request->getGet('page') ?? 1);
+        $page       = max(1, $page);
+        $perPage    = 20;
+        $offset     = ($page - 1) * $perPage;
 
         $periodoInfo = $this->relatorioService->getPeriodoDatas($periodo, $dataInicio, $dataFim);
+        $totalCupons = $this->relatorioService->getTotalRelatorioCupons($periodoInfo['inicio'], $periodoInfo['fim']);
+        $cupons      = $this->relatorioService->getRelatorioCupons($periodoInfo['inicio'], $periodoInfo['fim'], $perPage, $offset);
+
+        $pager = service('pager');
+        $pagerLinks = $pager->makeLinks($page, $perPage, $totalCupons, 'bootstrap_pagination');
 
         $data = [
             'title'       => 'Relatório de Desempenho de Cupons',
             'periodoInfo' => $periodoInfo,
-            'cupons'      => $this->relatorioService->getRelatorioCupons($periodoInfo['inicio'], $periodoInfo['fim']),
+            'cupons'      => $cupons,
             'kpis'        => $this->relatorioService->getKpis($periodoInfo['inicio'], $periodoInfo['fim']),
+            'totalCupons' => $totalCupons,
+            'page'        => $page,
+            'perPage'     => $perPage,
+            'pagerLinks'  => $pagerLinks,
         ];
 
         return view('admin/relatorios/cupons', $data);

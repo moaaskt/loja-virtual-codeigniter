@@ -73,4 +73,29 @@ class PedidoModel extends Model
 
         return $this->update($pedidoId, $dados);
     }
+
+    /**
+     * Retorna a listagem de vendas com filtros e paginação nativa do CodeIgniter.
+     */
+    public function getVendasRelatorio(string $dataInicio, string $dataFim, array $filtros = [], int $perPage = 20)
+    {
+        $this->select('pedidos.*, usuarios.nome as cliente_nome, usuarios.email as cliente_email');
+        $this->join('usuarios', 'usuarios.id = pedidos.usuario_id', 'left');
+        $this->where('pedidos.criado_em >=', $dataInicio);
+        $this->where('pedidos.criado_em <=', $dataFim);
+
+        if (!empty($filtros['status'])) {
+            $this->where('pedidos.status', $filtros['status']);
+        }
+        if (!empty($filtros['forma_pagamento'])) {
+            $this->where('pedidos.forma_pagamento', $filtros['forma_pagamento']);
+        }
+        if (!empty($filtros['cupom'])) {
+            $this->where('pedidos.cupom_codigo', $filtros['cupom']);
+        }
+
+        $this->orderBy('pedidos.criado_em', 'DESC');
+
+        return $this->paginate($perPage);
+    }
 }

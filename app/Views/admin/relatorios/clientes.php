@@ -73,10 +73,15 @@
                         </td>
                     </tr>
                 <?php else: ?>
-                    <?php foreach ($clientes as $index => $c): ?>
+                    <?php 
+                    $curPage = $page ?? 1;
+                    $perP = $perPage ?? 20;
+                    foreach ($clientes as $index => $c): 
+                        $globalIndex = (($curPage - 1) * $perP) + $index + 1;
+                    ?>
                         <tr>
                             <td class="text-center">
-                                <span class="badge bg-light text-muted rounded-circle px-2 py-1">#<?= $index + 1 ?></span>
+                                <span class="badge bg-light text-muted rounded-circle px-2 py-1">#<?= $globalIndex ?></span>
                             </td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
@@ -110,6 +115,11 @@
             </tbody>
         </table>
     </div>
+    <?php if (!empty($pagerLinks) && !empty($clientes)): ?>
+        <div class="card-footer bg-white border-top py-3 d-flex justify-content-center">
+            <?= $pagerLinks ?>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?= $this->endSection() ?>

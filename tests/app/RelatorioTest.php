@@ -256,6 +256,48 @@ class RelatorioTest extends CIUnitTestCase
         }
     }
 
+    public function testPaginacaoVendasNoPedidoModel(): void
+    {
+        $inicio = date('Y-m-d 00:00:00', strtotime('-30 days'));
+        $fim    = date('Y-m-d 23:59:59');
+
+        $vendasPaginadas = $this->pedidoModel->getVendasRelatorio($inicio, $fim, [], 5);
+        $this->assertIsArray($vendasPaginadas);
+        $this->assertNotNull($this->pedidoModel->pager);
+        $this->assertLessThanOrEqual(5, count($vendasPaginadas));
+    }
+
+    public function testContagensTotaisParaPaginacao(): void
+    {
+        $inicio = date('Y-m-d 00:00:00', strtotime('-30 days'));
+        $fim    = date('Y-m-d 23:59:59');
+
+        $totalProdutos = $this->relatorioService->getTotalTopProdutos($inicio, $fim);
+        $this->assertIsInt($totalProdutos);
+        $this->assertGreaterThanOrEqual(0, $totalProdutos);
+
+        $totalClientes = $this->relatorioService->getTotalTopClientes($inicio, $fim);
+        $this->assertIsInt($totalClientes);
+        $this->assertGreaterThanOrEqual(0, $totalClientes);
+
+        $totalCupons = $this->relatorioService->getTotalRelatorioCupons($inicio, $fim);
+        $this->assertIsInt($totalCupons);
+        $this->assertGreaterThanOrEqual(0, $totalCupons);
+
+        // Testa busca com limit e offset
+        $produtosOffset = $this->relatorioService->getTopProdutos($inicio, $fim, 10, 0);
+        $this->assertIsArray($produtosOffset);
+        $this->assertLessThanOrEqual(10, count($produtosOffset));
+
+        $clientesOffset = $this->relatorioService->getTopClientes($inicio, $fim, 10, 0);
+        $this->assertIsArray($clientesOffset);
+        $this->assertLessThanOrEqual(10, count($clientesOffset));
+
+        $cuponsOffset = $this->relatorioService->getRelatorioCupons($inicio, $fim, 10, 0);
+        $this->assertIsArray($cuponsOffset);
+        $this->assertLessThanOrEqual(10, count($cuponsOffset));
+    }
+
     public function testGeracaoCsvComBOM(): void
     {
         $inicio = date('Y-m-d 00:00:00', strtotime('-30 days'));
@@ -275,3 +317,5 @@ class RelatorioTest extends CIUnitTestCase
         }
     }
 }
+
+
