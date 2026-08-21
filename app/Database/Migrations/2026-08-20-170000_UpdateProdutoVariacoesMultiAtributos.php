@@ -45,19 +45,25 @@ class UpdateProdutoVariacoesMultiAtributos extends Migration
             ],
         ];
 
-        $this->forge->addColumn('produto_variacoes', $fields);
+        $toAdd = [];
+        foreach ($fields as $name => $def) {
+            if (!$this->db->fieldExists($name, 'produto_variacoes')) {
+                $toAdd[$name] = $def;
+            }
+        }
+
+        if (!empty($toAdd)) {
+            $this->forge->addColumn('produto_variacoes', $toAdd);
+        }
     }
 
     public function down()
     {
-        try {
-            $this->forge->dropColumn('produto_variacoes', 'sku');
-            $this->forge->dropColumn('produto_variacoes', 'nome_variacao');
-            $this->forge->dropColumn('produto_variacoes', 'atributos_json');
-            $this->forge->dropColumn('produto_variacoes', 'imagem_url');
-            $this->forge->dropColumn('produto_variacoes', 'codigo_barras');
-        } catch (\Throwable $e) {
-            // Ignora erro caso as colunas não existam durante o rollback
+        $columnNames = ['sku', 'nome_variacao', 'atributos_json', 'imagem_url', 'codigo_barras'];
+        foreach ($columnNames as $name) {
+            if ($this->db->fieldExists($name, 'produto_variacoes')) {
+                $this->forge->dropColumn('produto_variacoes', $name);
+            }
         }
     }
 }

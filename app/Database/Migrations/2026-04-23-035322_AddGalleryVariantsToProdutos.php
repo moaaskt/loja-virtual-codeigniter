@@ -8,7 +8,7 @@ class AddGalleryVariantsToProdutos extends Migration
 {
     public function up()
     {
-        $fields = [
+        $columns = [
             'imagens_galeria' => [
                 'type' => 'TEXT',
                 'null' => true,
@@ -32,11 +32,30 @@ class AddGalleryVariantsToProdutos extends Migration
             ],
         ];
 
-        $this->forge->addColumn('produtos', $fields);
+        $toAdd = [];
+        foreach ($columns as $name => $def) {
+            if (!$this->db->fieldExists($name, 'produtos')) {
+                $toAdd[$name] = $def;
+            }
+        }
+
+        if (!empty($toAdd)) {
+            $this->forge->addColumn('produtos', $toAdd);
+        }
     }
 
     public function down()
     {
-        $this->forge->dropColumn('produtos', ['imagens_galeria', 'cores', 'tamanhos', 'frete_gratis']);
+        $columnNames = ['imagens_galeria', 'cores', 'tamanhos', 'frete_gratis'];
+        $toDrop = [];
+        foreach ($columnNames as $name) {
+            if ($this->db->fieldExists($name, 'produtos')) {
+                $toDrop[] = $name;
+            }
+        }
+
+        if (!empty($toDrop)) {
+            $this->forge->dropColumn('produtos', $toDrop);
+        }
     }
 }
