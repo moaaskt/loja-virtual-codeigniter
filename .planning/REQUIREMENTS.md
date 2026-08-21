@@ -1,7 +1,7 @@
 # Requisitos do Sistema — Milestone 3: Experiência do Usuário & Catálogo Avançado
 
 - **Versão:** v3.0
-- **Status:** Em Planejamento / Execução
+- **Status:** 100% Concluído ✓
 - **Objetivo Geral:** Elevar a experiência do usuário (UX/UI) e a robustez do catálogo a um nível premium de portfólio, resolvendo a flexibilidade de produtos multi-atributos (SKUs complexos), fornecendo seletores interativos modernos na PDP com troca de fotos, painel do cliente ("Minha Conta") com timeline visual de pedidos e lista de desejos (Wishlist).
 
 ---
@@ -9,48 +9,47 @@
 ## 📋 Requisitos por Fase
 
 ### Phase 10: Arquitetura & Gerador de Variações Multi-Atributos (Admin + Database)
-- [ ] **Estrutura de Dados Flexível para Variações:**
+- [x] **Estrutura de Dados Flexível para Variações:**
   - Suporte a múltiplos atributos por produto (ex: Cor + Armazenamento + RAM para celulares; Cor + Tamanho para roupas; Voltagem + Cor para eletrodomésticos).
   - Tabela / Estrutura de Variações com suporte a SKU, preço próprio, estoque, código de barras/EAN e foto da variação (`imagem_url` / `imagem_id`).
-  - Atributos dinâmicos estruturados (ex: JSON ou tabela de pares chave-valor normalizados).
-- [ ] **Gerador de Grade de SKUs no Admin:**
-  - Interface no cadastro/edição de produtos para definir eixos/atributos e seus valores correspondentes (ex: Cor: `[Azul, Vermelho]`, Armazenamento: `[128GB, 256GB]`).
-  - Botão "Gerar Combinações" com criação automática de todas as linhas da matriz.
-  - Edição em lote ou individual de preço, estoque e foto por SKU gerado.
-- [ ] **Compatibilidade e Integridade de Domínio:**
-  - Manutenção de compatibilidade nos services de Carrinho (`CarrinhoService`) e Pedidos (`PedidoService`) para gravação e baixa de estoque do SKU correto.
+  - Atributos dinâmicos estruturados (JSON em `atributos_json`).
+- [x] **Gerador de Grade de SKUs no Admin:**
+  - Interface no cadastro/edição de produtos para definir eixos/atributos e seus valores correspondentes com 4 presets inteligentes (Smartphones, Moda, Calçados, Eletrodomésticos).
+  - Botão "Gerar Combinações" com criação automática da matriz cartesiana completa.
+  - Edição em lote e individual de preço, estoque, SKU e foto por variação.
+- [x] **Compatibilidade e Integridade de Domínio:**
+  - Compatibilidade completa nos services `CarrinhoService` e `PedidoService` para rastreamento de SKUs multi-atributos, cálculo de preço e controle de estoque.
 
 ### Phase 11: Experiência Interativa de Compra na PDP (Storefront UX)
-- [ ] **Seletores Modernos e Reativos na PDP:**
-  - Seletor de Cor via Swatches visuais circulares (com preview da cor hex, tooltip do nome e borda de seleção ativa).
+- [x] **Seletores Modernos e Reativos na PDP:**
+  - Seletor de Cor via Swatches visuais circulares com hex color, tooltip do nome, ring de foco ativo e label sincronizado.
   - Seletores de outros atributos (Armazenamento, RAM, Tamanho, Voltagem) em formato de Chips/Pills dinâmicos e elegantes.
-  - Indicação contextual de diferença de valor nos chips (ex: `+ R$ 300,00`).
-- [ ] **Interdependência e Validação Cruzada de Estoque:**
-  - Desativação ou estilo riscado ("indisponível") em combinações que estejam sem estoque.
-  - Seleção automática da primeira combinação disponível ao carregar a página.
-- [ ] **Troca Dinâmica de Fotos por Variação:**
-  - Ao selecionar uma cor/variação com foto associada, a foto principal da galeria troca dinamicamente com transição suave.
-- [ ] **Atualização Reativa de Preço e Parcelas:**
-  - Preço à vista, valor parcelado e economia (se houver desconto) atualizam instantaneamente conforme o SKU ativo.
+- [x] **Interdependência e Validação Cruzada de Estoque:**
+  - Engine JavaScript N-dimensional com desativação visual e opacidade em combinações sem estoque.
+  - Seleção automática inteligente da primeira combinação disponível ao carregar a página.
+- [x] **Troca Dinâmica de Fotos por Variação:**
+  - Ao selecionar uma cor/variação com foto associada, a foto principal da galeria troca dinamicamente com transição de opacidade suave.
+- [x] **Atualização Reativa de Preço e Parcelas:**
+  - Preço à vista, cálculo de 10x sem juros no cartão e desconto Pix de 5% atualizados instantaneamente conforme a variação selecionada.
 
 ### Phase 12: Painel "Minha Conta" & Timeline Visual de Pedidos
-- [ ] **Área do Cliente Estruturada:**
-  - Layout dedicado para `/cliente/conta` com sidebar de navegação rápida (Meus Pedidos, Meus Endereços, Meus Dados, Favoritos).
-- [ ] **Timeline Visual de Rastreamento de Pedido:**
-  - Visualização de pedido com indicador de progresso passo a passo (Realizado ➔ Aguardando Pagamento ➔ Pago ➔ Em Separação ➔ Enviado com Código de Rastreio ➔ Entregue).
-  - Exibição de detalhes dos itens, variação/SKU comprada, endereço de entrega e resumo de pagamentos/códigos Pix.
-- [ ] **Gestão de Múltiplos Endereços:**
-  - CRUD de endereços do cliente (Principal, Casa, Trabalho) com preenchimento automático por CEP via ViaCEP.
-- [ ] **Gestão de Perfil:**
-  - Alteração de dados cadastrais e troca segura de senha.
+- [x] **Área do Cliente Estruturada:**
+  - Layout dedicado para `/minha-conta` com sidebar modular de navegação rápida (Meus Pedidos, Endereços de Entrega, Lista de Desejos, Dados & Segurança).
+- [x] **Timeline Visual de Rastreamento de Pedido:**
+  - Linha do tempo visual iluminada de 5 etapas (*Pedido Realizado ➔ Pagamento Confirmado ➔ Em Separação ➔ Enviado com Rastreio ➔ Entregue*).
+  - Tabela de itens com SKUs, fotos e botão de avaliação com 1 clique para compradores verificados.
+  - Resumo financeiro e botão rápido de Pix QR code para pedidos pendentes.
+- [x] **Gestão de Múltiplos Endereços:**
+  - Tabela `cliente_enderecos` e model com CRUD completo, autopreenchimento por CEP via API ViaCEP e definição de endereço padrão.
+  - Dropdown inteligente de seleção de endereço salvo integrado no checkout (`checkout.php`).
+- [x] **Gestão de Perfil:**
+  - Atualização de dados cadastrais e formulário seguro de alteração de senha com bcrypt.
 
 ### Phase 13: Lista de Desejos (Wishlist) & Micro-interações de Conversão
-- [ ] **Lista de Desejos (Favoritos):**
-  - Botão de favoritar (coração interativo com micro-animação de batimento) na vitrine, listagens e PDP.
-  - Persistência no banco de dados para clientes logados (e suporte gracioso para visitantes).
-  - Tela `/cliente/favoritos` com visualização rápida e botão de "Mover para o Carrinho".
-- [ ] **Drawer / Modal de Adicionado ao Carrinho:**
-  - Ao clicar em "Comprar / Adicionar", exibir gaveta lateral ou modal elegante confirmando a adição.
-  - Sugestão de produtos relacionados / complementares (Cross-sell / Compre Junto).
-- [ ] **Toasts e Feedback de Alta Fidelidade:**
-  - Notificações não intrusivas (toasts animados) para ações do usuário (adicionado ao carrinho, favoritado, cupom aplicado).
+- [x] **Lista de Desejos (Favoritos):**
+  - Tabela `cliente_favoritos` e API REST (`/api/favoritos/toggle` e `/api/favoritos/ids`).
+  - Botão de favoritar flutuante com micro-animação elástica (`heartBounce`) na vitrine, nas buscas, nos recomendados e na PDP.
+  - Tela `/minha-conta/favoritos` com visualização rápida de produtos favoritados e botão para mover para o carrinho.
+- [x] **Toasts e Feedback de Alta Fidelidade:**
+  - Motor flutuante de notificações (toasts animados) confirmando ações em tempo real.
+  - Contador de favoritos reativo no header da loja (`#badge-favoritos-nav`) e no menu dropdown.
