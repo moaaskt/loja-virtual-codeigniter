@@ -42,7 +42,16 @@ $routes->get('logout', 'AuthController::logout');
 
 // Área do Cliente Logado
 $routes->group('minha-conta', ['filter' => 'auth'], static function ($routes) {
-    $routes->get('pedidos', 'ClienteController::index');
+    $routes->get('/', 'ClienteController::index');
+    $routes->get('pedidos', 'ClienteController::pedidos');
+    $routes->get('pedidos/(:num)', 'ClienteController::detalhesPedido/$1');
+    $routes->get('enderecos', 'ClienteController::enderecos');
+    $routes->post('enderecos/salvar', 'ClienteController::salvarEndereco');
+    $routes->post('enderecos/padrao/(:num)', 'ClienteController::definirEnderecoPadrao/$1');
+    $routes->post('enderecos/excluir/(:num)', 'ClienteController::excluirEndereco/$1');
+    $routes->get('perfil', 'ClienteController::perfil');
+    $routes->post('perfil/salvar', 'ClienteController::salvarPerfil');
+    $routes->post('perfil/trocar-senha', 'ClienteController::trocarSenha');
 });
 $routes->get('checkout', 'PedidoController::checkout', ['filter' => 'auth']);
 $routes->post('checkout/finalizar', 'PedidoController::finalizar', ['filter' => 'auth']);

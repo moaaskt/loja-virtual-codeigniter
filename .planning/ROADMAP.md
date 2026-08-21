@@ -10,7 +10,7 @@
 ## Milestone 3: Experiência do Usuário & Catálogo Avançado (Ativo)
 
 - **Versão:** v3.0
-- **Status:** Em Andamento (50% Concluído)
+- **Status:** Em Andamento (75% Concluído)
 - **Documento de Requisitos:** [REQUIREMENTS.md](REQUIREMENTS.md)
 
 ### Fases do Milestone 3
@@ -38,16 +38,20 @@
   - Suíte de testes `PdpInterativaTest.php` com 100% de aprovação (76 testes, 507 asserções).
 
 #### Phase 12: Painel "Minha Conta" & Timeline Visual de Pedidos
-- **Status:** Ready to Plan
+- **Status:** Completed ✓
 - **Objetivo:** Criar uma central completa do cliente com histórico de pedidos, timeline visual de rastreio de status, múltiplos endereços (ViaCEP) e gestão de perfil.
-- **Entregas Principais:**
-  - Área do cliente `/cliente/conta` com navegação modular.
-  - Timeline visual de status do pedido (Aguardando Pagamento ➔ Pago ➔ Em Separação ➔ Enviado ➔ Entregue).
-  - CRUD de múltiplos endereços de entrega com busca de CEP.
-  - Edição de perfil e troca de senha.
+- **Entregas Realizadas:**
+  - Migration `2026-08-21-060000_CreateClienteEnderecosTable.php` e Model `ClienteEnderecoModel.php`.
+  - Central do cliente com sidebar modular e navegação ativa (`/minha-conta/pedidos`, `/minha-conta/enderecos`, `/minha-conta/perfil`).
+  - **Timeline Visual de 5 Etapas:** Pedido Realizado ➔ Pagamento Confirmado ➔ Em Separação ➔ Enviado com Rastreio ➔ Entregue.
+  - Tela detalhada do pedido (`/minha-conta/pedidos/(:num)`) com tabela de itens enriquecida com SKUs e fotos de variações.
+  - Gestão de múltiplos endereços de entrega com busca automática integrada via ViaCEP e definição de endereço padrão.
+  - Seletor de endereços salvos no Checkout (`checkout.php`).
+  - Painel de edição de dados pessoais e alteração de senha segura.
+  - Suíte de testes `MinhaContaETimelineTest.php` com 100% de aprovação (80 testes, 555 asserções).
 
 #### Phase 13: Lista de Desejos (Wishlist) & Micro-interações de Conversão
-- **Status:** Pending
+- **Status:** Ready to Plan
 - **Objetivo:** Desenvolver sistema de Lista de Desejos (Favoritos) com micro-animações, gaveta/modal de carrinho com cross-sell de recomendados e toasts de alta fidelidade.
 - **Entregas Principais:**
   - Sistema de favoritos (banco + interface com coração animado).

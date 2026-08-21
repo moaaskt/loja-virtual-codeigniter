@@ -114,6 +114,22 @@
                 <small class="text-muted">* Campos obrigatórios</small>
             </div>
 
+            <?php if (!empty($enderecosSalvos)): ?>
+                <div class="mb-4 p-3 bg-light rounded-4 border">
+                    <label for="select-endereco-salvo" class="form-label small fw-bold text-dark mb-2">
+                        <i class="bi bi-bookmark-check-fill text-primary me-1"></i>Usar um endereço salvo:
+                    </label>
+                    <select class="form-select rounded-3" id="select-endereco-salvo">
+                        <option value="">-- Selecione ou digite manualmente abaixo --</option>
+                        <?php foreach ($enderecosSalvos as $endS): ?>
+                            <option value='<?= json_encode($endS, JSON_HEX_APOS | JSON_HEX_QUOT) ?>' <?= !empty($endS['padrao']) ? 'selected' : '' ?>>
+                                <?= esc($endS['titulo']) ?> (<?= esc($endS['logradouro']) ?>, <?= esc($endS['numero']) ?> - <?= esc($endS['bairro']) ?>, <?= esc($endS['cidade']) ?>/<?= esc($endS['uf']) ?>) <?= !empty($endS['padrao']) ? '★ Padrão' : '' ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            <?php endif; ?>
+
             <div class="row g-3">
                 <!-- CEP -->
                 <div class="col-12 col-sm-5 col-md-4">
@@ -448,8 +464,51 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // Se já tiver CEP inicial vindo do frete selecionado
-        if (cepInput.value.replace(/\D/g, '').length === 8) {
+        if (cepInput.value.replace(/\D/g, '').length === 8 && !document.getElementById('select-endereco-salvo')) {
             buscarEnderecoPorCep(cepInput.value);
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // Seleção de Endereço Salvo
+    // ----------------------------------------------------------------
+    const selectEndSalvo = document.getElementById('select-endereco-salvo');
+    function aplicarEnderecoSalvo(dados) {
+        if (!dados) return;
+        if (cepInput) {
+            cepInput.value = dados.cep ? dados.cep.replace(/\D/g, '').replace(/^(\d{5})(\d)/, '$1-$2') : '';
+        }
+        const log = document.getElementById('logradouro');
+        const num = document.getElementById('numero');
+        const comp = document.getElementById('complemento');
+        const bai = document.getElementById('bairro');
+        const cid = document.getElementById('cidade');
+        const uf = document.getElementById('uf');
+
+        if (log) log.value = dados.logradouro || '';
+        if (num) num.value = dados.numero || '';
+        if (comp) comp.value = dados.complemento || '';
+        if (bai) bai.value = dados.bairro || '';
+        if (cid) cid.value = dados.cidade || '';
+        if (uf) uf.value = dados.uf || '';
+    }
+
+    if (selectEndSalvo) {
+        selectEndSalvo.addEventListener('change', function () {
+            if (!this.value) return;
+            try {
+                const dados = JSON.parse(this.value);
+                aplicarEnderecoSalvo(dados);
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
+        if (selectEndSalvo.value) {
+            try {
+                const dados = JSON.parse(selectEndSalvo.value);
+                aplicarEnderecoSalvo(dados);
+            } catch (e) {}
         }
     }
 

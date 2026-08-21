@@ -24,8 +24,9 @@ class PedidoProdutoModel extends Model
         if (empty($pedidoId)) {
             return [];
         }
-        $this->select('pedido_produtos.*, produtos.nome, produtos.imagem');
+        $this->select('pedido_produtos.*, produtos.nome, COALESCE(NULLIF(produto_variacoes.imagem_url, ""), produtos.imagem) as imagem, produto_variacoes.sku, produto_variacoes.nome_variacao');
         $this->join('produtos', 'produtos.id = pedido_produtos.produto_id');
+        $this->join('produto_variacoes', 'produto_variacoes.id = pedido_produtos.variacao_id', 'left');
         $this->where('pedido_produtos.pedido_id', $pedidoId);
 
         return $this->findAll();
@@ -41,8 +42,9 @@ class PedidoProdutoModel extends Model
             return [];
         }
 
-        $this->select('pedido_produtos.*, produtos.nome, produtos.imagem');
+        $this->select('pedido_produtos.*, produtos.nome, COALESCE(NULLIF(produto_variacoes.imagem_url, ""), produtos.imagem) as imagem, produto_variacoes.sku, produto_variacoes.nome_variacao');
         $this->join('produtos', 'produtos.id = pedido_produtos.produto_id');
+        $this->join('produto_variacoes', 'produto_variacoes.id = pedido_produtos.variacao_id', 'left');
         $this->whereIn('pedido_produtos.pedido_id', $pedidoIds);
 
         return $this->findAll();

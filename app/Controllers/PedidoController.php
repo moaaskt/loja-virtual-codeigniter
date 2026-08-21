@@ -38,11 +38,14 @@ class PedidoController extends BaseController
         }
 
         $totais = $carrinhoService->calcularTotais();
+        $usuarioId = (int) session()->get('usuario_id');
+        $enderecosSalvos = (new \App\Models\ClienteEnderecoModel())->getEnderecosPorUsuario($usuarioId);
 
         return view('shop/checkout', [
-            'title'    => 'Checkout Seguro',
-            'carrinho' => $carrinho,
-            'totais'   => $totais,
+            'title'           => 'Checkout Seguro',
+            'carrinho'        => $carrinho,
+            'totais'          => $totais,
+            'enderecosSalvos' => $enderecosSalvos,
         ]);
     }
 
