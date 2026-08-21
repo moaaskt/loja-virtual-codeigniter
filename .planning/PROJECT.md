@@ -27,8 +27,8 @@ O projeto utiliza o padrão MVC nativo do CodeIgniter 4. O banco de dados é o M
 - **Avaliações e Reviews de Produtos**: Sistema de classificação com estrelas, comentários de clientes, restrição de comprador verificado e moderação no admin.
 - **Dashboard Analítico e Relatórios**: Métricas de faturamento, ticket médio, produtos mais vendidos, gráficos no Chart.js, paginação nativa e exportação CSV universal.
 
-### Milestone 3: Experiência do Usuário & Catálogo Avançado (Em Andamento)
-- **Variações Multi-Atributos & Gerador de SKUs**: Suporte a múltiplos eixos (Cor, Armazenamento, RAM, Voltagem, Tamanho), gerador de matriz no admin e imagem vinculada por variação.
+### Milestone 3: Experiência do Usuário & Catálogo Avançado (Concluído ✓)
+- **Variações Multi-Atributos & Gerador de SKUs**: Suporte a múltiplos eixos (Cor, Armazenamento, RAM, Voltagem, Tamanho), gerador de matriz no admin com 4 presets e imagem vinculada por variação.
 - **Storefront Interativo na PDP**: Seletores inteligentes em swatches e pills/chips, validação cruzada de estoque em tempo real, troca suave de fotos e recálculo reativo de preços/parcelas.
-- **Painel "Minha Conta" & Rastreio**: Histórico completo de pedidos com timeline visual de status, gestão de múltiplos endereços (ViaCEP) e perfil do cliente.
-- **Lista de Desejos & Micro-interações de Compra**: Wishlist com micro-animações, drawer/modal de carrinho com cross-sell de produtos recomendados e feedbacks visuais modernos.
+- **Painel "Minha Conta" & Rastreio**: Histórico completo de pedidos com timeline visual de status em 5 etapas, gestão de múltiplos endereços (ViaCEP), integração no checkout e perfil do cliente.
+- **Lista de Desejos & Micro-interações de Compra**: Wishlist completa com micro-animações elásticas, tela `/minha-conta/favoritos`, contador dinâmico na navbar e toasts modernos de conversão.

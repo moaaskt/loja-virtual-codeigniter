@@ -42,6 +42,13 @@
             <!-- Actions -->
             <div class="d-flex align-items-center gap-2 flex-shrink-0">
 
+                <!-- Wishlist -->
+                <a href="<?= site_url('minha-conta/favoritos') ?>" class="btn btn-light btn-sm rounded-pill d-flex align-items-center gap-2 px-3 position-relative text-secondary" id="btn-wishlist-nav" title="Lista de Desejos">
+                    <i class="bi bi-heart-fill text-danger fs-6"></i>
+                    <span class="d-none d-lg-inline fw-semibold small">Favoritos</span>
+                    <span class="wishlist-badge" id="badge-favoritos-nav" style="display: none;">0</span>
+                </a>
+
                 <!-- Cart -->
                 <?php
                 $carrinho    = session()->get('carrinho') ?? [];
@@ -75,7 +82,26 @@
                                     <i class="bi bi-receipt text-primary"></i> Meus Pedidos
                                 </a>
                             </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                    href="<?= site_url('minha-conta/favoritos') ?>">
+                                    <i class="bi bi-heart-fill text-danger"></i> Lista de Desejos
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                    href="<?= site_url('minha-conta/enderecos') ?>">
+                                    <i class="bi bi-geo-alt-fill text-primary"></i> Endereços
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+                                    href="<?= site_url('minha-conta/perfil') ?>">
+                                    <i class="bi bi-person-gear text-primary"></i> Meu Perfil
+                                </a>
+                            </li>
                             <?php if (session()->get('role') === 'admin'): ?>
+                                <li><hr class="dropdown-divider my-1"></li>
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center gap-2 py-2"
                                         href="<?= site_url('admin/dashboard') ?>">
@@ -129,6 +155,9 @@
         <?= $this->renderSection('content') ?>
     </main>
 
+    <!-- Toast Container -->
+    <div id="gstore-toast-container"></div>
+
     <!-- ===== FOOTER ===== -->
     <footer class="border-top mt-5 py-4 bg-white">
         <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-2">
@@ -143,6 +172,125 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
+
+    <!-- Global Wishlist & Toast Engine -->
+    <script>
+    function showGstoreToast(mensagem, tipo = 'success') {
+        const container = document.getElementById('gstore-toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = 'gstore-toast';
+        const icon = tipo === 'success' ? 'bi-check-circle-fill text-success' : 'bi-info-circle-fill text-primary';
+
+        toast.innerHTML = `
+            <i class="bi ${icon} fs-4"></i>
+            <div class="flex-grow-1 small fw-semibold text-dark">${mensagem}</div>
+            <button type="button" class="btn-close btn-sm ms-auto" aria-label="Fechar"></button>
+        `;
+
+        toast.querySelector('.btn-close').addEventListener('click', () => toast.remove());
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-10px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    async function toggleGstoreFavorito(produtoId, btnElement) {
+        if (!produtoId) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('produto_id', produtoId);
+
+            const res = await fetch('<?= site_url('api/favoritos/toggle') ?>', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            const data = await res.json();
+
+            if (data.auth_required) {
+                showGstoreToast('Faça login para salvar seus produtos favoritos!', 'info');
+                setTimeout(() => window.location.href = '<?= site_url('login') ?>', 1200);
+                return;
+            }
+
+            if (!data.ok) {
+                showGstoreToast(data.erro || 'Erro ao atualizar favoritos.', 'error');
+                return;
+            }
+
+            // Atualiza todos os botões do mesmo produto na página
+            document.querySelectorAll(`.btn-favorite-toggle[data-produto-id="${produtoId}"]`).forEach(btn => {
+                const icon = btn.querySelector('i');
+                if (data.adicionado) {
+                    btn.classList.add('is-favorite');
+                    if (icon) {
+                        icon.className = 'bi bi-heart-fill heart-animate';
+                    }
+                } else {
+                    btn.classList.remove('is-favorite');
+                    if (icon) {
+                        icon.className = 'bi bi-heart';
+                    }
+                }
+            });
+
+            // Atualiza badge da navbar
+            const badge = document.getElementById('badge-favoritos-nav');
+            if (badge) {
+                badge.textContent = data.total;
+                badge.style.display = data.total > 0 ? 'inline-block' : 'none';
+            }
+
+            showGstoreToast(data.mensagem, 'success');
+
+        } catch (e) {
+            console.error(e);
+            showGstoreToast('Erro na conexão. Tente novamente.', 'error');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+        // Carrega IDs favoritados pelo usuário atual
+        try {
+            const res = await fetch('<?= site_url('api/favoritos/ids') ?>');
+            const data = await res.json();
+
+            if (data.ok && Array.isArray(data.ids)) {
+                data.ids.forEach(id => {
+                    document.querySelectorAll(`.btn-favorite-toggle[data-produto-id="${id}"]`).forEach(btn => {
+                        btn.classList.add('is-favorite');
+                        const icon = btn.querySelector('i');
+                        if (icon) icon.className = 'bi bi-heart-fill';
+                    });
+                });
+
+                const badge = document.getElementById('badge-favoritos-nav');
+                if (badge) {
+                    badge.textContent = data.total;
+                    badge.style.display = data.total > 0 ? 'inline-block' : 'none';
+                }
+            }
+        } catch (e) {}
+
+        // Listener global para clique no botão de favoritar
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.btn-favorite-toggle');
+            if (btn) {
+                e.preventDefault();
+                e.stopPropagation();
+                const produtoId = btn.getAttribute('data-produto-id');
+                toggleGstoreFavorito(produtoId, btn);
+            }
+        });
+    });
+    </script>
     <?= $this->renderSection('scripts') ?>
 </body>
 

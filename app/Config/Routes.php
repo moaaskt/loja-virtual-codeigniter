@@ -23,6 +23,10 @@ $routes->get('api/pedidos/(:num)/status-pagamento', 'PagamentoController::status
 $routes->get('api/produtos/(:num)/avaliacoes', 'AvaliacaoController::listarApi/$1');
 $routes->post('avaliacao/enviar', 'AvaliacaoController::enviar', ['filter' => 'auth']);
 
+// Lista de Desejos / Favoritos API
+$routes->post('api/favoritos/toggle', 'FavoritoController::toggle');
+$routes->get('api/favoritos/ids', 'FavoritoController::ids');
+
 // Carrinho
 $routes->get('carrinho', 'CarrinhoController::index');
 $routes->post('carrinho/adicionar', 'CarrinhoController::adicionar');
@@ -52,6 +56,8 @@ $routes->group('minha-conta', ['filter' => 'auth'], static function ($routes) {
     $routes->get('perfil', 'ClienteController::perfil');
     $routes->post('perfil/salvar', 'ClienteController::salvarPerfil');
     $routes->post('perfil/trocar-senha', 'ClienteController::trocarSenha');
+    $routes->get('favoritos', 'ClienteController::favoritos');
+    $routes->post('favoritos/remover/(:num)', 'ClienteController::removerFavorito/$1');
 });
 $routes->get('checkout', 'PedidoController::checkout', ['filter' => 'auth']);
 $routes->post('checkout/finalizar', 'PedidoController::finalizar', ['filter' => 'auth']);

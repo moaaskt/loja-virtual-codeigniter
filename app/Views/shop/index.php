@@ -149,6 +149,9 @@
                     <div class="col">
                         <article class="product-card <?= $esgotado ? 'opacity-65' : '' ?>">
                             <div class="product-card-img-wrap">
+                                <button type="button" class="btn-favorite-card btn-favorite-toggle" data-produto-id="<?= esc($produto['id']) ?>" title="Favoritar Produto" aria-label="Favoritar Produto">
+                                    <i class="bi bi-heart"></i>
+                                </button>
                                 <?php if (!empty($produto['imagem'])): ?>
                                     <img src="<?= strpos($produto['imagem'] ?? '', 'http') === 0
                                         ? esc($produto['imagem'])
@@ -512,6 +515,9 @@
                     <div class="col">
                         <article class="product-card ${opacity}">
                             <div class="product-card-img-wrap">
+                                <button type="button" class="btn-favorite-card btn-favorite-toggle" data-produto-id="${produto.id}" title="Favoritar Produto" aria-label="Favoritar Produto">
+                                    <i class="bi bi-heart"></i>
+                                </button>
                                 <img src="${imgUrl}" alt="${produto.nome}" loading="lazy">
                                 ${badge}
                             </div>
@@ -528,6 +534,23 @@
                         </article>
                     </div>`;
             });
+
+            // Re-sync status de favoritos nos novos cards
+            try {
+                fetch('<?= site_url('api/favoritos/ids') ?>')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.ok && Array.isArray(data.ids)) {
+                            data.ids.forEach(id => {
+                                document.querySelectorAll(`.btn-favorite-toggle[data-produto-id="${id}"]`).forEach(btn => {
+                                    btn.classList.add('is-favorite');
+                                    const icon = btn.querySelector('i');
+                                    if (icon) icon.className = 'bi bi-heart-fill';
+                                });
+                            });
+                        }
+                    });
+            } catch (e) {}
         }
 
         // ----------------------------------------------------------------
