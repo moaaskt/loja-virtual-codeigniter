@@ -8,6 +8,28 @@
 
     <title>G'Store | <?= $this->renderSection('title') ?></title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="512x512" href="<?= base_url('assets/images/favicon.png') ?>">
+    <link rel="icon" type="image/x-icon" href="<?= base_url('favicon.ico') ?>">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= base_url('assets/images/favicon.png') ?>">
+
+    <!-- OpenGraph (Facebook, WhatsApp, LinkedIn) -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="G'Store">
+    <meta property="og:title" content="G'Store | <?= $this->renderSection('title') ?>">
+    <meta property="og:description" content="<?= esc($ogDescription ?? "G'Store — Os melhores produtos com entrega rápida.") ?>">
+    <meta property="og:image" content="<?= esc($ogImage ?? base_url('assets/images/og-image.jpg')) ?>">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="<?= current_url() ?>">
+    <meta property="og:locale" content="pt_BR">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="G'Store | <?= $this->renderSection('title') ?>">
+    <meta name="twitter:description" content="<?= esc($ogDescription ?? "G'Store — Os melhores produtos com entrega rápida.") ?>">
+    <meta name="twitter:image" content="<?= esc($ogImage ?? base_url('assets/images/og-image.jpg')) ?>">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -15,6 +37,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="<?= base_url('assets/css/shop.css') ?>">
 </head>
+
 
 <body>
 
