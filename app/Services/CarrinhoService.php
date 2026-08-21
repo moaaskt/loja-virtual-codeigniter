@@ -31,7 +31,7 @@ class CarrinhoService
     /**
      * Adiciona produto ao carrinho. Retorna ['ok' => bool, 'erro' => string].
      */
-    public function adicionar(int $produtoId, int $quantidade, int $variacaoId = 0): array
+    public function adicionar(int $produtoId, int $quantidade, ?int $variacaoId = 0): array
     {
         $produto = $this->produtoModel->find($produtoId);
 

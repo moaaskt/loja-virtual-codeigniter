@@ -10,7 +10,7 @@
 ## Milestone 3: Experiência do Usuário & Catálogo Avançado (Ativo)
 
 - **Versão:** v3.0
-- **Status:** Em Andamento
+- **Status:** Em Andamento (50% Concluído)
 - **Documento de Requisitos:** [REQUIREMENTS.md](REQUIREMENTS.md)
 
 ### Fases do Milestone 3
@@ -27,16 +27,18 @@
   - Suíte de testes `VariacoesMultiAtributosTest.php` com 100% de aprovação (73 testes, 460 asserções).
 
 #### Phase 11: Experiência Interativa de Compra na PDP (Storefront UX)
-- **Status:** Ready to Plan
+- **Status:** Completed ✓
 - **Objetivo:** Implementar seletores modernos em swatches e chips na PDP com validação cruzada de estoque, troca de fotos por cor/SKU e recálculo em tempo real de preços e parcelas.
-- **Entregas Principais:**
-  - Seletores interativos (Swatches visuais para cores e Chips/Pills para outros atributos).
-  - Lógica JavaScript de interdependência de opções e bloqueio de combinações sem estoque.
-  - Troca dinâmica e fluida da galeria/foto principal.
-  - Atualização reativa de preços, parcelamento e botão de compra.
+- **Entregas Realizadas:**
+  - Seletores visuais dinâmicos de cores (Swatches circulares com hover, ring ativo e label sincronizado).
+  - Seletores interativos em Chips/Pills para qualquer outro eixo (Armazenamento, RAM, Voltagem, Tamanho).
+  - Engine JavaScript de interdependência e validação cruzada N-dimensional com desativação visual de combinações sem estoque.
+  - Troca fluida de imagem principal com transição de opacidade ao selecionar cor/variação com foto.
+  - Atualização reativa de preço, parcelamento em 10x sem juros, desconto Pix e badge de SKU ativo.
+  - Suíte de testes `PdpInterativaTest.php` com 100% de aprovação (76 testes, 507 asserções).
 
 #### Phase 12: Painel "Minha Conta" & Timeline Visual de Pedidos
-- **Status:** Pending
+- **Status:** Ready to Plan
 - **Objetivo:** Criar uma central completa do cliente com histórico de pedidos, timeline visual de rastreio de status, múltiplos endereços (ViaCEP) e gestão de perfil.
 - **Entregas Principais:**
   - Área do cliente `/cliente/conta` com navegação modular.

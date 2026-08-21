@@ -22,30 +22,49 @@
 
     $esgotado = (int)$produto['estoque'] === 0;
 
-    // Processar Variações reais do Banco
-    $tamanhosDisponiveis = [];
-    $coresDisponiveis = [];
+    // Processamento Dinâmico de Variações Multi-Atributos
     $variacoesData = [];
+    $mapaAtributos = [];
+    $coresDisponiveis = [];
 
     if (!empty($variacoes) && is_array($variacoes)) {
         foreach ($variacoes as $var) {
-            $t = trim($var['tamanho'] ?? '');
-            $c = trim($var['cor'] ?? '');
-            $hex = trim($var['cor_hex'] ?? '');
             $p = (!empty($var['preco']) && (float)$var['preco'] > 0) ? (float)$var['preco'] : (float)$produto['preco'];
             
-            $variacoesData[] = [
-                'id'      => (int)$var['id'],
-                'tamanho' => $t,
-                'cor'     => $c,
-                'cor_hex' => $hex,
-                'preco'   => $p,
-                'estoque' => (int)$var['estoque']
-            ];
-            
-            if ($t !== '' && !in_array($t, $tamanhosDisponiveis)) {
-                $tamanhosDisponiveis[] = $t;
+            // Atributos estruturados
+            $atributos = $var['atributos'] ?? [];
+            if (empty($atributos) && !empty($var['atributos_json'])) {
+                $decoded = json_decode($var['atributos_json'], true);
+                if (is_array($decoded)) $atributos = $decoded;
             }
+
+            // Fallback para variações legadas
+            if (empty($atributos)) {
+                if (!empty($var['cor'])) {
+                    $atributos['Cor'] = $var['cor'];
+                }
+                if (!empty($var['tamanho'])) {
+                    $atributos['Tamanho / Opção'] = $var['tamanho'];
+                }
+            }
+
+            // Mapeia todos os eixos e valores
+            foreach ($atributos as $nomeAttr => $valAttr) {
+                $nome = trim($nomeAttr);
+                $val  = trim($valAttr);
+                if ($nome !== '' && $val !== '') {
+                    if (!isset($mapaAtributos[$nome])) {
+                        $mapaAtributos[$nome] = [];
+                    }
+                    if (!in_array($val, $mapaAtributos[$nome])) {
+                        $mapaAtributos[$nome][] = $val;
+                    }
+                }
+            }
+
+            // Tratamento especial para Swatches de Cor
+            $c = trim($var['cor'] ?? ($atributos['Cor'] ?? ''));
+            $hex = trim($var['cor_hex'] ?? '');
             if ($c !== '') {
                 $found = false;
                 foreach ($coresDisponiveis as $cd) {
@@ -61,35 +80,21 @@
                     ];
                 }
             }
-        }
-    }
 
-    // Determinar Rótulo Dinâmico para a Variação / Atributo
-    $rotuloVariacao = 'Variação / Opção';
-    if (!empty($tamanhosDisponiveis)) {
-        $isVoltagem = true;
-        $isCapacidade = true;
-        $isTamanho = true;
-        foreach ($tamanhosDisponiveis as $itemVal) {
-            $valUpper = strtoupper(trim($itemVal));
-            if (!preg_match('/^(110V|220V|127V|BIVOLT|\d+V)$/i', $valUpper)) {
-                $isVoltagem = false;
-            }
-            if (!preg_match('/^\d+\s*(GB|TB|MB|G|T)$/i', $valUpper)) {
-                $isCapacidade = false;
-            }
-            if (!preg_match('/^(PP|P|M|G|GG|XG|XGG|XXG|ÚNICO|UNICO|\d{2})$/i', $valUpper)) {
-                $isTamanho = false;
-            }
-        }
-        if ($isCapacidade) {
-            $rotuloVariacao = 'Capacidade / Modelo';
-        } elseif ($isVoltagem) {
-            $rotuloVariacao = 'Voltagem';
-        } elseif ($isTamanho) {
-            $rotuloVariacao = 'Tamanho';
-        } else {
-            $rotuloVariacao = 'Variação / Opção';
+            $imgVar = !empty($var['imagem_url']) ? $var['imagem_url'] : $imagemPrincipal;
+
+            $variacoesData[] = [
+                'id'            => (int)$var['id'],
+                'sku'           => $var['sku'] ?? '',
+                'nome_variacao' => $var['nome_variacao'] ?? implode(' / ', array_values($atributos)),
+                'atributos'     => $atributos,
+                'tamanho'       => $var['tamanho'] ?? ($atributos['Tamanho / Opção'] ?? ''),
+                'cor'           => $c,
+                'cor_hex'       => $hex,
+                'preco'         => $p,
+                'estoque'       => (int)$var['estoque'],
+                'imagem_url'    => $imgVar,
+            ];
         }
     }
 
@@ -109,7 +114,6 @@
                 'cinza espacial'   => '#4a4d52',
                 'space gray'       => '#4a4d52',
                 'gray'             => '#6c757d',
-                'grey'             => '#6c757d',
                 'prata'            => '#d1d5db',
                 'silver'           => '#d1d5db',
                 'dourado'          => '#f59e0b',
@@ -122,6 +126,8 @@
                 'azul marinho'     => '#1e3a8a',
                 'navy'             => '#1e3a8a',
                 'azul celeste'     => '#38bdf8',
+                'azul titânio'     => '#2e3a4e',
+                'azul titanio'     => '#2e3a4e',
                 'verde'            => '#10b981',
                 'green'            => '#10b981',
                 'verde escuro'     => '#065f46',
@@ -143,8 +149,8 @@
                 'titanio natural'  => '#9a948d',
                 'titânio preto'    => '#2e2e2e',
                 'titanio preto'    => '#2e2e2e',
-                'titânio azul'     => '#2e3a4e',
-                'titanio azul'     => '#2e3a4e',
+                'preto titânio'    => '#2e2e2e',
+                'preto titanio'    => '#2e2e2e',
                 'titânio branco'   => '#e5e5e5',
                 'titanio branco'   => '#e5e5e5',
             ];
@@ -185,12 +191,20 @@
         <div class="col-12 col-lg-7">
             <div class="pdp-gallery">
                 <!-- Main Image -->
-                <div class="pdp-gallery-main mb-3">
+                <div class="pdp-gallery-main mb-3 position-relative overflow-hidden rounded-4 bg-white border shadow-sm">
                     <img src="<?= $galeria[0] ?>"
                          alt="<?= esc($produto['nome']) ?>"
                          class="pdp-main-img"
-                         id="pdp-main-img">
+                         id="pdp-main-img"
+                         style="transition: opacity 0.25s ease-in-out; object-fit: contain; width: 100%; max-height: 520px;">
+                    
+                    <?php if ($produto['frete_gratis']): ?>
+                        <span class="badge bg-success position-absolute top-0 start-0 m-3 px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.8125rem;">
+                            <i class="bi bi-truck me-1"></i>Frete Grátis
+                        </span>
+                    <?php endif; ?>
                 </div>
+
                 <!-- Thumbnails -->
                 <?php if (count($galeria) > 1): ?>
                 <div class="pdp-thumbnails" id="pdp-thumbnails">
@@ -222,66 +236,100 @@
                     </a>
                 </div>
 
-                <h1 class="pdp-title" id="pdp-title"><?= esc($produto['nome']) ?></h1>
+                <h1 class="pdp-title mb-1" id="pdp-title"><?= esc($produto['nome']) ?></h1>
+                
+                <!-- SKU Badge -->
+                <div class="mb-3">
+                    <span class="badge bg-light text-secondary border font-monospace py-1 px-2" id="pdp-sku-badge" style="display: none;">
+                        SKU: <span id="pdp-sku-val"></span>
+                    </span>
+                </div>
 
-                <div class="price-tag mb-3" id="pdp-price">
-                    R$ <?= esc(number_format($produto['preco'], 2, ',', '.')) ?>
+                <!-- Price Block -->
+                <div class="pdp-price-wrap mb-3 p-3 bg-light rounded-4 border-0">
+                    <div class="price-tag mb-0" id="pdp-price">
+                        R$ <?= esc(number_format($produto['preco'], 2, ',', '.')) ?>
+                    </div>
+                    <div class="pdp-installments small text-muted mt-1" id="pdp-installments">
+                        em até <strong>10x de R$ <?= esc(number_format($produto['preco'] / 10, 2, ',', '.')) ?></strong> sem juros
+                    </div>
+                    <div class="pdp-pix-discount small text-success fw-semibold mt-1">
+                        <i class="bi bi-qr-code me-1"></i>ou R$ <?= esc(number_format($produto['preco'] * 0.95, 2, ',', '.')) ?> no Pix (5% OFF)
+                    </div>
                 </div>
 
                 <!-- Stock Indicator -->
                 <?php if (!$esgotado): ?>
-                    <div class="pdp-stock-badge pdp-stock-available" id="pdp-stock-badge">
+                    <div class="pdp-stock-badge pdp-stock-available mb-3" id="pdp-stock-badge">
                         <i class="bi bi-check-circle-fill"></i>
-                        <span id="pdp-stock-text"><?= esc($produto['estoque']) ?> unidades em estoque</span>
+                        <span id="pdp-stock-text"><?= esc($produto['estoque']) ?> unidades disponíveis</span>
                     </div>
                 <?php else: ?>
-                    <div class="pdp-stock-badge pdp-stock-unavailable" id="pdp-stock-badge">
+                    <div class="pdp-stock-badge pdp-stock-unavailable mb-3" id="pdp-stock-badge">
                         <i class="bi bi-x-circle-fill"></i>
                         <span id="pdp-stock-text">Esgotado</span>
                     </div>
                 <?php endif; ?>
 
-                <!-- Variation / Attribute Selector -->
-                <?php if (!empty($tamanhosDisponiveis)): ?>
-                <div class="pdp-variant-section">
-                    <p class="pdp-variant-label" id="pdp-variant-type-label"><?= esc($rotuloVariacao) ?></p>
-                    <div class="pdp-variant-options" id="size-options">
-                        <?php foreach ($tamanhosDisponiveis as $index => $tamanho): ?>
-                            <label class="pdp-variant-chip variant-size-label" data-size="<?= esc($tamanho) ?>">
-                                <input type="radio" name="tamanho" value="<?= esc($tamanho) ?>" class="variant-size-selector">
-                                <span><?= esc($tamanho) ?></span>
-                            </label>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-
-                <!-- Color Selector (Optional visual swatch) -->
-                <?php if (!empty($coresDisponiveis)): ?>
-                <div class="pdp-variant-section">
-                    <p class="pdp-variant-label">Cor: <span id="selected-color-name" class="fw-semibold text-primary ms-1"></span></p>
-                    <div class="pdp-variant-options d-flex flex-wrap gap-2 align-items-center" id="color-options">
-                        <?php foreach ($coresDisponiveis as $index => $corItem): ?>
+                <!-- ===== SELETORES DINÂMICOS DE ATRIBUTOS & SKUS ===== -->
+                <?php if (!empty($mapaAtributos)): ?>
+                    <div class="pdp-attributes-container mb-3">
+                        <?php foreach ($mapaAtributos as $nomeAtributo => $valoresAtributo): ?>
                             <?php 
-                            $corNome = is_array($corItem) ? ($corItem['nome'] ?? '') : (string)$corItem;
-                            $corHex  = is_array($corItem) ? ($corItem['hex'] ?? '') : '';
-                            $cssColor = resolverCorCss($corNome, $corHex); 
+                            $isCor = (bool) preg_match('/cor|color/i', $nomeAtributo);
                             ?>
-                            <label class="pdp-color-chip variant-color-label" data-color="<?= esc($corNome) ?>" title="<?= esc($corNome) ?>">
-                                <input type="radio" name="cor" value="<?= esc($corNome) ?>" class="variant-color-selector">
-                                <span class="pdp-color-swatch border shadow-sm" style="background-color: <?= esc($cssColor) ?>;" title="<?= esc($corNome) ?>">
-                                    <i class="bi bi-check2"></i>
-                                </span>
-                            </label>
+
+                            <?php if ($isCor): ?>
+                                <!-- Swatches Visuais de Cor -->
+                                <div class="pdp-variant-section mb-3">
+                                    <p class="pdp-variant-label mb-2 fw-semibold text-dark">
+                                        <?= esc($nomeAtributo) ?>: <span class="selected-attr-name fw-bold text-primary ms-1" data-target-attr="<?= esc($nomeAtributo) ?>"></span>
+                                    </p>
+                                    <div class="pdp-variant-options d-flex flex-wrap gap-2 align-items-center attr-group" data-attr-name="<?= esc($nomeAtributo) ?>">
+                                        <?php foreach ($valoresAtributo as $corNome): ?>
+                                            <?php 
+                                            // Busca hex se cadastrado
+                                            $hexCor = '';
+                                            foreach ($coresDisponiveis as $cd) {
+                                                if ($cd['nome'] === $corNome) { $hexCor = $cd['hex']; break; }
+                                            }
+                                            $cssColor = resolverCorCss($corNome, $hexCor); 
+                                            ?>
+                                            <label class="pdp-color-chip variant-color-label attr-option" data-attr-name="<?= esc($nomeAtributo) ?>" data-attr-val="<?= esc($corNome) ?>" title="<?= esc($corNome) ?>">
+                                                <input type="radio" name="attr_<?= md5($nomeAtributo) ?>" value="<?= esc($corNome) ?>" class="attr-radio d-none" data-attr-name="<?= esc($nomeAtributo) ?>">
+                                                <span class="pdp-color-swatch border shadow-sm" style="background-color: <?= esc($cssColor) ?>;" title="<?= esc($corNome) ?>">
+                                                    <i class="bi bi-check2"></i>
+                                                </span>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+
+                            <?php else: ?>
+                                <!-- Chips / Pills Interativos para outros Atributos (Armazenamento, RAM, Voltagem, Tamanho) -->
+                                <div class="pdp-variant-section mb-3">
+                                    <p class="pdp-variant-label mb-2 fw-semibold text-dark">
+                                        <?= esc($nomeAtributo) ?>: <span class="selected-attr-name fw-bold text-primary ms-1" data-target-attr="<?= esc($nomeAtributo) ?>"></span>
+                                    </p>
+                                    <div class="pdp-variant-options d-flex flex-wrap gap-2 attr-group" data-attr-name="<?= esc($nomeAtributo) ?>">
+                                        <?php foreach ($valoresAtributo as $valorItem): ?>
+                                            <label class="pdp-variant-chip variant-pill-label attr-option" data-attr-name="<?= esc($nomeAtributo) ?>" data-attr-val="<?= esc($valorItem) ?>">
+                                                <input type="radio" name="attr_<?= md5($nomeAtributo) ?>" value="<?= esc($valorItem) ?>" class="attr-radio d-none" data-attr-name="<?= esc($nomeAtributo) ?>">
+                                                <span><?= esc($valorItem) ?></span>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
                         <?php endforeach; ?>
                     </div>
-                </div>
                 <?php endif; ?>
 
                 <!-- Description -->
-                <div class="pdp-description">
-                    <h2 class="pdp-variant-label">Descrição</h2>
-                    <p><?= esc($produto['descricao']) ?></p>
+                <div class="pdp-description mb-4">
+                    <h2 class="pdp-variant-label mb-1">Descrição</h2>
+                    <p class="text-secondary small mb-0 lh-base"><?= esc($produto['descricao']) ?></p>
                 </div>
 
                 <!-- Add to Cart -->
@@ -304,7 +352,7 @@
                                     </button>
                                 </div>
 
-                                <button type="submit" class="pdp-add-to-cart flex-grow-1" id="btn-add-cart">
+                                <button type="submit" class="pdp-add-to-cart flex-grow-1 shadow-sm" id="btn-add-cart">
                                     <i class="bi bi-bag-plus-fill me-2"></i>
                                     Adicionar ao Carrinho
                                 </button>
@@ -318,7 +366,7 @@
                 </div>
 
                 <!-- Trust Badges -->
-                <div class="pdp-trust-badges">
+                <div class="pdp-trust-badges mt-4">
                     <?php if ($produto['frete_gratis']): ?>
                     <div class="pdp-trust-item">
                         <i class="bi bi-truck"></i>
@@ -349,7 +397,7 @@
                     <div class="input-group mb-2">
                         <input type="text" id="cep-calculo" class="form-control rounded-start-pill font-monospace"
                                placeholder="00000-000" maxlength="9" aria-label="CEP para entrega">
-                        <button class="btn btn-primary rounded-end-pill px-4 fw-semibold" type="button" id="btn-calcular-frete">
+                        <button class="btn btn-primary rounded-end-pill px-4 fw-semibold shadow-sm" type="button" id="btn-calcular-frete">
                             Calcular
                         </button>
                     </div>
@@ -361,141 +409,124 @@
         </div>
     </div>
 
-    <!-- ===== SEÇÃO DE AVALIAÇÕES & REVIEWS (#secao-avaliacoes) ===== -->
+    <!-- ===== SEÇÃO: AVALIAÇÕES E REVIEWS ===== -->
     <section class="pdp-reviews-section mt-5 pt-4 border-top" id="secao-avaliacoes">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
-            <div>
-                <h2 class="fs-4 fw-bold mb-1">
-                    <i class="bi bi-star-half text-warning me-2"></i>Avaliações dos Clientes
-                </h2>
-                <p class="text-muted small mb-0">
-                    Opiniões reais de quem já comprou e testou este produto.
-                </p>
-            </div>
-            <?php if (!empty($estatisticasAvaliacao['total'])): ?>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-light text-dark border px-3 py-2 fs-6 fw-semibold">
-                        <i class="bi bi-chat-quote me-1 text-primary"></i>
-                        <?= $estatisticasAvaliacao['total'] ?> <?= ($estatisticasAvaliacao['total'] === 1) ? 'avaliação' : 'avaliações' ?>
-                    </span>
-                </div>
-            <?php endif; ?>
-        </div>
+        <h2 class="fs-4 fw-bold mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-star-fill text-warning"></i>
+            Avaliações de Clientes
+        </h2>
 
-        <div class="row g-4 mt-2">
-            <!-- Coluna da Esquerda (col-12 col-lg-4): Resumo da Reputação -->
+        <!-- Flash Messages de Avaliação -->
+        <?php if (session()->getFlashdata('avaliacao_sucesso')): ?>
+            <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <?= session()->getFlashdata('avaliacao_sucesso') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (session()->getFlashdata('avaliacao_erro')): ?>
+            <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <?= session()->getFlashdata('avaliacao_erro') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <div class="row g-4">
+            <!-- Coluna da Esquerda (4 colunas no desktop): Resumo de Notas e Barras de Distribuição -->
             <div class="col-12 col-lg-4">
-                <div class="review-summary-card shadow-sm sticky-lg-top" style="top: 90px;">
-                    <h3 class="fs-6 fw-bold text-uppercase tracking-wider text-muted mb-3">Resumo da Reputação</h3>
-                    
-                    <div class="d-flex align-items-center gap-3 mb-4">
-                        <div class="review-score-big text-primary">
-                            <?= number_format($estatisticasAvaliacao['media'] ?? 0, 1, ',', '.') ?>
+                <div class="pdp-rating-summary-card shadow-sm h-100">
+                    <div class="score-display">
+                        <span class="score-number"><?= number_format((float)($estatisticasAvaliacao['media'] ?? 0), 1, ',', '.') ?></span>
+                        <div class="score-stars my-2">
+                            <?= renderEstrelas((float)($estatisticasAvaliacao['media'] ?? 0), 'md') ?>
                         </div>
-                        <div>
-                            <div class="mb-1">
-                                <?= renderEstrelas($estatisticasAvaliacao['media'] ?? 0, 'md') ?>
-                            </div>
-                            <div class="small text-muted">
-                                Média baseada em <?= (int)($estatisticasAvaliacao['total'] ?? 0) ?> <?= ((int)($estatisticasAvaliacao['total'] ?? 0) === 1) ? 'opinião' : 'opiniões' ?>
-                            </div>
-                        </div>
+                        <p class="text-muted small mb-0">
+                            Baseado em <strong><?= (int)($estatisticasAvaliacao['total'] ?? 0) ?></strong> <?= ((int)($estatisticasAvaliacao['total'] ?? 0) === 1) ? 'avaliação' : 'avaliações' ?>
+                        </p>
                     </div>
 
-                    <!-- Distribuição de Estrelas (5 a 1) -->
-                    <div class="review-distribution">
+                    <div class="rating-bars mt-4">
                         <?php for ($estrela = 5; $estrela >= 1; $estrela--): ?>
-                            <?php 
-                                $qtd = $estatisticasAvaliacao['distribuicao'][$estrela] ?? 0;
-                                $pct = $estatisticasAvaliacao['percentuais'][$estrela] ?? 0;
+                            <?php
+                                $qtd = (int)($estatisticasAvaliacao['distribuicao'][$estrela] ?? 0);
+                                $pct = (float)($estatisticasAvaliacao['porcentagens'][$estrela] ?? 0);
                             ?>
-                            <div class="review-progress-row">
-                                <span class="text-muted fw-semibold" style="width: 45px; font-size: 0.75rem;">
-                                    <?= $estrela ?> <i class="bi bi-star-fill text-warning"></i>
-                                </span>
-                                <div class="progress" role="progressbar" aria-label="<?= $estrela ?> estrelas" aria-valuenow="<?= $pct ?>" aria-valuemin="0" aria-valuemax="100">
-                                    <div class="progress-bar" style="width: <?= $pct ?>%;"></div>
+                            <div class="rating-bar-row">
+                                <span class="bar-label"><?= $estrela ?> <i class="bi bi-star-fill text-warning"></i></span>
+                                <div class="progress progress-rating flex-grow-1">
+                                    <div class="progress-bar bg-warning" role="progressbar"
+                                         style="width: <?= $pct ?>%;"
+                                         aria-valuenow="<?= $pct ?>" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
-                                <span class="text-muted small text-end" style="width: 40px; font-size: 0.75rem;">
-                                    <?= $qtd ?>
-                                </span>
+                                <span class="bar-count"><?= $qtd ?></span>
                             </div>
                         <?php endfor; ?>
                     </div>
-
-                    <?php if (($estatisticasAvaliacao['total'] ?? 0) > 0): ?>
-                        <div class="mt-4 pt-3 border-top d-flex align-items-center gap-2 text-success small fw-semibold">
-                            <i class="bi bi-hand-thumbs-up-fill fs-5"></i>
-                            <span><?= $estatisticasAvaliacao['recomendacao_percentual'] ?>% dos compradores recomendam este produto</span>
-                        </div>
-                    <?php endif; ?>
                 </div>
             </div>
 
-            <!-- Coluna da Direita (col-12 col-lg-8): Formulário de Avaliação + Feed de Reviews -->
+            <!-- Coluna da Direita (8 colunas no desktop): Formulário (acima) + Lista de Comentários (abaixo) -->
             <div class="col-12 col-lg-8">
+
+                <!-- Acima: Formulário de Avaliação (exclusivo para Compradores Verificados ou Admins) -->
                 <?php
-                    $isLoggedIn  = (bool) session()->get('isLoggedIn');
-                    $isAdmin     = session()->get('role') === 'admin';
-                    $comprou     = !empty($statusPermissaoAvaliacao['comprou']);
-                    $podeAvaliar = $isLoggedIn && ($comprou || $isAdmin);
+                    $isLoggedIn = session()->get('logado');
+                    $podeAvaliar = !empty($statusPermissaoAvaliacao['pode_avaliar']);
                 ?>
 
-                <?php if ($podeAvaliar): ?>
-                    <!-- Formulário de Avaliação para Comprador Verificado ou Admin -->
-                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white" id="card-formulario-avaliacao">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h3 class="fs-6 fw-bold mb-0">
-                                <?= !empty($statusPermissaoAvaliacao['ja_avaliou']) ? 'Atualizar sua Avaliação' : 'Deixar sua Avaliação' ?>
-                            </h3>
-                            <?php if ($comprou): ?>
-                                <span class="badge bg-success-subtle text-success border border-success-subtle small">
-                                    <i class="bi bi-patch-check-fill me-1"></i>Compra Confirmada
-                                </span>
-                            <?php elseif ($isAdmin): ?>
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">
-                                    <i class="bi bi-shield-check me-1"></i>Administrador
-                                </span>
-                            <?php endif; ?>
-                        </div>
+                <?php if (!$isLoggedIn): ?>
+                    <!-- Não logado -->
+                    <div class="pdp-review-form-card shadow-sm text-center py-4 mb-4">
+                        <i class="bi bi-person-lock text-muted mb-2 d-block" style="font-size: 2rem;"></i>
+                        <h4 class="fs-6 fw-bold mb-1">Faça login para avaliar este produto</h4>
+                        <p class="text-muted small mb-3">Apenas clientes que compraram e receberam o produto podem deixar uma avaliação.</p>
+                        <a href="<?= site_url('login?redirect=' . current_url()) ?>" class="btn btn-outline-primary btn-sm rounded-pill px-4" id="btn-login-avaliar">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Fazer Login
+                        </a>
+                    </div>
+                <?php elseif ($podeAvaliar): ?>
+                    <!-- Comprador Verificado ou Admin Logado: Exibir Formulário -->
+                    <div class="pdp-review-form-card shadow-sm mb-4" id="card-formulario-avaliacao">
+                        <h3 class="fs-5 fw-bold mb-1">
+                            <?= !empty($statusPermissaoAvaliacao['ja_avaliou']) ? 'Editar sua Avaliação' : 'Avalie este Produto' ?>
+                        </h3>
+                        <p class="text-muted small mb-3">
+                            <i class="bi bi-shield-check text-success me-1"></i>
+                            Você é um <strong>Comprador Verificado</strong> deste produto. Sua opinião ajuda outros clientes!
+                        </p>
 
-                        <?php if (!empty($statusPermissaoAvaliacao['ja_avaliou'])): ?>
-                            <div class="alert alert-info py-2 px-3 small rounded-3 mb-3">
-                                <i class="bi bi-info-circle me-1"></i>Você já enviou uma avaliação para este produto. Ao enviar novamente, ela será atualizada e passará pela moderação.
-                            </div>
-                        <?php endif; ?>
-
-                        <?= form_open('avaliacao/enviar', ['id' => 'form-avaliacao-produto']) ?>
+                        <?= form_open('avaliacao/salvar', ['id' => 'form-avaliacao']) ?>
                             <input type="hidden" name="produto_id" value="<?= esc($produto['id']) ?>">
-                            
-                            <!-- Seletor de Estrelas Interativo -->
+
+                            <!-- Seleção de Estrelas Interativa -->
                             <div class="mb-3">
                                 <label class="form-label small fw-bold text-muted d-block mb-1">
-                                    Sua Nota (1 a 5 estrelas) <span class="text-danger">*</span>
+                                    Sua Nota <span class="text-danger">*</span>
                                 </label>
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="star-rating-picker" id="star-picker">
-                                        <?php 
-                                            $notaAtual = (int)($statusPermissaoAvaliacao['avaliacao_existente']['nota'] ?? old('nota') ?? 5);
-                                        ?>
-                                        <?php for ($i = 5; $i >= 1; $i--): ?>
-                                            <input type="radio" name="nota" value="<?= $i ?>" id="star-<?= $i ?>" <?= ($notaAtual === $i) ? 'checked' : '' ?> required>
-                                            <label for="star-<?= $i ?>" title="<?= $i ?> estrelas" data-rating="<?= $i ?>">
-                                                <i class="bi bi-star-fill"></i>
-                                            </label>
-                                        <?php endfor; ?>
-                                    </div>
-                                    <span class="star-rating-text" id="star-rating-label">Excelente!</span>
+                                <div class="star-rating-picker" id="star-picker">
+                                    <?php
+                                        $notaAtual = (int)($statusPermissaoAvaliacao['avaliacao_existente']['nota'] ?? old('nota', 5));
+                                    ?>
+                                    <?php for ($n = 5; $n >= 1; $n--): ?>
+                                        <input type="radio" name="nota" value="<?= $n ?>" id="star-<?= $n ?>"
+                                               <?= $n === $notaAtual ? 'checked' : '' ?> required>
+                                        <label for="star-<?= $n ?>" title="<?= $n ?> estrelas" data-rating="<?= $n ?>">
+                                            <i class="bi bi-star-fill"></i>
+                                        </label>
+                                    <?php endfor; ?>
                                 </div>
+                                <span class="rating-label-text ms-2 small text-muted fw-semibold" id="star-rating-label"></span>
                             </div>
 
                             <!-- Título Opcional -->
                             <div class="mb-3">
                                 <label for="avaliacao-titulo" class="form-label small fw-bold text-muted mb-1">
-                                    Título da Avaliação <small class="fw-normal text-muted">(opcional)</small>
+                                    Título da Avaliação <span class="text-muted fw-normal">(Opcional)</span>
                                 </label>
                                 <input type="text" name="titulo" id="avaliacao-titulo" class="form-control rounded-3"
-                                       placeholder="Ex: Excelente qualidade, superou expectativas!"
+                                       placeholder="Ex: Excelente qualidade, superou as expectativas!"
                                        maxlength="150"
                                        value="<?= esc($statusPermissaoAvaliacao['avaliacao_existente']['titulo'] ?? old('titulo')) ?>">
                             </div>
@@ -510,7 +541,7 @@
                                           required minlength="5" maxlength="2000"><?= esc($statusPermissaoAvaliacao['avaliacao_existente']['comentario'] ?? old('comentario')) ?></textarea>
                             </div>
 
-                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold" id="btn-enviar-avaliacao">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm" id="btn-enviar-avaliacao">
                                 <i class="bi bi-send-fill me-1"></i><?= !empty($statusPermissaoAvaliacao['ja_avaliou']) ? 'Atualizar Avaliação' : 'Enviar Avaliação' ?>
                             </button>
                         <?= form_close() ?>
@@ -551,7 +582,7 @@
                                                     <div class="d-flex align-items-center gap-2 mt-1">
                                                         <?= renderEstrelas((float)$av['nota'], 'sm') ?>
                                                         <small class="text-muted" style="font-size:0.75rem;">
-                                                            <?= date('d/m/Y', strtotime($av['created_at'])) ?>
+                                                             <?= date('d/m/Y', strtotime($av['created_at'])) ?>
                                                         </small>
                                                     </div>
                                                 </div>
@@ -675,7 +706,6 @@ document.addEventListener('DOMContentLoaded', function () {
             starRatingLabel.textContent = ratingTexts[rating] || '';
         };
 
-        // Rótulo inicial baseado no input checado
         const checkedRadio = starPicker.querySelector('input:checked');
         if (checkedRadio) {
             updateStarLabel(checkedRadio.value);
@@ -719,130 +749,238 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- Lógica de Variações ---
-    const variacoes = <?= json_encode($variacoesData ?? []) ?>;
+    // =========================================================================
+    // ENGINE REATIVO DE VARIAÇÕES MULTI-ATRIBUTOS & SKUS
+    // =========================================================================
+    const variacoes = <?= json_encode($variacoesData ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+    const mapaAtributos = <?= json_encode($mapaAtributos ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
     const basePreco = <?= (float) $produto['preco'] ?>;
     const baseEstoque = <?= (int) $produto['estoque'] ?>;
+
     const btnAddCart = document.getElementById('btn-add-cart');
     const inputVariacaoId = document.getElementById('variacao_id');
     const priceDisplay = document.getElementById('pdp-price');
+    const installmentsDisplay = document.getElementById('pdp-installments');
     const stockText = document.getElementById('pdp-stock-text');
-    const selectedColorName = document.getElementById('selected-color-name');
-    
+    const skuBadge = document.getElementById('pdp-sku-badge');
+    const skuVal = document.getElementById('pdp-sku-val');
     const formAddCart = document.getElementById('form-add-cart');
-    if (formAddCart) {
-        formAddCart.addEventListener('submit', function(e) {
-            if (variacoes.length > 0 && !inputVariacaoId.value) {
-                e.preventDefault();
-                alert('Por favor, selecione uma opção disponível antes de adicionar ao carrinho.');
-            }
-        });
-    }
-    const sizeRadios = document.querySelectorAll('.variant-size-selector');
-    const colorRadios = document.querySelectorAll('.variant-color-selector');
-    const hasSizes = sizeRadios.length > 0;
-    const hasColors = colorRadios.length > 0;
 
     function formatMoney(valor) {
         return 'R$ ' + Number(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    function trocarImagemPrincipal(novaUrl) {
+        if (!mainImg || !novaUrl) return;
+        if (mainImg.src === novaUrl) return;
+
+        mainImg.style.opacity = '0.3';
+        setTimeout(() => {
+            mainImg.src = novaUrl;
+            mainImg.style.opacity = '1';
+        }, 150);
+    }
+
+    function getAtributosSelecionados() {
+        const selecionados = {};
+        document.querySelectorAll('.attr-radio:checked').forEach(radio => {
+            const nome = radio.getAttribute('data-attr-name');
+            if (nome) {
+                selecionados[nome] = radio.value;
+            }
+        });
+        return selecionados;
+    }
+
     function checkVariations() {
-        if (!hasSizes && !hasColors) return;
+        if (variacoes.length === 0) return;
 
-        let selectedSize = null;
-        let selectedColor = null;
+        const selecionados = getAtributosSelecionados();
+        const totalEixos = Object.keys(mapaAtributos).length;
 
-        if (hasSizes) {
-            const checkedSize = document.querySelector('.variant-size-selector:checked');
-            if (checkedSize) selectedSize = checkedSize.value;
-        }
+        // Atualizar labels dos atributos com o valor selecionado
+        document.querySelectorAll('.selected-attr-name').forEach(span => {
+            const attr = span.getAttribute('data-target-attr');
+            span.textContent = selecionados[attr] ? selecionados[attr] : '';
+        });
 
-        if (hasColors) {
-            const checkedColor = document.querySelector('.variant-color-selector:checked');
-            if (checkedColor) selectedColor = checkedColor.value;
-        }
+        // 1. Validar disponibilidade cruzada de cada opção
+        document.querySelectorAll('.attr-option').forEach(optionLabel => {
+            const attrName = optionLabel.getAttribute('data-attr-name');
+            const attrVal  = optionLabel.getAttribute('data-attr-val');
 
-        if (selectedColorName) {
-            selectedColorName.innerText = selectedColor ? selectedColor : '';
-        }
+            // Verifica se existe alguma variação com estoque > 0 compatível com as OUTRAS seleções
+            const isDisponivel = variacoes.some(v => {
+                if (v.estoque <= 0) return false;
+                
+                // Valida o próprio atributo
+                const valNoSku = v.atributos ? v.atributos[attrName] : (attrName === 'Cor' ? v.cor : v.tamanho);
+                if (valNoSku !== attrVal) return false;
 
-        if (hasSizes) {
-            document.querySelectorAll('.variant-size-label').forEach(label => {
-                const sizeVal = label.dataset.size;
-                const available = variacoes.some(v => v.tamanho === sizeVal && (!hasColors || !selectedColor || v.cor === selectedColor) && v.estoque > 0);
-                if (!available) {
-                    label.style.opacity = '0.4';
-                    label.style.textDecoration = 'line-through';
-                    const input = label.querySelector('input');
-                    if(input && input.checked) { input.checked = false; selectedSize = null; }
-                } else {
-                    label.style.opacity = '1';
-                    label.style.textDecoration = 'none';
+                // Valida os outros atributos já selecionados
+                for (const [outroNome, outroVal] of Object.entries(selecionados)) {
+                    if (outroNome === attrName) continue;
+                    const outroValSku = v.atributos ? v.atributos[outroNome] : (outroNome === 'Cor' ? v.cor : v.tamanho);
+                    if (outroValSku !== outroVal) return false;
                 }
-            });
-        }
 
-        if (hasColors) {
-            document.querySelectorAll('.variant-color-label').forEach(label => {
-                const colorVal = label.dataset.color;
-                const available = variacoes.some(v => v.cor === colorVal && (!hasSizes || !selectedSize || v.tamanho === selectedSize) && v.estoque > 0);
-                if (!available) {
-                    label.style.opacity = '0.3';
-                    const input = label.querySelector('input');
-                    if(input && input.checked) { input.checked = false; selectedColor = null; }
-                } else {
-                    label.style.opacity = '1';
+                return true;
+            });
+
+            const radio = optionLabel.querySelector('input');
+            if (!isDisponivel) {
+                optionLabel.classList.add('disabled-combination');
+                optionLabel.style.opacity = '0.35';
+                optionLabel.style.cursor = 'not-allowed';
+                if (optionLabel.classList.contains('variant-pill-label')) {
+                    optionLabel.style.textDecoration = 'line-through';
                 }
-            });
-        }
+            } else {
+                optionLabel.classList.remove('disabled-combination');
+                optionLabel.style.opacity = '1';
+                optionLabel.style.cursor = 'pointer';
+                if (optionLabel.classList.contains('variant-pill-label')) {
+                    optionLabel.style.textDecoration = 'none';
+                }
+            }
 
+            // Atualiza classe ativa
+            if (radio && radio.checked) {
+                optionLabel.classList.add('active-selected');
+                if (optionLabel.classList.contains('variant-color-label')) {
+                    optionLabel.querySelector('.pdp-color-swatch').classList.add('active');
+                }
+            } else {
+                optionLabel.classList.remove('active-selected');
+                if (optionLabel.classList.contains('variant-color-label')) {
+                    optionLabel.querySelector('.pdp-color-swatch').classList.remove('active');
+                }
+            }
+        });
+
+        // 2. Encontrar o SKU exato se todos os eixos estiverem selecionados
         let matchingVar = null;
-        if ((!hasSizes || selectedSize) && (!hasColors || selectedColor)) {
-            matchingVar = variacoes.find(v => 
-                (!hasSizes || v.tamanho === selectedSize) && 
-                (!hasColors || v.cor === selectedColor)
-            );
+        const qtdSelecionada = Object.keys(selecionados).length;
+
+        if (qtdSelecionada === totalEixos || totalEixos === 0) {
+            matchingVar = variacoes.find(v => {
+                for (const [nome, val] of Object.entries(selecionados)) {
+                    const valSku = v.atributos ? v.atributos[nome] : (nome === 'Cor' ? v.cor : v.tamanho);
+                    if (valSku !== val) return false;
+                }
+                return true;
+            });
         }
 
+        // 3. Atualizar estado visual e formulário de compra
         if (matchingVar && matchingVar.estoque > 0) {
             inputVariacaoId.value = matchingVar.id;
-            btnAddCart.disabled = false;
-            btnAddCart.classList.remove('pdp-add-to-cart--disabled');
-            
-            // Atualizar preço dinâmico na tela
+            if (btnAddCart) {
+                btnAddCart.disabled = false;
+                btnAddCart.classList.remove('pdp-add-to-cart--disabled');
+            }
+
+            // Atualizar preço
             if (priceDisplay) {
                 priceDisplay.innerText = formatMoney(matchingVar.preco);
             }
-            if (stockText) {
-                stockText.innerText = matchingVar.estoque + ' unidades em estoque';
+            if (installmentsDisplay) {
+                const parcela = matchingVar.preco / 10;
+                installmentsDisplay.innerHTML = `em até <strong>10x de ${formatMoney(parcela)}</strong> sem juros`;
             }
-            if(qtyInput) {
+
+            // Atualizar SKU badge
+            if (skuBadge && skuVal) {
+                if (matchingVar.sku) {
+                    skuVal.innerText = matchingVar.sku;
+                    skuBadge.style.display = 'inline-block';
+                } else {
+                    skuBadge.style.display = 'none';
+                }
+            }
+
+            // Atualizar Estoque
+            if (stockText) {
+                stockText.innerText = `${matchingVar.estoque} unidades disponíveis`;
+            }
+            if (qtyInput) {
                 qtyInput.max = matchingVar.estoque;
-                if(parseInt(qtyInput.value) > matchingVar.estoque) {
+                if (parseInt(qtyInput.value) > matchingVar.estoque) {
                     qtyInput.value = matchingVar.estoque;
                 }
             }
+
+            // Troca de Foto da Variação
+            if (matchingVar.imagem_url) {
+                trocarImagemPrincipal(matchingVar.imagem_url);
+            }
+
         } else {
             inputVariacaoId.value = '';
-            btnAddCart.disabled = true;
-            btnAddCart.classList.add('pdp-add-to-cart--disabled');
+            if (btnAddCart) {
+                btnAddCart.disabled = true;
+                btnAddCart.classList.add('pdp-add-to-cart--disabled');
+            }
             if (priceDisplay) {
                 priceDisplay.innerText = formatMoney(basePreco);
             }
+            if (skuBadge) {
+                skuBadge.style.display = 'none';
+            }
             if (stockText) {
-                stockText.innerText = baseEstoque + ' unidades em estoque';
+                stockText.innerText = baseEstoque > 0 ? `${baseEstoque} unidades disponíveis` : 'Esgotado';
             }
         }
     }
 
-    sizeRadios.forEach(radio => radio.addEventListener('change', checkVariations));
-    colorRadios.forEach(radio => radio.addEventListener('change', checkVariations));
+    // Auto-seleção inteligente da primeira combinação disponível ao abrir a página
+    function autoSelecionarPrimeiroDisponivel() {
+        if (variacoes.length === 0) return;
 
-    if (variacoes.length > 0 && btnAddCart) {
-        btnAddCart.disabled = true;
-        btnAddCart.classList.add('pdp-add-to-cart--disabled');
+        const primeiroEmEstoque = variacoes.find(v => v.estoque > 0) || variacoes[0];
+        if (!primeiroEmEstoque) return;
+
+        if (primeiroEmEstoque.atributos) {
+            for (const [nomeAttr, valAttr] of Object.entries(primeiroEmEstoque.atributos)) {
+                const radio = document.querySelector(`.attr-radio[data-attr-name="${nomeAttr}"][value="${valAttr}"]`);
+                if (radio) radio.checked = true;
+            }
+        } else {
+            if (primeiroEmEstoque.cor) {
+                const rCor = document.querySelector(`.attr-radio[data-attr-name="Cor"][value="${primeiroEmEstoque.cor}"]`);
+                if (rCor) rCor.checked = true;
+            }
+            if (primeiroEmEstoque.tamanho) {
+                const rTam = document.querySelector(`.attr-radio[data-attr-name="Tamanho / Opção"][value="${primeiroEmEstoque.tamanho}"]`);
+                if (rTam) rTam.checked = true;
+            }
+        }
+
         checkVariations();
+    }
+
+    // Eventos de clique nas opções
+    document.querySelectorAll('.attr-option').forEach(option => {
+        option.addEventListener('click', function(e) {
+            const radio = this.querySelector('.attr-radio');
+            if (radio && !radio.checked) {
+                radio.checked = true;
+                checkVariations();
+            }
+        });
+    });
+
+    if (formAddCart) {
+        formAddCart.addEventListener('submit', function(e) {
+            if (variacoes.length > 0 && !inputVariacaoId.value) {
+                e.preventDefault();
+                alert('Por favor, selecione todas as opções disponíveis antes de adicionar ao carrinho.');
+            }
+        });
+    }
+
+    if (variacoes.length > 0) {
+        autoSelecionarPrimeiroDisponivel();
     }
 
     // --- Simulador de Frete PDP ---
