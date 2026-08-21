@@ -13,6 +13,7 @@ class ClienteController extends BaseController
     protected PedidoProdutoModel $pedidoProdutoModel;
     protected ClienteEnderecoModel $enderecoModel;
     protected UsuarioModel $usuarioModel;
+    protected \App\Models\ClienteFavoritoModel $favoritoModel;
 
     public function __construct()
     {
@@ -21,6 +22,7 @@ class ClienteController extends BaseController
         $this->pedidoProdutoModel = new PedidoProdutoModel();
         $this->enderecoModel      = new ClienteEnderecoModel();
         $this->usuarioModel       = new UsuarioModel();
+        $this->favoritoModel      = new \App\Models\ClienteFavoritoModel();
     }
 
     private function getUsuarioLogado(): array
@@ -243,5 +245,38 @@ class ClienteController extends BaseController
         $this->usuarioModel->update($usuario['id'], ['senha_hash' => $novoHash]);
 
         return redirect()->to('minha-conta/perfil')->with('sucesso_senha', 'Senha alterada com sucesso!');
+    }
+
+    /**
+     * Lista de Desejos / Meus Favoritos
+     */
+    public function favoritos()
+    {
+        $usuario = $this->getUsuarioLogado();
+        $favoritos = $this->favoritoModel->getFavoritosPorUsuario($usuario['id']);
+
+        $data = [
+            'title'      => 'Meus Favoritos',
+            'active_tab' => 'favoritos',
+            'usuario'    => $usuario,
+            'favoritos'  => $favoritos,
+        ];
+
+        return view('cliente/favoritos', $data);
+    }
+
+    /**
+     * Remover produto da Lista de Desejos
+     */
+    public function removerFavorito($produtoId = null)
+    {
+        $usuario = $this->getUsuarioLogado();
+        $pId = (int) $produtoId;
+
+        $this->favoritoModel->where('usuario_id', $usuario['id'])
+                            ->where('produto_id', $pId)
+                            ->delete();
+
+        return redirect()->to('minha-conta/favoritos')->with('sucesso', 'Produto removido dos seus Favoritos.');
     }
 }

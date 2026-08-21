@@ -7,10 +7,10 @@
 
 ---
 
-## Milestone 3: Experiência do Usuário & Catálogo Avançado (Ativo)
+## Milestone 3: Experiência do Usuário & Catálogo Avançado (100% Concluído ✓)
 
 - **Versão:** v3.0
-- **Status:** Em Andamento (75% Concluído)
+- **Status:** Concluído com Sucesso ✓
 - **Documento de Requisitos:** [REQUIREMENTS.md](REQUIREMENTS.md)
 
 ### Fases do Milestone 3
@@ -51,10 +51,13 @@
   - Suíte de testes `MinhaContaETimelineTest.php` com 100% de aprovação (80 testes, 555 asserções).
 
 #### Phase 13: Lista de Desejos (Wishlist) & Micro-interações de Conversão
-- **Status:** Ready to Plan
+- **Status:** Completed ✓
 - **Objetivo:** Desenvolver sistema de Lista de Desejos (Favoritos) com micro-animações, gaveta/modal de carrinho com cross-sell de recomendados e toasts de alta fidelidade.
-- **Entregas Principais:**
-  - Sistema de favoritos (banco + interface com coração animado).
-  - Tela `/cliente/favoritos` e ação de mover para o carrinho.
-  - Drawer / Modal moderno de "Adicionado ao Carrinho" com produtos relacionados.
-  - Toasts animados de feedback e micro-interações.
+- **Entregas Realizadas:**
+  - Migration `2026-08-21-070000_CreateClienteFavoritosTable.php` e Model `ClienteFavoritoModel.php`.
+  - API assíncrona `/api/favoritos/toggle` e `/api/favoritos/ids` com `FavoritoController.php`.
+  - Botões interativos de coração com micro-animação elástica (`heartBounce`) na vitrine, nas buscas, nos recomendados e na PDP.
+  - Tela dedicada "Minha Lista de Desejos" (`/minha-conta/favoritos`) com fotos, preços, estoque e botão para mover para o carrinho.
+  - Contador dinâmico de favoritos no header da loja (`#badge-favoritos-nav`) e atalho no menu dropdown do usuário.
+  - Sistema flutuante de Toasts modernos de feedback para micro-interações de alta conversão.
+  - Suíte de testes `WishlistEFavoritosTest.php` com 100% de aprovação (85 testes, 652 asserções).

@@ -39,6 +39,15 @@
             <i class="bi bi-chevron-right small opacity-75"></i>
         </a>
 
+        <a href="<?= site_url('minha-conta/favoritos') ?>"
+           class="list-group-item list-group-item-action d-flex align-items-center justify-content-between rounded-3 py-2 px-3 mb-1 border-0 <?= $activeTab === 'favoritos' ? 'bg-primary text-white active fw-semibold' : 'text-secondary' ?>">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-heart-fill fs-5 text-danger"></i>
+                <span>Lista de Desejos</span>
+            </div>
+            <i class="bi bi-chevron-right small opacity-75"></i>
+        </a>
+
         <a href="<?= site_url('minha-conta/perfil') ?>"
            class="list-group-item list-group-item-action d-flex align-items-center justify-content-between rounded-3 py-2 px-3 mb-1 border-0 <?= $activeTab === 'perfil' ? 'bg-primary text-white active fw-semibold' : 'text-secondary' ?>">
             <div class="d-flex align-items-center gap-2">

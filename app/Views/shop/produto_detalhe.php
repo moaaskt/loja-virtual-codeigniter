@@ -356,12 +356,23 @@
                                     <i class="bi bi-bag-plus-fill me-2"></i>
                                     Adicionar ao Carrinho
                                 </button>
+
+                                <button type="button" class="btn btn-outline-danger rounded-4 px-3 py-2 btn-favorite-toggle btn-favorite-pdp d-flex align-items-center justify-content-center shadow-xs"
+                                        data-produto-id="<?= esc($produto['id']) ?>" title="Salvar nos Favoritos" aria-label="Salvar nos Favoritos" style="height: 48px; min-width: 48px;">
+                                    <i class="bi bi-heart fs-5"></i>
+                                </button>
                             </div>
                         <?= form_close() ?>
                     <?php else: ?>
-                        <button class="pdp-add-to-cart pdp-add-to-cart--disabled w-100" disabled>
-                            <i class="bi bi-bag-x me-2"></i>Produto Esgotado
-                        </button>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="pdp-add-to-cart pdp-add-to-cart--disabled flex-grow-1" disabled>
+                                <i class="bi bi-bag-x me-2"></i>Produto Esgotado
+                            </button>
+                            <button type="button" class="btn btn-outline-danger rounded-4 px-3 py-2 btn-favorite-toggle btn-favorite-pdp d-flex align-items-center justify-content-center shadow-xs"
+                                    data-produto-id="<?= esc($produto['id']) ?>" title="Salvar nos Favoritos" aria-label="Salvar nos Favoritos" style="height: 48px; min-width: 48px;">
+                                <i class="bi bi-heart fs-5"></i>
+                            </button>
+                        </div>
                     <?php endif; ?>
                 </div>
 
@@ -630,6 +641,9 @@
                 <div class="col d-flex align-items-stretch">
                     <article class="product-card w-100 h-100 d-flex flex-column <?= $relEsgotado ? 'opacity-65' : '' ?>">
                         <div class="product-card-img-wrap">
+                            <button type="button" class="btn-favorite-card btn-favorite-toggle" data-produto-id="<?= esc($rel['id']) ?>" title="Favoritar Produto" aria-label="Favoritar Produto">
+                                <i class="bi bi-heart"></i>
+                            </button>
                             <?php if (!empty($rel['imagem'])): ?>
                                 <img src="<?= strpos($rel['imagem'], 'http') === 0
                                     ? esc($rel['imagem'])
