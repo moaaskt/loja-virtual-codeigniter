@@ -1,18 +1,18 @@
 # Project State
 
 ## Current Status
-- **Current Milestone:** Milestone 2 (E-Commerce Avançado) — Arquivado & Concluído ✓
-- **Last Action:** Concluído e arquivado o Milestone 2 (v2.0) — Auditoria PASSED ✓ (68 testes, 632 asserções)
+- **Current Milestone:** Milestone 3 (Experiência do Usuário & Catálogo Avançado) — Ativo
+- **Current Phase:** Phase 13 (Lista de Desejos & Micro-interações de Conversão) — Pronto para Planejamento
+- **Last Action:** Concluída a Phase 12 (Painel "Minha Conta" & Timeline Visual de Pedidos) — 80 testes passando (555 asserções) ✓
 
 ## Progress Summary
 - **Milestone 1:** 100% Concluído ✓ (Fases 1 a 4)
 - **Milestone 2:** 100% Concluído & Arquivado ✓ (Fases 5 a 9)
-  - [x] Phase 5: Cálculo de Frete e Cupons de Desconto ✓
-  - [x] Phase 6: Gateway de Pagamento (Pix / Cartão de Crédito) ✓
-  - [x] Phase 7: Notificações Transacionais por E-mail (SMTP) ✓
-  - [x] Phase 7.5: Auditoria do Sistema & Fila de Notificações ✓
-  - [x] Phase 8: Avaliações e Reviews de Produtos ✓
-  - [x] Phase 9: Relatórios e Métricas Avançadas no Painel Admin ✓
+- **Milestone 3:** 75% Em Andamento (Fases 10 a 13)
+  - [x] Phase 10: Arquitetura & Gerador de Variações Multi-Atributos (Admin + Database) ✓
+  - [x] Phase 11: Experiência Interativa de Compra na PDP (Storefront UX) ✓
+  - [x] Phase 12: Painel "Minha Conta" & Timeline Visual de Pedidos ✓
+  - [ ] Phase 13: Lista de Desejos (Wishlist) & Micro-interações de Conversão
 
 ## Quick Tasks Completed
 | Slug | Date | Status | Description |
@@ -25,9 +25,4 @@
 | `paginacao-relatorios-analiticos` | 2026-08-20 | complete ✓ | Paginação nativa (20 itens/pág) em Vendas, Produtos, Clientes e Cupons com otimização SQL e controles Bootstrap |
 
 ## Next Steps
-Inicializar o **Milestone 3** via `/gsd-new-milestone` ou `/gsd-explore`.
-
-
-
-
-
+Executar `/gsd-plan-phase 13` para planejar e implementar a Lista de Desejos (Wishlist) & Micro-interações de Conversão.

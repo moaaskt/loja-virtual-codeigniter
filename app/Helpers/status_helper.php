@@ -133,3 +133,68 @@ if (!function_exists('getBadgeStatusAvaliacao')) {
         };
     }
 }
+
+if (!function_exists('getTimelineEtapas')) {
+    /**
+     * Retorna a estrutura da Timeline de 5 etapas para um pedido.
+     *
+     * @param string      $status
+     * @param string|null $statusPagamento
+     * @return array
+     */
+    function getTimelineEtapas(string $status, ?string $statusPagamento = null): array
+    {
+        $statusNorm = strtolower(trim($status));
+        $statusPagNorm = strtolower(trim($statusPagamento ?? ''));
+
+        if (in_array($statusNorm, ['cancelado', 'falhou', 'recusado', 'reembolsado'])) {
+            return [
+                'is_cancelado' => true,
+                'etapa_atual'  => -1,
+                'status_label' => 'Pedido Cancelado',
+                'badge_class'  => 'bg-danger text-white',
+                'etapas'       => [
+                    ['num' => 1, 'titulo' => 'Pedido Realizado', 'subtitulo' => 'Registrado no sistema', 'icone' => 'bi-receipt', 'concluido' => true, 'erro' => false],
+                    ['num' => 2, 'titulo' => 'Pagamento', 'subtitulo' => 'Não autorizado ou cancelado', 'icone' => 'bi-credit-card-2-front', 'concluido' => false, 'erro' => true],
+                    ['num' => 3, 'titulo' => 'Cancelado', 'subtitulo' => 'Pedido finalizado', 'icone' => 'bi-x-circle-fill', 'concluido' => true, 'erro' => true],
+                ]
+            ];
+        }
+
+        $etapa = 1; // 1: Pedido Realizado
+        if (in_array($statusNorm, ['pago', 'aprovado']) || in_array($statusPagNorm, ['pago', 'aprovado'])) {
+            $etapa = 2; // Pagamento Aprovado
+        }
+        if (in_array($statusNorm, ['em_separacao', 'separando', 'preparando', 'processando'])) {
+            $etapa = 3; // Em Separação
+        }
+        if (in_array($statusNorm, ['enviado', 'em_transporte', 'a_caminho'])) {
+            $etapa = 4; // Enviado
+        }
+        if (in_array($statusNorm, ['entregue', 'concluido', 'finalizado'])) {
+            $etapa = 5; // Entregue
+        }
+
+        $etapasConfig = [
+            ['num' => 1, 'titulo' => 'Pedido Realizado', 'subtitulo' => 'Aguardando pagamento', 'icone' => 'bi-bag-check-fill'],
+            ['num' => 2, 'titulo' => 'Pagamento Confirmado', 'subtitulo' => 'Aprovado com sucesso', 'icone' => 'bi-credit-card-2-front-fill'],
+            ['num' => 3, 'titulo' => 'Em Separação', 'subtitulo' => 'Separando no estoque', 'icone' => 'bi-box-seam-fill'],
+            ['num' => 4, 'titulo' => 'Enviado', 'subtitulo' => 'A caminho do endereço', 'icone' => 'bi-truck'],
+            ['num' => 5, 'titulo' => 'Entregue', 'subtitulo' => 'Recebido pelo cliente', 'icone' => 'bi-house-heart-fill'],
+        ];
+
+        foreach ($etapasConfig as &$item) {
+            $item['concluido'] = $item['num'] <= $etapa;
+            $item['ativo']     = $item['num'] === $etapa;
+            $item['erro']      = false;
+        }
+
+        return [
+            'is_cancelado' => false,
+            'etapa_atual'  => $etapa,
+            'status_label' => $etapasConfig[$etapa - 1]['titulo'] ?? ucfirst($status),
+            'badge_class'  => getStatusColorClass($status),
+            'etapas'       => $etapasConfig
+        ];
+    }
+}

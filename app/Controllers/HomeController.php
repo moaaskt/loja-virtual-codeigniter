@@ -98,9 +98,11 @@ class HomeController extends BaseController
             (int) $produto['id']
         );
 
-        // Busca as imagens extras e as variações garantindo que retornem um array (vazio caso não existam)
+        // Busca as imagens extras e as variações formatadas
         $imagens   = $model->getImagens((int) $produto['id']);
-        $variacoes = $model->getVariacoes((int) $produto['id']);
+        $variacaoModel = new \App\Models\ProdutoVariacaoModel();
+        $variacoes = $variacaoModel->getVariacoesFormatadas((int) $produto['id'], $produto['imagem']);
+        $atributosDisponiveis = $variacaoModel->getAtributosDisponiveis((int) $produto['id']);
 
         // Carrega avaliações e estatísticas do produto
         $estatisticasAvaliacao    = $avaliacaoModel->getEstatisticasProduto((int) $produto['id']);
@@ -114,6 +116,7 @@ class HomeController extends BaseController
             'relacionados'             => $relacionados,
             'imagens'                  => is_array($imagens) ? $imagens : [],
             'variacoes'                => is_array($variacoes) ? $variacoes : [],
+            'atributosDisponiveis'     => $atributosDisponiveis,
             'avaliacoes'               => $avaliacoes,
             'estatisticasAvaliacao'    => $estatisticasAvaliacao,
             'statusPermissaoAvaliacao' => $statusPermissaoAvaliacao,

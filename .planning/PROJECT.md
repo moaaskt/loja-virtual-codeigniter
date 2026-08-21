@@ -1,14 +1,14 @@
 # Loja Virtual CodeIgniter
 
 ## Propósito do Projeto
-Projeto full-stack de uma loja virtual (e-commerce) completa, desenvolvida como parte de um estudo aprofundado do framework PHP CodeIgniter 4.
+Projeto full-stack de uma loja virtual (e-commerce) completa, desenvolvida como parte de um estudo aprofundado do framework PHP CodeIgniter 4 e com foco em alto padrão de engenharia, arquitetura limpa e experiência do usuário (UX/UI para portfólio).
 
 ## Público-Alvo
-- **Clientes da Loja Virtual**: Usuários que navegam pelo catálogo, aplicam filtros instantâneos, adicionam itens ao carrinho, calculam frete, aplicam cupons, avaliam produtos e finalizam compras via Pix ou Cartão.
-- **Administradores**: Gestores da loja que acessam o painel administrativo para gerenciar produtos, categorias, variações, pedidos, cupons de desconto, moderação de avaliações e visualização de relatórios analíticos de vendas.
+- **Clientes da Loja Virtual**: Usuários que navegam pelo catálogo, aplicam filtros instantâneos, selecionam variações complexas de produtos com fotos dinâmicas, salvam itens na wishlist, calculam frete, aplicam cupons, avaliam produtos, acompanham o status dos pedidos em timeline visual e finalizam compras via Pix ou Cartão.
+- **Administradores**: Gestores da loja que acessam o painel administrativo para gerenciar produtos e matrizes de SKUs multi-atributos, categorias, pedidos, cupons de desconto, moderação de avaliações e visualização de relatórios analíticos de vendas.
 
 ## Arquitetura de Alto Nível
-O projeto utiliza o padrão MVC nativo do CodeIgniter 4. O banco de dados é o MySQL e o ambiente de desenvolvimento é rodado sobre Docker e Docker Compose. O front-end usa HTML5, CSS3 moderno, JavaScript assíncrono (Fetch/AJAX com debounce) e Bootstrap 5.
+O projeto utiliza o padrão MVC nativo do CodeIgniter 4. O banco de dados é o MySQL e o ambiente de desenvolvimento é rodado sobre Docker e Docker Compose. O front-end usa HTML5, CSS3 moderno, JavaScript assíncrono (Fetch/AJAX com debounce) e Bootstrap 5 com componentes e micro-animações personalizadas.
 
 ## Histórico de Milestones
 
@@ -27,3 +27,8 @@ O projeto utiliza o padrão MVC nativo do CodeIgniter 4. O banco de dados é o M
 - **Avaliações e Reviews de Produtos**: Sistema de classificação com estrelas, comentários de clientes, restrição de comprador verificado e moderação no admin.
 - **Dashboard Analítico e Relatórios**: Métricas de faturamento, ticket médio, produtos mais vendidos, gráficos no Chart.js, paginação nativa e exportação CSV universal.
 
+### Milestone 3: Experiência do Usuário & Catálogo Avançado (Em Andamento)
+- **Variações Multi-Atributos & Gerador de SKUs**: Suporte a múltiplos eixos (Cor, Armazenamento, RAM, Voltagem, Tamanho), gerador de matriz no admin e imagem vinculada por variação.
+- **Storefront Interativo na PDP**: Seletores inteligentes em swatches e pills/chips, validação cruzada de estoque em tempo real, troca suave de fotos e recálculo reativo de preços/parcelas.
+- **Painel "Minha Conta" & Rastreio**: Histórico completo de pedidos com timeline visual de status, gestão de múltiplos endereços (ViaCEP) e perfil do cliente.
+- **Lista de Desejos & Micro-interações de Compra**: Wishlist com micro-animações, drawer/modal de carrinho com cross-sell de produtos recomendados e feedbacks visuais modernos.
