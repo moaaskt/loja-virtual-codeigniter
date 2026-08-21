@@ -8,18 +8,22 @@ class AddAtivoToUsuarios extends Migration
 {
     public function up()
     {
-        $this->forge->addColumn('usuarios', [
-            'ativo' => [
-                'type'       => 'TINYINT',
-                'constraint' => 1,
-                'default'    => 1,
-                'after'      => 'role',
-            ],
-        ]);
+        if (!$this->db->fieldExists('ativo', 'usuarios')) {
+            $this->forge->addColumn('usuarios', [
+                'ativo' => [
+                    'type'       => 'TINYINT',
+                    'constraint' => 1,
+                    'default'    => 1,
+                    'after'      => 'role',
+                ],
+            ]);
+        }
     }
 
     public function down()
     {
-        $this->forge->dropColumn('usuarios', 'ativo');
+        if ($this->db->fieldExists('ativo', 'usuarios')) {
+            $this->forge->dropColumn('usuarios', 'ativo');
+        }
     }
 }

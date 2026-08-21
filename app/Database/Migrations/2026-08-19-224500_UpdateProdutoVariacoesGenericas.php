@@ -26,24 +26,24 @@ class UpdateProdutoVariacoesGenericas extends Migration
             ],
         ]);
 
-        // Adiciona a coluna 'preco'
-        $this->forge->addColumn('produto_variacoes', [
-            'preco' => [
-                'type'       => 'DECIMAL',
-                'constraint' => '10,2',
-                'null'       => true,
-                'default'    => null,
-                'after'      => 'cor',
-            ],
-        ]);
+        // Adiciona a coluna 'preco' somente se ainda não existir
+        if (!$this->db->fieldExists('preco', 'produto_variacoes')) {
+            $this->forge->addColumn('produto_variacoes', [
+                'preco' => [
+                    'type'       => 'DECIMAL',
+                    'constraint' => '10,2',
+                    'null'       => true,
+                    'default'    => null,
+                    'after'      => 'cor',
+                ],
+            ]);
+        }
     }
 
     public function down()
     {
-        try {
+        if ($this->db->fieldExists('preco', 'produto_variacoes')) {
             $this->forge->dropColumn('produto_variacoes', 'preco');
-        } catch (\Throwable $e) {
-            // Ignora erro caso a coluna não exista durante o rollback
         }
     }
 }

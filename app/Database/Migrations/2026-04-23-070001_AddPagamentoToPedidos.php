@@ -8,8 +8,8 @@ class AddPagamentoToPedidos extends Migration
 {
     public function up()
     {
-        $this->forge->addColumn('pedidos', [
-            'forma_pagamento'  => [
+        $columns = [
+            'forma_pagamento' => [
                 'type'       => 'VARCHAR',
                 'constraint' => 30,
                 'null'       => true,
@@ -23,7 +23,18 @@ class AddPagamentoToPedidos extends Migration
                 'default'    => 'pendente',
                 'after'      => 'forma_pagamento',
             ],
-        ]);
+        ];
+
+        $toAdd = [];
+        foreach ($columns as $name => $def) {
+            if (!$this->db->fieldExists($name, 'pedidos')) {
+                $toAdd[$name] = $def;
+            }
+        }
+
+        if (!empty($toAdd)) {
+            $this->forge->addColumn('pedidos', $toAdd);
+        }
 
         // Atualiza a coluna status para incluir 'pago'
         $this->forge->modifyColumn('pedidos', [
@@ -38,7 +49,18 @@ class AddPagamentoToPedidos extends Migration
 
     public function down()
     {
-        $this->forge->dropColumn('pedidos', ['forma_pagamento', 'status_pagamento']);
+        $columnNames = ['forma_pagamento', 'status_pagamento'];
+        $toDrop = [];
+        foreach ($columnNames as $name) {
+            if ($this->db->fieldExists($name, 'pedidos')) {
+                $toDrop[] = $name;
+            }
+        }
+
+        if (!empty($toDrop)) {
+            $this->forge->dropColumn('pedidos', $toDrop);
+        }
+
         $this->forge->modifyColumn('pedidos', [
             'status' => [
                 'type'       => 'ENUM',
