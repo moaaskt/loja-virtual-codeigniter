@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 atributos_json: attrJson,
                 tamanho: tamanhoVal,
                 cor: corVal,
-                cor_hex: corHex,
+                cor_hex: corVal ? corHex : '',
                 preco: precoPadrao,
                 estoque: 10,
                 imagem_url: ''

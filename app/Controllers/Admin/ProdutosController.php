@@ -427,8 +427,8 @@ class ProdutosController extends BaseController
             if ($corHex !== null && !preg_match('/^#[0-9a-fA-F]{3,8}$/', $corHex)) {
                 $corHex = null;
             }
-            if ($cor === null && $corHex !== null) {
-                $cor = $corHex;
+            if ($cor === null) {
+                $corHex = null;
             }
 
             // Fallback de nome_variacao caso vazio
