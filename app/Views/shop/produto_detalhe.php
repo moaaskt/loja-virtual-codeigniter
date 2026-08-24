@@ -38,7 +38,7 @@
                 if (is_array($decoded)) $atributos = $decoded;
             }
 
-            // Fallback para variações legadas
+            // Fallback para variações legadas (apenas se não houver atributos e nem JSON)
             if (empty($atributos)) {
                 if (!empty($var['cor'])) {
                     $atributos['Cor'] = $var['cor'];
@@ -50,8 +50,8 @@
 
             // Mapeia todos os eixos e valores
             foreach ($atributos as $nomeAttr => $valAttr) {
-                $nome = trim($nomeAttr);
-                $val  = trim($valAttr);
+                $nome = trim((string)$nomeAttr);
+                $val  = trim((string)$valAttr);
                 if ($nome !== '' && $val !== '') {
                     if (!isset($mapaAtributos[$nome])) {
                         $mapaAtributos[$nome] = [];
@@ -62,7 +62,7 @@
                 }
             }
 
-            // Tratamento especial para Swatches de Cor
+            // Tratamento especial para Swatches de Cor (apenas se cor não estiver vazia)
             $c = trim($var['cor'] ?? ($atributos['Cor'] ?? ''));
             $hex = trim($var['cor_hex'] ?? '');
             if ($c !== '') {
