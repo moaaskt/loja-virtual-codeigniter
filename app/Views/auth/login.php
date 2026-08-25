@@ -266,6 +266,23 @@
 
         <?= form_close() ?>
 
+        <div class="demo-access-box mt-3 p-3 rounded-3" style="background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(255, 255, 255, 0.15);">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-white-50 small fw-semibold">
+                    <i class="bi bi-stars text-warning me-1"></i>Acesso Rápido (Demo)
+                </span>
+                <span class="badge bg-secondary bg-opacity-25 text-white-50" style="font-size: 0.65rem;">PORTFÓLIO</span>
+            </div>
+            <div class="d-grid gap-2 d-sm-flex">
+                <button type="button" class="btn btn-sm btn-outline-warning w-100 fw-semibold d-flex align-items-center justify-content-center gap-1" id="btn-auto-admin">
+                    <i class="bi bi-shield-lock-fill"></i> Admin
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-info w-100 fw-semibold d-flex align-items-center justify-content-center gap-1" id="btn-auto-user">
+                    <i class="bi bi-person-fill"></i> Usuário
+                </button>
+            </div>
+        </div>
+
         <div class="divider">ou</div>
 
         <p class="auth-link text-center mb-1">
@@ -281,11 +298,26 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const senhaInput = document.getElementById('senha');
+        const emailInput = document.getElementById('email');
         const eyeIcon    = document.getElementById('eye-icon');
+        const loginForm  = document.querySelector('form');
+
         document.getElementById('toggle-senha').addEventListener('click', function () {
             const isText = senhaInput.type === 'text';
             senhaInput.type = isText ? 'password' : 'text';
             eyeIcon.className = isText ? 'bi bi-eye' : 'bi bi-eye-slash';
+        });
+
+        document.getElementById('btn-auto-admin').addEventListener('click', function() {
+            emailInput.value = 'admin@admin.com';
+            senhaInput.value = '123456';
+            if (loginForm) loginForm.submit();
+        });
+
+        document.getElementById('btn-auto-user').addEventListener('click', function() {
+            emailInput.value = 'user@free.com';
+            senhaInput.value = '112233';
+            if (loginForm) loginForm.submit();
         });
     </script>
 </body>
