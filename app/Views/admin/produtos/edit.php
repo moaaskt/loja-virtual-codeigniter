@@ -8,9 +8,14 @@
         <h1 class="h3 fw-bold mb-1 text-gray-800"><i class="bi bi-pencil-square text-primary me-2"></i><?= esc($title) ?></h1>
         <p class="text-muted small mb-0">Atualize os dados do produto, preços, fotos e matriz de SKUs</p>
     </div>
-    <a href="<?= site_url('admin/produtos') ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" id="btn-voltar-produtos">
-        <i class="bi bi-arrow-left me-1"></i>Voltar
-    </a>
+    <div class="d-flex gap-2">
+        <a href="<?= site_url('produto/' . $produto['id']) ?>" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-sm" id="btn-ver-loja">
+            <i class="bi bi-eye me-1"></i>Ver na Loja
+        </a>
+        <a href="<?= site_url('admin/produtos') ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" id="btn-voltar-produtos">
+            <i class="bi bi-arrow-left me-1"></i>Voltar
+        </a>
+    </div>
 </div>
 
 <?php if (!empty(\Config\Services::validation()->getErrors())): ?>

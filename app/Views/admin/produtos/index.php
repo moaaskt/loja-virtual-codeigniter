@@ -86,9 +86,18 @@
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1">
+                                        <a href="<?= site_url('produto/' . $produto['id']) ?>"
+                                            target="_blank"
+                                            class="btn btn-sm btn-outline-secondary"
+                                            style="border-radius:8px;"
+                                            title="Ver na loja"
+                                            id="btn-ver-produto-<?= $produto['id'] ?>">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
                                         <a href="<?= site_url('admin/produtos/edit/' . $produto['id']) ?>"
                                             class="btn btn-sm btn-outline-primary"
                                             style="border-radius:8px;"
+                                            title="Editar"
                                             id="btn-editar-produto-<?= $produto['id'] ?>">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
@@ -98,6 +107,7 @@
                                             <?= csrf_field() ?>
                                             <button type="submit" class="btn btn-sm btn-outline-danger"
                                                 style="border-radius:8px;"
+                                                title="Mover para lixeira"
                                                 id="btn-excluir-produto-<?= $produto['id'] ?>">
                                                 <i class="bi bi-trash3"></i>
                                             </button>
