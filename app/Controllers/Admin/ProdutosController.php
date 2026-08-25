@@ -244,6 +244,13 @@ class ProdutosController extends BaseController
             $data['imagem'] = $novoNome;
         } elseif (!empty($urlImg)) {
             $data['imagem'] = $urlImg;
+        } elseif ($this->request->getPost('remover_capa') == '1') {
+            $imagemAntiga = $produtoAntigo['imagem'] ?? null;
+            if ($imagemAntiga && strpos($imagemAntiga, 'http') !== 0) {
+                $caminhoAntigo = FCPATH . 'uploads/produtos/' . $imagemAntiga;
+                if (file_exists($caminhoAntigo)) { unlink($caminhoAntigo); }
+            }
+            $data['imagem'] = null;
         }
 
         // --- Frete Grátis ---

@@ -273,13 +273,16 @@
                             <label class="form-label fw-semibold text-dark d-block mb-2">Visualização Atual das Fotos</label>
                             <div class="d-flex flex-wrap gap-2">
                                 <!-- Principal -->
-                                <div class="position-relative">
-                                    <?php if (!empty($produto['imagem'])): ?>
+                                <?php if (!empty($produto['imagem'])): ?>
+                                    <div class="position-relative" id="wrapper-foto-capa">
                                         <img src="<?= strpos($produto['imagem'], 'http') === 0 ? esc($produto['imagem']) : base_url('uploads/produtos/' . esc($produto['imagem'])) ?>"
                                             class="rounded border shadow-sm" style="width:100px; height:100px; object-fit:cover;" title="Principal">
                                         <span class="badge bg-primary position-absolute top-0 start-0 m-1" style="font-size:10px;">Capa</span>
-                                    <?php endif; ?>
-                                </div>
+                                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 p-0 d-flex align-items-center justify-content-center" id="btn-remover-capa" style="width: 24px; height: 24px;" title="Excluir foto de capa">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                <?php endif; ?>
                                 <!-- Galeria -->
                                 <?php if (!empty($imagens)): ?>
                                     <?php foreach ($imagens as $img): ?>
@@ -697,12 +700,30 @@ document.addEventListener('DOMContentLoaded', function() {
             const id = this.getAttribute('data-id');
             const input = document.createElement('input');
             input.type = 'hidden';
-            input.name = 'remover_imagens[]';
+            input.name = 'imagens_excluir[]';
             input.value = id;
             itensParaExcluir.appendChild(input);
             this.closest('.position-relative').remove();
         });
     });
+
+    // Remover Foto de Capa
+    const btnRemoverCapa = document.getElementById('btn-remover-capa');
+    if (btnRemoverCapa) {
+        btnRemoverCapa.addEventListener('click', function() {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'remover_capa';
+            input.value = '1';
+            itensParaExcluir.appendChild(input);
+            const wrapper = document.getElementById('wrapper-foto-capa');
+            if (wrapper) wrapper.remove();
+            
+            // Limpa o input de URL caso esteja preenchido
+            const urlInput = document.querySelector('input[name="url_imagem"]');
+            if (urlInput) urlInput.value = '';
+        });
+    }
 
     // Preview Galeria
     const inputGaleria = document.getElementById('imagens');
