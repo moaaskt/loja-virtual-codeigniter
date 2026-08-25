@@ -48,19 +48,10 @@
                                         <a href="<?= site_url('admin/categorias/edit/' . $categoria['id']) ?>"
                                             class="btn btn-sm btn-outline-primary"
                                             style="border-radius:8px;"
+                                            title="Editar Categoria"
                                             id="btn-editar-categoria-<?= $categoria['id'] ?>">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
-                                        <form action="<?= site_url('admin/categorias/delete/' . $categoria['id']) ?>"
-                                            method="post" class="d-inline"
-                                            onsubmit="return confirm('Excluir «<?= esc($categoria['nome']) ?>»?')">
-                                            <?= csrf_field() ?>
-                                            <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                style="border-radius:8px;"
-                                                id="btn-excluir-categoria-<?= $categoria['id'] ?>">
-                                                <i class="bi bi-trash3"></i>
-                                            </button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>
